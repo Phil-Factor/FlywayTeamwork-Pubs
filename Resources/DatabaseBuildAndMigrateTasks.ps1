@@ -194,7 +194,8 @@ $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
 # and for generating scripts.
 $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
 #where we want to store reports, the sub directories from the user area.
-$ReportLocation='Documents\GitHub\'# part of path from user area to project artefacts folder location 
+
+$ReportLocation="$pwd\versions"# part of path from user area to project artefacts folder location 
 #This must be separate from the flyway project
 Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
 
@@ -345,7 +346,9 @@ $FetchOrSaveDetailsOfParameterSet = {
 }
 
 <# now we format the Flyway parameters #>
-#>
+<# Sometimes we need to run Flyway, and the easiest approach is to create a hashtable
+of the information Flyway needs. It is different to the one we use for each of these
+scriptblocks  #>
 
 $FormatTheBasicFlywayParameters = {
 	Param ($param1) # $FormatTheBasicFlywayParameters (Don't delete this)
@@ -386,50 +389,63 @@ $FormatTheBasicFlywayParameters = {
 
 
 
-<# This scriptblock looks to see if we have the passwords stored for this userid and daytabase
+<# This scriptblock looks to see if we have the passwords stored for this userid, Database and RDBMS
 if not we ask for it and store it encrypted in the user area
  #>
+
 
 $FetchAnyRequiredPasswords = {
 	Param ($param1) # $FetchAnyRequiredPasswords (Don't delete this)
 	$problems = @()
-	@('server') |
-	foreach{ if ($param1.$_ -in @($null,'')) { $problem = "no value for '$($_)'" } }
-	# some values, especially server names, have to be escaped when used in file paths.
-	$escapedServer=($Param1.server.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	# now we get the password if necessary
-  
-	if (!([string]::IsNullOrEmpty($param1.uid))) #then it is using SQL Server Credentials
+	try
 	{
-		# we see if we've got these stored already. If specifying RDBMS, then use that.
-        if ([string]::IsNullOrEmpty($param1.RDBMS) )
-            {$SqlEncryptedPasswordFile="$env:USERPROFILE\$($param1.uid)-$($escapedServer).xml"}
-        else
-            {$SqlEncryptedPasswordFile="$env:USERPROFILE\$($param1.uid)-$($escapedServer)-$($RDBMS).xml"}
-		# test to see if we know about the password in a secure string stored in the user area
-		if (Test-Path -path $SqlEncryptedPasswordFile -PathType leaf)
+       @('server') |
+		foreach{ if ($param1.$_ -in @($null, '')) { $problems += "no value for '$($_)'" } }
+		# some values, especially server names, have to be escaped when used in file paths.
+		if ($problems.Count -eq 0)
 		{
-			#has already got this set for this login so fetch it
-			$SqlCredentials = Import-CliXml $SqlEncryptedPasswordFile
-		}
-		else #then we have to ask the user for it (once only)
-		{
-			# hasn't got this set for this login
-			$SqlCredentials = get-credential -Credential $param1.uid
-			# Save in the user area 
-			$SqlCredentials | Export-CliXml -Path $SqlEncryptedPasswordFile
+			$escapedServer = ($Param1.server.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+			# now we get the password if necessary
+			
+			if (!([string]::IsNullOrEmpty($param1.uid))) #then it is using SQL Server Credentials
+			{
+				# we see if we've got these stored already. If specifying RDBMS, then use that.
+				if ([string]::IsNullOrEmpty($param1.RDBMS))
+				{ $SqlEncryptedPasswordFile = "$env:USERPROFILE\$($param1.uid)-$($escapedServer).xml" }
+				else
+				{ $SqlEncryptedPasswordFile = "$env:USERPROFILE\$($param1.uid)-$($escapedServer)-$($RDBMS).xml" }
+				# test to see if we know about the password in a secure string stored in the user area
+				if (Test-Path -path $SqlEncryptedPasswordFile -PathType leaf)
+				{
+					#has already got this set for this login so fetch it
+					$SqlCredentials = Import-CliXml $SqlEncryptedPasswordFile
+				}
+				else #then we have to ask the user for it (once only)
+				{
+					# hasn't got this set for this login
+					$SqlCredentials = get-credential -Credential $param1.uid
+					# Save in the user area 
+					$SqlCredentials | Export-CliXml -Path $SqlEncryptedPasswordFile
         <# Export-Clixml only exports encrypted credentials on Windows.
         otherwise it just offers some obfuscation but does not provide encryption. #>
-		}
-
-		$param1.Uid = $SqlCredentials.UserName;
-		$param1.Pwd = $SqlCredentials.GetNetworkCredential().password
+				}
+				
+			$param1.Uid = $SqlCredentials.UserName;
+			$param1.Pwd = $SqlCredentials.GetNetworkCredential().password
+			}
+        }
 	}
-
-if ($problems.Count -gt 0)
+	catch
+	{
+		$Param1.Problems.'FetchAnyRequiredPasswords' +=
+             "$($PSItem.Exception.Message) at line $($_.InvocationInfo.ScriptLineNumber)"
+	}
+	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'FetchAnyRequiredPasswords' += $problems;
 	}
+    if (!([string]::IsNullOrEmpty($param1.uid)) -and [string]::IsNullOrEmpty($param1.Pwd))
+         {Write-warning "returned no password"}
 }
 
 <#This scriptblock checks the code in the database for any issues,
@@ -451,8 +467,7 @@ $CheckCodeInDatabase = {
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
 	#now we create the parameters for CodeGuard.
     $escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$(
-		$escapedProject)\$($param1.Version)\Reports"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Reports"
 	if ($MyDatabasePath -like '*\\*'){ } { $Problems += "created an illegal path '$MyDatabasePath'" }
     $Arguments = @{
 		server = $($param1.server) #The server name to connect
@@ -551,8 +566,7 @@ $CheckCodeInMigrationFiles = {
         if ([version]$Theversion -le [version]$Param1.version)
             {
 		    #now we create the parameters for CodeGuard.
-		    $MyVersionReportPath = "$($env:USERPROFILE)\$ReportLocation$(
-			    $EscapedProject)\$TheVersion\Reports"
+		    $MyVersionReportPath = "$ReportLocation\$($param1.Version)\Reports"
 		    $Arguments = @{
 			    source = $ThePath
 			    outfile = "$MyVersionReportPath\FilecodeAnalysis.xml" <#
@@ -701,7 +715,7 @@ $IsDatabaseIdenticalToSource = {
 		
         $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
         #the database scripts path would be up to you to define, of course
-		$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$($EscapedProject)\$($param1.Version)\Source"
+		$MyDatabasePath = "$ReportLocation\$($param1.Version)\Source"
 		$Args = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
 			"/Scripts1:$MyDatabasePath"
@@ -775,7 +789,7 @@ $CreateScriptFoldersIfNecessary = {
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 	#the database scripts path would be up to you to define, of course
     $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$($EscapedProject)\$($param1.Version)\Source"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Source"
 	$Args = @(
 		"/server1:$($param1.server)",
 		"/database1:$($param1.database)",
@@ -829,7 +843,7 @@ $CreateBuildScriptIfNecessary = {
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 	#the database scripts path would be up to you to define, of course
     $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$($EscapedProject)\$($param1.Version)\Scripts"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Scripts"
 	$Args = @(# we create an array in order to splat the parameters. With many command-line apps you
 		# can use a hash-table 
 		"/server1:$($param1.server)",
@@ -894,8 +908,7 @@ $ExecuteTableSmellReport = {
 		$EscapedValues | foreach{ $param1 += $_ }
 	}#>
     $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$(
-		$EscapedProject)\$($param1.Version)\Reports"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Reports"
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
 		# does the path to the reports directory exist?
@@ -1161,8 +1174,7 @@ $ExecuteTableDocumentationReport = {
 		{ $Problems= "no value for '$($_)'" }
 	}
 	$escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$(
-		$EscapedProject)\$($param1.Version)\Reports"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Reports"
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
 		# does the path to the reports directory exist?
@@ -1296,8 +1308,7 @@ $SaveDatabaseModelIfNecessary = {
 	try
         {$routine = "$($param1.ProjectFolder)\TheGloopDatabaseModel.sql"
 	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
-	$MyDatabasePath = "$($env:USERPROFILE)\$ReportLocation$(
-		$EscapedProject)\$($param1.Version)\Reports"
+	$MyDatabasePath = "$ReportLocation\$($param1.Version)\Reports"
     if (Test-Path -PathType Leaf $MyDatabasePath)
 	{
 		# does the path to the reports directory exist as a file for some reason?
@@ -1439,11 +1450,11 @@ FOR JSON AUTO") | convertfrom-json
         }
     else
         {
-        $PreviousDatabasePath = "$($env:USERPROFILE)\$ReportLocation$($EscapedProject)\$($PreviousVersion)\Source"
+        $PreviousDatabasePath = "$ReportLocation\$($PreviousVersion)\Source"
         If (!(Test-Path -path $PreviousDatabasePath -PathType Container)) 
             {$WeCanDoIt=$False} #Because no previous source
         } 
-    $CurrentUndoPath = "$($env:USERPROFILE)\$ReportLocation$($EscapedProject)\$($Param1.Version)\Scripts";
+    $CurrentUndoPath = "$ReportLocation\$($param1.Version)\Scripts";
     if (Test-Path -Path "$CurrentUndoPath\U$($Param1.Version)__Undo.sql" -PathType Leaf )
         {$WeCanDoIt=$False} #Because it has already been done             
     If ($WeCanDoIt)
@@ -1519,15 +1530,11 @@ $BulkCopyIn = {
 	{
 		#now we know the version we get a list of the tables.
 		$Tables = $GetdataFromSQLCMD.Invoke($Param1, @"
-SET NOCOUNT ON;
-DECLARE @json NVARCHAR(MAX);
-SELECT @json =
-  (SELECT Object_Schema_Name (object_id) AS [Schema], name
+SELECT Object_Schema_Name (object_id) AS [Schema], name
      FROM sys.tables
      WHERE
      is_ms_shipped = 0 AND name NOT LIKE 'Flyway%'
-  FOR JSON AUTO);
-SELECT @json;
+  FOR JSON AUTO
 "@) | ConvertFrom-Json
 		Write-verbose "Reading data in from $DirectoryToLoadFrom"
 		if ($Tables.Error -ne $null)
@@ -1602,15 +1609,11 @@ $BulkCopyOut = {
 	
 	#now we know the version we get a list of the tables.
 	$Tables = $GetdataFromSQLCMD.Invoke($param1, @"
-SET NOCOUNT ON;
-DECLARE @json NVARCHAR(MAX);
-SELECT @json =
-  (SELECT Object_Schema_Name (object_id) AS [Schema], name
+SELECT Object_Schema_Name (object_id) AS [Schema], name
      FROM sys.tables
      WHERE
      is_ms_shipped = 0 AND name NOT LIKE 'Flyway%'
-  FOR JSON AUTO);
-SELECT @json;
+  FOR JSON AUTO
 "@) | ConvertFrom-Json
 	Write-verbose "Reading data in from $DirectoryToLoadFrom"
 	if ($Tables.Error -ne $null)
@@ -1647,6 +1650,40 @@ SELECT @json;
 			}
 		}
 	}
+}
+
+
+
+Function GetorSetPassword{
+[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true,
+				   Position = 1)]
+		[string]$uid,
+		[Parameter(Mandatory = $true,
+				   Position = 2)]
+		[string]$Server,
+		[Parameter(Mandatory = $false,
+				   Position = 3)]
+		[string]$RDBMS =$null) #change to your  database system if you have two on the one server!
+
+
+
+
+
+    $PwdDetails= @{
+        'RDBMS'=$RDBMS; #jdbc name. Only necessary for systems with several RDBMS on the same server
+	    'Server'=$server;
+        'pwd' = 'sex'; #Always leave blank
+	    'uid' = $uid; #leave blank unless you use credentials
+	    'problems' = @{ }; # for reporting any big problems
+         }
+ 
+    $FetchAnyRequiredPasswords.Invoke($PwdDetails);
+    if ($PwdDetails.Problems.FetchAnyRequiredPasswords.Count -gt 0)
+         {Write-error "$($PwdDetails.Problems.FetchAnyRequiredPasswords)" }
+    $PwdDetails.pwd
 }
 
 
@@ -1709,4 +1746,4 @@ function Process-FlywayTasks
    }
 
 
-'scriptblocks and cmdlet loaded. V1.2.45'
+'scriptblocks and cmdlet loaded. V1.2.47'
