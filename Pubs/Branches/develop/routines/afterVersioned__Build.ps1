@@ -1,4 +1,6 @@
-﻿<#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
+﻿. '.\preliminary.ps1'
+
+<#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  
 This can be a problem if you have several chores that need to be done in the same callback or you have a
@@ -20,76 +22,13 @@ passed by custom placeholders, such as the version of the RDBMS, or the current 
 you're building
 
 
-run the library script, assuming it is in the project directory containing the script directory #>
-# run the library script, assuming it is in the project directory containing the script directory
-if (Test-Path -path "..\..\common\DatabaseBuildAndMigrateTasks.ps1"-PathType Leaf)
-    {
-    . "..\..\common\DatabaseBuildAndMigrateTasks.ps1"
-    }
-else
-    {
-    . "..\DatabaseBuildAndMigrateTasks.ps1"
-    }
-
-<# The most useful data passed to this script by Flyway is the URL that you used to call Flyway. This
-is likely to tell you the server, port, database and the type of database (RDBMS). We can use the URL
-if we just want to make JDBC calls. We can't and don't. Instead we extract the connection details
-and use these. #>
-$FlywayURLRegex =
-'jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.+databaseName=|/)(?<database>[\w]{1,20})'
-
-#this FLYWAY_URL contains the current database, port and server so it is worth grabbing
-$ConnectionInfo = $env:FLYWAY_URL #get the environment variable
-if ($ConnectionInfo -eq $null) #OMG... it isn't there for some reason
-{ Write-error 'missing value for flyway url' }
-<# a reference to this Hashtable is passed to each process (it is a scriptBlock)
-so as to make debugging easy. We'll be a bit cagey about adding key-value pairs
-as it can trigger the generation of a copy which can cause bewilderment and 
-problems- values don't get passed back. 
-Don't fill anything in here!!! The script does that for you#>
-$DatabaseDetails = @{
-    'RDBMS'=''; # necessary for systems with several RDBMS on the same server
-	'server' = ''; #the name of your server
-	'database' = ''; #the name of the database
-	'version' = ''; #the version
-	'ProjectFolder' = ''; #where all the migration files are
-    'project' = ''; #the name of your project
-    'projectDescription'=''; #a brief description of the project
-    'flywayTable'='';#The name and schema of the flyway Table
-	'uid' = ''; #optional if you are using windows authewntication
-	'pwd' = ''; #only if you use a uid. Leave blank. we fill it in for you
-	'locations' = @{ }; # for reporting file locations used
-	'problems' = @{ }; # for reporting any big problems
-	'warnings' = @{ } # for reporting any issues
-} # for reporting any warnings
-
-if ($ConnectionInfo -imatch $FlywayURLRegex)
-{
-	$DatabaseDetails.RDBMS = $matches['RDBMS'];
-	$DatabaseDetails.server = $matches['server'];
-	$DatabaseDetails.port = $matches['port'];
-	$DatabaseDetails.database = $matches['database']
-}
-else
-{ write-error "failed to obtain the value of the RDBMS, server, Port or database from the FLYWAY_URL" }
-
-$DatabaseDetails.uid = $env:FLYWAY_USER;
-$DatabaseDetails.Project = $env:FP__projectName__;
-$DatabaseDetails.ProjectDescription = $env:FP__projectDescription__;
-$DatabaseDetails.ProjectFolder = split-path $PWD.Path -Parent;
-if ($env:FP__flyway_defaultSchema__ -ne $null -and $env:FP__flyway_table__ -ne $null)
-    {$DatabaseDetails.flywayTable="$($env:FP__flyway_defaultSchema__).$($env:FP__flyway_table__)"}
-    else
-    {$DatabaseDetails.flywayTable='dbo.flyway_schema_history'};
-<#
+The ". '.\preliminary.ps1" line that this callback startes withcreates a DBDetails array.
 You can dump this array for debugging so that it is displayed by Flyway
 
-$DatabaseDetails|convertTo-json
+$DBDetails|convertTo-json
 
-these routines write to  reports  in "$($env:USERPROFILE)\Documents\GitHub\$(
-		$param1.EscapedProject)\$($param1.Version)\Reports" and will return
-        the path in the $DatabaseDetails if you need it. Set it to whatever
-        you want in the file DatabaseBuildAndMigrateTasks.ps1
+these routines return the path they write to 
+in the $DatabaseDetails if you need it.
 You will also need to set SQLCMD to the correct value. This is set by a string
 $SQLCmdAlias in ..\DatabaseBuildAndMigrateTasks.ps1
 
