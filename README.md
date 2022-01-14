@@ -5,7 +5,7 @@ This is a sample. If you clone it, you will have a playground for trying Flyway 
 
 We’re using the following model of branching. 
 
-![image-20220114092555919](image-20220114092555919.png)
+![diagram of hierarchy](image-20220114092555919.png)
 
 Within each branch is held all the migrations, scripts, models and reports. Each branch therefor has the same  names and purpose for its subdirectories. The sub-branches of any branch are contained in a ‘branches’ directory. 
 
