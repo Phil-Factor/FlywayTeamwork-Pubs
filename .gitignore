@@ -1,5 +1,8 @@
 # Ignore reports
 reports/
-
+# Ignore copies/
+copies/
+# Ignore versions/
+Versions/
 # Ignore 
 working*.*
