@@ -30,6 +30,21 @@ $PostMigrationInvocations = @(
     #This uses SQL Codeguard to do this
 	$CheckCodeInMigrationFiles #does a code analysis of the code in the migration script
 	$IsDatabaseIdenticalToSource # uses SQL Compare to check that a version of a database is correct
+    $SaveDatabaseModelIfNecessary,
+    #Save the model for this versiopn of the file
+    $ExecuteTableSmellReport,
+    <# creates a json report of the documentation of every table and its
+    columns. If you add or change tables, this can be subsequently used to update the 
+    AfterMigrate callback script for the documentation. #>
+    $FormatTheBasicFlywayParameters,
+    <# uses SQL Compare to check that a version of a database is correct and hasn't been
+    changed. To do this, the $CreateScriptFoldersIfNecessary task must have been run
+    first. #>
+    $CreateUndoScriptIfNecessary,
+    <# This script creates a PUML file for a Gantt chart at the current version of the 
+    database. This can be read into any editor that takes PlantUML files to give a Gantt
+    chart #>
+    $GeneratePUMLforGanttChart
 )
-Process-FlywayTasks $DatabaseDetails $PostMigrationInvocations
+Process-FlywayTasks $DbDetails $PostMigrationInvocations
 

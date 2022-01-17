@@ -61,4 +61,4 @@ $PostMigrationTasks = @(
     $CreateUndoScriptIfNecessary # uses SQL Compare
     #Creates a first-cut UNDo script. This is an idempotentic script that undoes to the previous version 
     )
-Process-FlywayTasks $DatabaseDetails $PostMigrationTasks
+Process-FlywayTasks $DBDetails $PostMigrationTasks
