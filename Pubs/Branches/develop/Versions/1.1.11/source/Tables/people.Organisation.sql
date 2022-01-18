@@ -5,9 +5,9 @@ CREATE TABLE [people].[Organisation]
 [LineOfBusiness] [nvarchar] (100) COLLATE Latin1_General_CI_AS NOT NULL,
 [LegacyIdentifier] [nvarchar] (30) COLLATE Latin1_General_CI_AS NULL,
 [ModifiedDate] [datetime] NOT NULL CONSTRAINT [organisationModifiedDateD] DEFAULT (getdate())
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [people].[Organisation] ADD CONSTRAINT [organisationIDPK] PRIMARY KEY CLUSTERED  ([organisation_ID]) ON [PRIMARY]
+ALTER TABLE [people].[Organisation] ADD CONSTRAINT [organisationIDPK] PRIMARY KEY CLUSTERED  ([organisation_ID])
 GO
-CREATE NONCLUSTERED INDEX [SearchByOrganisationName] ON [people].[Organisation] ([OrganisationName]) ON [PRIMARY]
+CREATE NONCLUSTERED INDEX [SearchByOrganisationName] ON [people].[Organisation] ([OrganisationName])
 GO

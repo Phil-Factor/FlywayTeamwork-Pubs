@@ -758,6 +758,7 @@ $IsDatabaseIdenticalToSource = {
 			"/database2:$($param1.database)",
 			"/Assertidentical",
 			"/force",
+            "/exclude:table:$($param1.flywayTable)",
 			'/exclude:ExtendedProperty', #trivial
 			"/LogLevel:Warning"
 		)
@@ -798,6 +799,10 @@ $IsDatabaseIdenticalToSource = {
 	$param1.Checked = $identical
 	if ($problems.Count -gt 0)
 	{ $Param1.Problems.'IsDatabaseIdenticalToSource' += $problems; }
+	else
+	{
+		$Param1.WriteLocations.'IsDatabaseIdenticalToSource' = "$MyVersionReportPath\VersionComparison.txt";
+	}
 	if ($warnings.Count -gt 0)
 	{ $Param1.Warnings.'IsDatabaseIdenticalToSource' += $Warnings; }
 }
@@ -899,7 +904,7 @@ $CreateBuildScriptIfNecessary = {
 		# can use a hash-table 
 		"/server1:$($param1.server)",
 		"/database1:$($param1.database)",
-		"/exclude:table:flyway_schema_history",
+		"/exclude:table:$($param1.flywayTable)",
 		"/empty2",
 		"/force", # 
 		"/options:NoTransactions,NoErrorHandling", # so that we can use the script with Flyway more easily
@@ -1222,8 +1227,9 @@ SELECT @Json
 columns. If you add or change tables, this can be subsequently used to update the 
 AfterMigrate callback script
 for the documentation */#>
+
 $ExecuteTableDocumentationReport = {
-	Param ($param1) # ExecuteTableDocumentationReport  
+	Param ($param1) # $ExecuteTableDocumentationReport  - parameter is a hashtable
 
 
 	$problems = @()
@@ -1548,8 +1554,9 @@ FOR JSON AUTO") | convertfrom-json
 		    # can use a hash-table 
             "/Scripts1:$PreviousDatabasePath"
 		    "/server2:$($param1.server)",
+            '/include:identical',#a migration may just be data, no metadata.
 		    "/database2:$($param1.database)",
-		    "/exclude:table:flyway_schema_history",
+		    "/exclude:table:$($param1.flywayTable)",
 		    "/force", # 
 		    "/options:NoErrorHandling,NoTransactions,DoNotOutputCommentHeader,ThrowOnFileParseFailed,ForceColumnOrder,IgnoreNoCheckAndWithNoCheck,IgnoreSquareBrackets,IgnoreWhiteSpace,ObjectExistenceChecks,IgnoreSystemNamedConstraintNames,IgnoreTSQLT,NoDeploymentLogging", 
 # so that we can use the script with Flyway more easily
@@ -1572,6 +1579,7 @@ FOR JSON AUTO") | convertfrom-json
 	    }
 		# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
 		Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
+		if ($LASTEXITCODE-eq 63) { "no changes to the metadata between $PreviousVersion and this version $($param1.Version) of $($param1.Project)" }
 		if ($?) { "Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
 		else # if no errors then simple message, otherwise....
 		{
@@ -1582,6 +1590,11 @@ FOR JSON AUTO") | convertfrom-json
 		}
 		if ($problems.count -gt 0)
 		{ $Param1.Problems.'CreateUNDOScriptIfNecessary' += $problems; }
+	    else
+	    {
+	    $Param1.WriteLocations.'CreateUNDOScriptIfNecessary' = "$CurrentUndoPath\U$($Param1.Version)__Undo.sql";
+	    }
+
 	}
 	else { "This version '$($param1.Version)' already has a undo script to get to $PreviousVersion at $CurrentUndoPath\U$($Param1.Version)__Undo.sql " }
 	
@@ -1597,7 +1610,7 @@ database.If you did, you'd need to clear out the existing data first! It is inte
 for static scripts AKA baseline migrations.
 #>
 $BulkCopyIn = {
-	Param ($param1) # $$BulkCopyIn (Don't delete this) 
+	Param ($param1) # $BulkCopyIn (Don't delete this) 
 	$problems = @(); # well, not yet
 	$WeCanDoIt = $true; #assume that we can BCP data in.so far!
 	#check that we have values for the necessary details
@@ -1682,7 +1695,7 @@ DATA directory at the same level as the scripts directory.
 BCP must have been previously installed in the path.
 #>
 $BulkCopyOut = {
-	Param ($param1) # $$BulkCopyOut (Don't delete this) 
+	Param ($param1) # $BulkCopyOut (Don't delete this) 
 	$problems = @(); # well, not yet
 	$WeCanDoIt = $true; #assume that we can BCP data in.so far!
 	#check that we have values for the necessary details
@@ -1813,7 +1826,7 @@ DECLARE @Version [NVARCHAR](50) =
         WHERE
         installed_rank =
         (SELECT Max (installed_rank)
-            FROM PubsSix.dbo.flyway_schema_history 
+            FROM $flywayTable 
             WHERE success = 1));
 
 DECLARE @PlantUMLCode NVARCHAR(MAX)='@startgantt

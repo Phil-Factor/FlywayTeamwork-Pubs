@@ -6,7 +6,7 @@ CREATE TABLE [dbo].[stores]
 [city] [nvarchar] (40) COLLATE Latin1_General_CI_AS NULL,
 [state] [char] (2) COLLATE Latin1_General_CI_AS NULL,
 [zip] [char] (5) COLLATE Latin1_General_CI_AS NULL
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [dbo].[stores] ADD CONSTRAINT [UPK_storeid] PRIMARY KEY CLUSTERED  ([stor_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[stores] ADD CONSTRAINT [UPK_storeid] PRIMARY KEY CLUSTERED  ([stor_id])
 GO

@@ -7,11 +7,11 @@ CREATE TABLE [people].[Phone]
 [Start_date] [datetime] NOT NULL,
 [End_date] [datetime] NULL,
 [ModifiedDate] [datetime] NULL CONSTRAINT [PhoneModifiedDateD] DEFAULT (getdate())
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [people].[Phone] ADD CONSTRAINT [PhonePK] PRIMARY KEY CLUSTERED  ([Phone_ID]) ON [PRIMARY]
+ALTER TABLE [people].[Phone] ADD CONSTRAINT [PhonePK] PRIMARY KEY CLUSTERED  ([Phone_ID])
 GO
 ALTER TABLE [people].[Phone] ADD CONSTRAINT [Phone_PersonFK] FOREIGN KEY ([Person_id]) REFERENCES [people].[Person] ([person_ID])
 GO
-ALTER TABLE [people].[Phone] ADD CONSTRAINT [FK__Phone__TypeOfPho__31783731] FOREIGN KEY ([TypeOfPhone]) REFERENCES [people].[PhoneType] ([TypeOfPhone])
+ALTER TABLE [people].[Phone] ADD CONSTRAINT [FK__Phone__TypeOfPho__009508B4] FOREIGN KEY ([TypeOfPhone]) REFERENCES [people].[PhoneType] ([TypeOfPhone])
 GO

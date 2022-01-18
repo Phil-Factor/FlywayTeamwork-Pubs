@@ -8,9 +8,7 @@
   <DatabaseVersion>14</DatabaseVersion>
   <ServerVersion>14.0.2037.2</ServerVersion>
   <IsAzure>False</IsAzure>
-  <ScriptFolderType>Default</ScriptFolderType>
   <MaxDataFileSize>10485760</MaxDataFileSize>
-  <ProjectGuid>130c9c81-609e-412c-a6fe-8c68607687f4</ProjectGuid>
   <WriteToFileOptions>
     <Prefixes>
       <None>

@@ -147,7 +147,7 @@ CREATE TABLE [people].[EmailAddress]
 [EmailID] [int] NOT NULL IDENTITY(1, 1),
 [Person_id] [int] NOT NULL,
 [EmailAddress] [people].[PersonalEmailAddress] NOT NULL,
-[StartDate] [date] NOT NULL CONSTRAINT [DF__EmailAddr__Start__47677850] DEFAULT (getdate()),
+[StartDate] [date] NOT NULL CONSTRAINT [DF__EmailAddr__Start__168449D3] DEFAULT (getdate()),
 [EndDate] [date] NULL,
 [ModifiedDate] [datetime] NOT NULL CONSTRAINT [EmailAddressModifiedDateD] DEFAULT (getdate())
 ) ON [PRIMARY]
@@ -382,8 +382,8 @@ CREATE TABLE [dbo].[editions]
 (
 [Edition_id] [int] NOT NULL IDENTITY(1, 1),
 [publication_id] [dbo].[tid] NOT NULL,
-[Publication_type] [nvarchar] (20) COLLATE Latin1_General_CI_AS NOT NULL CONSTRAINT [DF__editions__Public__6621099A] DEFAULT ('book'),
-[EditionDate] [datetime2] NOT NULL CONSTRAINT [DF__editions__Editio__67152DD3] DEFAULT (getdate())
+[Publication_type] [nvarchar] (20) COLLATE Latin1_General_CI_AS NOT NULL CONSTRAINT [DF__editions__Public__353DDB1D] DEFAULT ('book'),
+[EditionDate] [datetime2] NOT NULL CONSTRAINT [DF__editions__Editio__3631FF56] DEFAULT (getdate())
 ) ON [PRIMARY]
 GO
 PRINT N'Creating primary key [PK_editions] on [dbo].[editions]'
@@ -404,7 +404,7 @@ CREATE TABLE [dbo].[prices]
 [advance] [dbo].[Dollars] NULL,
 [royalty] [int] NULL,
 [ytd_sales] [int] NULL,
-[PriceStartDate] [datetime2] NOT NULL CONSTRAINT [DF__prices__PriceSta__69F19A7E] DEFAULT (getdate()),
+[PriceStartDate] [datetime2] NOT NULL CONSTRAINT [DF__prices__PriceSta__390E6C01] DEFAULT (getdate()),
 [PriceEndDate] [datetime2] NULL
 ) ON [PRIMARY]
 GO
@@ -423,9 +423,9 @@ CREATE TABLE [dbo].[Publication_Types]
 [Publication_Type] [nvarchar] (20) COLLATE Latin1_General_CI_AS NOT NULL
 ) ON [PRIMARY]
 GO
-PRINT N'Creating primary key [PK__Publicat__66D9D2B33002FDB1] on [dbo].[Publication_Types]'
+PRINT N'Creating primary key [PK__Publicat__66D9D2B3F3539031] on [dbo].[Publication_Types]'
 GO
-ALTER TABLE [dbo].[Publication_Types] ADD CONSTRAINT [PK__Publicat__66D9D2B33002FDB1] PRIMARY KEY CLUSTERED  ([Publication_Type]) ON [PRIMARY]
+ALTER TABLE [dbo].[Publication_Types] ADD CONSTRAINT [PK__Publicat__66D9D2B3F3539031] PRIMARY KEY CLUSTERED  ([Publication_Type]) ON [PRIMARY]
 GO
 PRINT N'Creating [dbo].[sales]'
 GO
@@ -576,51 +576,6 @@ SELECT publications.Publication_id AS title_id, publications.title,
       ON TagTitle.TagName_ID = TagName.TagName_ID
   WHERE prices.PriceEndDate IS NULL;
 GO
-PRINT N'Creating [dbo].[PublishersByPublicationType]'
-GO
-CREATE VIEW [dbo].[PublishersByPublicationType] as
-/* A view to provide the number of each type of publication produced
-by each publisher*/
-SELECT Coalesce(publishers.pub_name, '---All types') AS publisher,
-Sum(CASE WHEN Editions.Publication_type = 'AudioBook' THEN 1 ELSE 0 END) AS 'AudioBook',
-Sum(CASE WHEN Editions.Publication_type ='Book' THEN 1 ELSE 0 END) AS 'Book',
-Sum(CASE WHEN Editions.Publication_type ='Calendar' THEN 1 ELSE 0 END) AS 'Calendar',
-Sum(CASE WHEN Editions.Publication_type ='Ebook' THEN 1 ELSE 0 END) AS 'Ebook',
-Sum(CASE WHEN Editions.Publication_type ='Hardback' THEN 1 ELSE 0 END) AS 'Hardback',
-Sum(CASE WHEN Editions.Publication_type ='Map' THEN 1 ELSE 0 END) AS 'Map',
-Sum(CASE WHEN Editions.Publication_type ='Paperback' THEN 1 ELSE 0 END) AS 'PaperBack',
-Count(*) AS total
- FROM dbo.publishers
-INNER JOIN dbo.publications
-ON publications.pub_id = publishers.pub_id
-INNER JOIN editions ON editions.publication_id = publications.Publication_id
-INNER JOIN dbo.prices ON prices.Edition_id = editions.Edition_id
-WHERE prices.PriceEndDate IS null 
-GROUP BY publishers.pub_name
-WITH ROLLUP
-GO
-PRINT N'Creating [dbo].[TitlesAndEditionsByPublisher]'
-GO
-CREATE VIEW [dbo].[TitlesAndEditionsByPublisher]
-AS
-/* A view to provide the number of each type of publication produced
-Select * from [dbo].[TitlesAndEditionsByPublisher]
-by each publisher*/
-SELECT publishers.pub_name AS publisher, title,
-  String_Agg
-    (
-    Publication_type + ' ($' + Convert(VARCHAR(20), price) + ')', ', '
-    ) AS ListOfEditions
-  FROM dbo.publishers
-    INNER JOIN dbo.publications
-      ON publications.pub_id = publishers.pub_id
-    INNER JOIN editions
-      ON editions.publication_id = publications.Publication_id
-    INNER JOIN dbo.prices
-      ON prices.Edition_id = editions.Edition_id
-  WHERE prices.PriceEndDate IS NULL
-  GROUP BY publishers.pub_name, title;
-GO
 PRINT N'Creating [dbo].[titleview]'
 GO
 CREATE VIEW [dbo].[titleview]
@@ -730,6 +685,51 @@ SELECT Replace (Address.LegacyIdentifier, 'au-', '') AS au_id,
   WHERE People.Abode.End_date IS NULL 
   AND phone.End_date IS null
   AND Person.LegacyIdentifier LIKE 'au-%';
+GO
+PRINT N'Creating [dbo].[PublishersByPublicationType]'
+GO
+CREATE VIEW [dbo].[PublishersByPublicationType] as
+/* A view to provide the number of each type of publication produced
+by each publisher*/
+SELECT Coalesce(publishers.pub_name, '---All types') AS publisher,
+Sum(CASE WHEN Editions.Publication_type = 'AudioBook' THEN 1 ELSE 0 END) AS 'AudioBook',
+Sum(CASE WHEN Editions.Publication_type ='Book' THEN 1 ELSE 0 END) AS 'Book',
+Sum(CASE WHEN Editions.Publication_type ='Calendar' THEN 1 ELSE 0 END) AS 'Calendar',
+Sum(CASE WHEN Editions.Publication_type ='Ebook' THEN 1 ELSE 0 END) AS 'Ebook',
+Sum(CASE WHEN Editions.Publication_type ='Hardback' THEN 1 ELSE 0 END) AS 'Hardback',
+Sum(CASE WHEN Editions.Publication_type ='Map' THEN 1 ELSE 0 END) AS 'Map',
+Sum(CASE WHEN Editions.Publication_type ='Paperback' THEN 1 ELSE 0 END) AS 'PaperBack',
+Count(*) AS total
+ FROM dbo.publishers
+INNER JOIN dbo.publications
+ON publications.pub_id = publishers.pub_id
+INNER JOIN editions ON editions.publication_id = publications.Publication_id
+INNER JOIN dbo.prices ON prices.Edition_id = editions.Edition_id
+WHERE prices.PriceEndDate IS null 
+GROUP BY publishers.pub_name
+WITH ROLLUP
+GO
+PRINT N'Creating [dbo].[TitlesAndEditionsByPublisher]'
+GO
+CREATE VIEW [dbo].[TitlesAndEditionsByPublisher]
+AS
+/* A view to provide the number of each type of publication produced
+Select * from [dbo].[TitlesAndEditionsByPublisher]
+by each publisher*/
+SELECT publishers.pub_name AS publisher, title,
+  String_Agg
+    (
+    Publication_type + ' ($' + Convert(VARCHAR(20), price) + ')', ', '
+    ) AS ListOfEditions
+  FROM dbo.publishers
+    INNER JOIN dbo.publications
+      ON publications.pub_id = publishers.pub_id
+    INNER JOIN editions
+      ON editions.publication_id = publications.Publication_id
+    INNER JOIN dbo.prices
+      ON prices.Edition_id = editions.Edition_id
+  WHERE prices.PriceEndDate IS NULL
+  GROUP BY publishers.pub_name, title;
 GO
 PRINT N'Creating [dbo].[SentenceFrom]'
 GO
@@ -900,6 +900,30 @@ AS
     RETURN;
   END;
 GO
+PRINT N'Creating [dbo].[flyway_schema_history]'
+GO
+CREATE TABLE [dbo].[flyway_schema_history]
+(
+[installed_rank] [int] NOT NULL,
+[version] [nvarchar] (50) COLLATE Latin1_General_CI_AS NULL,
+[description] [nvarchar] (200) COLLATE Latin1_General_CI_AS NULL,
+[type] [nvarchar] (20) COLLATE Latin1_General_CI_AS NOT NULL,
+[script] [nvarchar] (1000) COLLATE Latin1_General_CI_AS NOT NULL,
+[checksum] [int] NULL,
+[installed_by] [nvarchar] (100) COLLATE Latin1_General_CI_AS NOT NULL,
+[installed_on] [datetime] NOT NULL CONSTRAINT [DF__flyway_sc__insta__75586032] DEFAULT (getdate()),
+[execution_time] [int] NOT NULL,
+[success] [bit] NOT NULL
+) ON [PRIMARY]
+GO
+PRINT N'Creating primary key [flyway_schema_history_pk] on [dbo].[flyway_schema_history]'
+GO
+ALTER TABLE [dbo].[flyway_schema_history] ADD CONSTRAINT [flyway_schema_history_pk] PRIMARY KEY CLUSTERED  ([installed_rank]) ON [PRIMARY]
+GO
+PRINT N'Creating index [flyway_schema_history_s_idx] on [dbo].[flyway_schema_history]'
+GO
+CREATE NONCLUSTERED INDEX [flyway_schema_history_s_idx] ON [dbo].[flyway_schema_history] ([success]) ON [PRIMARY]
+GO
 PRINT N'Adding constraints to [dbo].[authors]'
 GO
 ALTER TABLE [dbo].[authors] ADD CONSTRAINT [CK__authors__au_id] CHECK (([au_id] like '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'))
@@ -1008,13 +1032,13 @@ PRINT N'Adding foreign keys to [people].[Phone]'
 GO
 ALTER TABLE [people].[Phone] ADD CONSTRAINT [Phone_PersonFK] FOREIGN KEY ([Person_id]) REFERENCES [people].[Person] ([person_ID])
 GO
-ALTER TABLE [people].[Phone] ADD CONSTRAINT [FK__Phone__TypeOfPho__31783731] FOREIGN KEY ([TypeOfPhone]) REFERENCES [people].[PhoneType] ([TypeOfPhone])
+ALTER TABLE [people].[Phone] ADD CONSTRAINT [FK__Phone__TypeOfPho__009508B4] FOREIGN KEY ([TypeOfPhone]) REFERENCES [people].[PhoneType] ([TypeOfPhone])
 GO
 PRINT N'Creating extended properties'
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'An edition can be one of several types', 'SCHEMA', N'dbo', 'TABLE', N'Publication_Types', NULL, NULL
 GO
-EXEC sp_addextendedproperty N'Database_Info', N'[{"Name":"Pubs","Version":"1.1.1","Description":"The Pubs (publishing) Database supports a fictitious publisher.","Modified":"2021-12-02T14:18:25","by":"PhilFactor"}]', NULL, NULL, NULL, NULL, NULL, NULL
+EXEC sp_addextendedproperty N'Database_Info', N'[{"Name":"Pubs","Version":"1.1.1","Description":"The Pubs (publishing) Database supports a fictitious publisher.","Modified":"2022-01-18T14:49:10.400","by":"PhilFactor"}]', NULL, NULL, NULL, NULL, NULL, NULL
 GO
 -- This statement writes to the SQL Server Log so SQL Monitor can show this deployment.
 IF HAS_PERMS_BY_NAME(N'sys.xp_logevent', N'OBJECT', N'EXECUTE') = 1

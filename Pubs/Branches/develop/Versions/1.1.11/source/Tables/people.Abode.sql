@@ -7,9 +7,9 @@ CREATE TABLE [people].[Abode]
 [Start_date] [datetime] NOT NULL,
 [End_date] [datetime] NULL,
 [ModifiedDate] [datetime] NOT NULL CONSTRAINT [AbodeModifiedD] DEFAULT (getdate())
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [people].[Abode] ADD CONSTRAINT [AbodePK] PRIMARY KEY CLUSTERED  ([Abode_ID]) ON [PRIMARY]
+ALTER TABLE [people].[Abode] ADD CONSTRAINT [AbodePK] PRIMARY KEY CLUSTERED  ([Abode_ID])
 GO
 ALTER TABLE [people].[Abode] ADD CONSTRAINT [Abode_AddressFK] FOREIGN KEY ([Address_id]) REFERENCES [people].[Address] ([Address_ID])
 GO

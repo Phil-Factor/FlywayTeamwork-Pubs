@@ -7,9 +7,9 @@ CREATE TABLE [people].[Location]
 [Start_date] [datetime] NOT NULL,
 [End_date] [datetime] NULL,
 [ModifiedDate] [datetime] NOT NULL CONSTRAINT [LocationModifiedD] DEFAULT (getdate())
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [people].[Location] ADD CONSTRAINT [LocationPK] PRIMARY KEY CLUSTERED  ([Location_ID]) ON [PRIMARY]
+ALTER TABLE [people].[Location] ADD CONSTRAINT [LocationPK] PRIMARY KEY CLUSTERED  ([Location_ID])
 GO
 ALTER TABLE [people].[Location] ADD CONSTRAINT [Location_AddressFK] FOREIGN KEY ([Address_id]) REFERENCES [people].[Address] ([Address_ID])
 GO

@@ -6,13 +6,13 @@ CREATE TABLE [dbo].[prices]
 [advance] [dbo].[Dollars] NULL,
 [royalty] [int] NULL,
 [ytd_sales] [int] NULL,
-[PriceStartDate] [datetime2] NOT NULL CONSTRAINT [DF__prices__PriceSta__69F19A7E] DEFAULT (getdate()),
+[PriceStartDate] [datetime2] NOT NULL CONSTRAINT [DF__prices__PriceSta__390E6C01] DEFAULT (getdate()),
 [PriceEndDate] [datetime2] NULL
-) ON [PRIMARY]
+)
 GO
-ALTER TABLE [dbo].[prices] ADD CONSTRAINT [PK_Prices] PRIMARY KEY CLUSTERED  ([Price_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[prices] ADD CONSTRAINT [PK_Prices] PRIMARY KEY CLUSTERED  ([Price_id])
 GO
-CREATE NONCLUSTERED INDEX [editionid_index] ON [dbo].[prices] ([Edition_id]) ON [PRIMARY]
+CREATE NONCLUSTERED INDEX [editionid_index] ON [dbo].[prices] ([Edition_id])
 GO
 ALTER TABLE [dbo].[prices] ADD CONSTRAINT [fk_prices] FOREIGN KEY ([Edition_id]) REFERENCES [dbo].[editions] ([Edition_id])
 GO
