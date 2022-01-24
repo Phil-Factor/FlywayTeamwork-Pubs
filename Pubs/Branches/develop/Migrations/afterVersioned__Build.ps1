@@ -58,5 +58,9 @@ $PostMigrationTasks = @(
     #This writes out a model of the version for purposes of comparison, narrative and checking. 
     $CreateUndoScriptIfNecessary # uses SQL Compare
     #Creates a first-cut UNDo script. This is an idempotentic script that undoes to the previous version 
-    )
+    $GeneratePUMLforGanttChart
+    # This script creates a PUML file for a Gantt chart at the current version of the 
+    #database. This can be read into any editor that takes PlantUML files to give a Gantt
+    #chart 
+            )
 Process-FlywayTasks $DBDetails $PostMigrationTasks

@@ -9,14 +9,16 @@ $ServerVersion = $GetdataFromSQLCMD.Invoke($DBdetails, "
 [int]$VersionNumber = $ServerVersion[0]
 if ($VersionNumber -ne $null)
 {
-    $Env:FLYWAY_PLACEHOLDERS_CANDOJSON="$(if ($VersionNumber -ge 13) { 'true' }	else { 'false' })";
-	$Env:FLYWAY_PLACEHOLDERS_canDoStringAgg="$(if ($VersionNumber -ge 14) { 'true' } else { 'false' })";
+    $CANDOJSON="$(if ($VersionNumber -ge 13) { 'true' }	else { 'false' })";
+	$canDoStringAgg="$(if ($VersionNumber -ge 14) { 'true' } else { 'false' })";
 }
 else
 {
-    $Env:FLYWAY_PLACEHOLDERS_CANDOJSON=false;
-	$Env:FLYWAY_PLACEHOLDERS_canDoStringAgg=false;
+    $CANDOJSON=false;
+	$canDoStringAgg=false;
 }
+if (!(Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOJSON )) {$Env:FLYWAY_PLACEHOLDERS_CANDOJSON=$canDoJSON} 
+if (!(Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOSTRINGAGG )) {$Env:FLYWAY_PLACEHOLDERS_canDoStringAgg=$canDoStringAgg}
 # we now set the password. This can be done as an environment variable. but that isn't quite as saecure #/ 
 $pword="-password=$($dbDetails.pwd)"
 
@@ -32,11 +34,16 @@ Flyway  $pword migrate  "-target=$_"
 }
        
 Flyway $pword info 
-Flyway $pword clean
 
+Flyway  $pword migrate  '-target=1.1.1'
+Flyway  $pword migrate  '-target=1.1.2'
+Flyway  $pword migrate  '-target=1.1.3'
+Flyway  $pword migrate  '-target=1.1.4'
 
-Flyway $pwords undo '-target=1.1.10'
+Flyway $pwords undo '-target=1.1.2'
 
+if (Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOJSON )  {remove-item Env:FLYWAY_PLACEHOLDERS_CANDOJSON}
+if (Test-Path Env:FLYWAY_PLACEHOLDERS_canDoStringAgg ) {remove-item Env:FLYWAY_PLACEHOLDERS_canDoStringAgg}
 
 Flyway -?
 

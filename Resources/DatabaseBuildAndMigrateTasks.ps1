@@ -197,17 +197,17 @@ $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
 $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
 #where we want to store reports, the sub directories from the user area.
 
-$Reportdirectory='Documents\GitHub\'
-$ReportLocation="$pwd\versions"# part of path from user area to project artefacts folder location 
-
 Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
 
 
 #This is a utility scriptblock used by the task scriptblocks
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
-explicitly open a connection. it will take SQL files and queries #>
-	Param ($Theargs,
-		$query, $fileBasedQuery=$null,$simpleText=$false)  # $GetdataFromSQLCMD: (Don't delete this)
+explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
+set 'simpleText' to true #>
+	Param ($Theargs, #this is the same ubiquitous hashtable 
+		$query, #either a query that returns JSON, or a simple expression
+        $fileBasedQuery=$null, #if you specify input from a file
+        $simpleText=$false)  # $GetdataFromSQLCMD: (Don't delete this)
     if ([string]::IsNullOrEmpty($TheArgs.server) -or [string]::IsNullOrEmpty($TheArgs.database))
     {"[{`"Error`":`"Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided `"}]"}
     else
@@ -365,7 +365,7 @@ $FormatTheBasicFlywayParameters = {
 	@('server', 'database', 'projectFolder') |
 	   foreach{ if ($param1.$_ -in @($null,'')) { $problems += "no value for '$($_)'" } }
 	$migrationsPath= if ([string]::IsNullOrEmpty($param1.migrationsPath)) {'\scripts'} else {"\$($param1.migrationsPath)"}
-    if ([string]::IsNullOrEmpty($Reportdirectory)){$migrationsPath=''};# compatibility problem
+    if ([string]::IsNullOrEmpty($param1.Reportdirectory)){$migrationsPath=''};# compatibility problem
 	$MaybePort = "$(if ([string]::IsNullOrEmpty($param1.port)) { '' }
 		else { ":$($param1.port)" })"
 	if (!([string]::IsNullOrEmpty($param1.uid)))
@@ -383,7 +383,7 @@ $FormatTheBasicFlywayParameters = {
 		@("-url=jdbc:sqlserver://$($param1.Server)$maybePort;databaseName=$(
 				$param1.Database
 			);integratedSecurity=true",
-			"-WriteLocations=filesystem:$($param1.ProjectFolder)$migrationsPath")<# the migration folder #>
+			"-WriteLocations=filesystem:$($param1.ProjectFolder)")<# the migration folder #>
 	}
 	
 	$FlyWayArgs += <# the project variables that we reference with placeholders #>
@@ -402,8 +402,6 @@ $FormatTheBasicFlywayParameters = {
 <# This scriptblock looks to see if we have the passwords stored for this userid, Database and RDBMS
 if not we ask for it and store it encrypted in the user area
  #>
-
-
 $FetchAnyRequiredPasswords = {
 	Param ($param1) # $FetchAnyRequiredPasswords (Don't delete this)
 	$problems = @()
@@ -463,9 +461,6 @@ using SQL Code Guard to do all the work. This runs SQL Codeguard
 and saves the report in a subdirectory the version directory of your 
 project artefacts. It also reports back in the $DatabaseDetails
 Hashtable. It checks the current database, not the scripts
-$ReportDirectory=$null
-Cannot find path 'S:\work\Github\FlywayTeamwork\Pubs\Branches\develop\migrations\scripts' because it does not exist.
-
  #>
 $CheckCodeInDatabase = {
 	Param ($param1) # $CheckCodeInDatabase - (Don't delete this)
@@ -483,8 +478,8 @@ $CheckCodeInDatabase = {
 	#now we create the parameters for CodeGuard.
     $escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$MyDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
         else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
 	if ($MyDatabasePath -like '*\\*'){ } { $Problems += "created an illegal path '$MyDatabasePath'" }
     $Arguments = @{
@@ -568,7 +563,7 @@ $CheckCodeInMigrationFiles.Invoke($OurDetails)
 'Problems'=@{};                                                                                                                                                                                                            
 'projectFolder'='YourPathTo\PubsAndFlyway\PubsFlywaySecondMigration'                                                                                                                                                        
 }
-$param1=$details
+$param1=$dbDetails
 $CheckCodeInMigrationFiles.Invoke($Details) #>
 
 $CheckCodeInMigrationFiles = {
@@ -584,10 +579,10 @@ $CheckCodeInMigrationFiles = {
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
     $escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 
-	$migrationsPath= if ([string]::IsNullOrEmpty($param1.migrationsPath)) {'\scripts'} else {"\$($param1.migrationsPath)"}
-	if ([string]::IsNullOrEmpty($Reportdirectory)){$migrationsPath=''};# compatibility problem
+	#$migrationsPath= if ([string]::IsNullOrEmpty($param1.migrationsPath)) {'\scripts'} else {"\$($param1.migrationsPath)"}
+	#if ([string]::IsNullOrEmpty($param1.Reportdirectory)){$migrationsPath=''};# compatibility problem
 
-    dir "$($param1.projectFolder)$migrationsPath\V*.sql" | foreach{
+    dir "$($param1.projectFolder)\V*.sql" | foreach{
 		$Thepath = $_.FullName;
 		$TheFile = $_.Name
 		$Theversion = ($_.Name -replace 'V(?<Version>[.\d]+).+', '${Version}')
@@ -595,8 +590,8 @@ $CheckCodeInMigrationFiles = {
             {
 		    #now we create the parameters for CodeGuard.
 		    $MyVersionReportPath = 
-              if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-                {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports"} 
+              if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+                {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
               else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
 		    $Arguments = @{
 			    source = $ThePath
@@ -748,8 +743,8 @@ $IsDatabaseIdenticalToSource = {
         $SourcePath= if ([string]::IsNullOrEmpty($param1.SourcePath)) {'Source'} else {"$($param1.SourcePath)"}
         #the database scripts path would be up to you to define, of course
 		$MyDatabasePath =
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\$sourcePath"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
         else {"$ReportLocation\$($param1.Version)\$sourcePath"} #else the simple version
 		$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
@@ -771,8 +766,8 @@ $IsDatabaseIdenticalToSource = {
 		}
 	}
     $MyVersionReportPath = 
-              if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-                {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports"} 
+              if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+                {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
               else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
 	if ($problems.Count -eq 0)
 	{
@@ -835,8 +830,8 @@ $CreateScriptFoldersIfNecessary = {
     $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$SourcePath= if ([string]::IsNullOrEmpty($param1.SourcePath)) {'Source'} else {"$($param1.SourcePath)"}
     $MyDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\$sourcePath"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
         else {"$ReportLocation\$($param1.Version)\$sourcePath"} #else the simple version
 	$CLIArgs = @(
 		"/server1:$($param1.server)",
@@ -897,8 +892,8 @@ $CreateBuildScriptIfNecessary = {
     $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
     $scriptsPath= if ([string]::IsNullOrEmpty($param1.scriptsPath)) {'scripts'} else {"$($param1.scriptsPath)"}
 	$MyDatabasePath = $MyDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\$scriptsPath"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath"} 
         else {"$ReportLocation\$($param1.Version)\$scriptsPath"} #else the simple version
 	$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		# can use a hash-table 
@@ -969,8 +964,8 @@ $ExecuteTableSmellReport = {
 	}#>
     $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$MyDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
         else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
@@ -1239,8 +1234,8 @@ $ExecuteTableDocumentationReport = {
 	}
 	$escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$MyDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
         else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
@@ -1383,8 +1378,8 @@ $SaveDatabaseModelIfNecessary = {
 		{ $routine = "$pwd\TheGloopDatabaseModel.sql" }
 		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 		$MyDatabasePath =
-		if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-		{ "$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports" }
+		if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+		{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
 		else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
 		$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
 		if (!(Test-Path -PathType Leaf $MyOutputReport))
@@ -1535,16 +1530,16 @@ FOR JSON AUTO") | convertfrom-json
     else
         {
         $PreviousDatabasePath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($PreviousVersion)\$sourcePath"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($PreviousVersion)\$sourcePath"} 
         else {"$ReportLocation\$($PreviousVersion)\$sourcePath"} #else the simple version
 
         If (!(Test-Path -path $PreviousDatabasePath -PathType Container)) 
             {$WeCanDoIt=$False} #Because no previous source
         } 
     $CurrentUndoPath = 
-        if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\$scriptsPath"} 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath"} 
         else {"$ReportLocation\$($param1.Version)\$scriptsPath"} #else the simple version
     if (Test-Path -Path "$CurrentUndoPath\U$($Param1.Version)__Undo.sql" -PathType Leaf )
         {$WeCanDoIt=$False} #Because it has already been done             
@@ -1776,8 +1771,8 @@ $GeneratePUMLforGanttChart = {
 	}
     $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$MyDatabasePath =
-	if (!([string]::IsNullOrEmpty($ReportDirectory))) #If the $ReportDirectory has a value
-	{ "$($env:USERPROFILE)\$ReportDirectory$($escapedProject)\$($param1.Version)\Reports" }
+	if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
 	else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
 	$flywayTable = $Param1.flywayTable
 	if ($flywayTable -eq $null)
@@ -1972,4 +1967,4 @@ function Process-FlywayTasks
    }
 
 
-'scriptblocks and cmdlet loaded. V1.2.54'
+'scriptblocks and cmdlet loaded. V1.2.63'

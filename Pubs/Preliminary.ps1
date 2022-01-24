@@ -5,6 +5,7 @@ Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible #>
+
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
@@ -17,72 +18,26 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 	write-error "Your Flyway Version is too outdated to work" -ErrorAction Stop
 }
 
-<#
-Firstly, pick up any changed locations that the user wants. If nothing exists, then create the file with the default settings in place
-#>
- If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
-    {@{
-	'migrationsPath' = if ($structure -eq 'classic') {'Scripts'} else {'Migrations'}; 
-        #where the migration scripts are stored-branch structure default to Migrations
-	'resourcesPath' = 'resources'; #the directory that stores the project-wide resources
-	'sourcePath' = 'Source'; #where the source of any branch version is stored
-	'scriptsPath' = 'Scripts'; #where the various scripts of any branch version is stored #>
-	'DataPath' = 'Data'; #where the data for any branch version is stored #>
-	'VersionsPath' = 'Versions'; #where data for all the versions is stored #>
-    'Reportdirectory'='Documents\GitHub\'<# path to the directory where data about migration is stored #>
-    } |convertto-json > "$pwd\DirectoryNames.json"
-    }
-$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json
-
-$MigrationsPath= if ([string]::IsNullOrEmpty($FileLocations.MigrationsPath)) 
-        {'migrations'} else {"$($FileLocations.MigrationsPath)"}
-$ResourcesPath= if ([string]::IsNullOrEmpty($FileLocations.ResourcePath)) 
-        {'resources'} else {"$($FileLocations.ResourcesPath)"}
-$sourcePath= if ([string]::IsNullOrEmpty($FileLocations.SourcePath))
-        {'source'} else {"$($FileLocations.sourcePath)"}
-$ScriptsPath= if ([string]::IsNullOrEmpty($FileLocations.ScriptsPath)) 
-        {'scripts'} else {"$($FileLocations.ScriptsPath)"}
-$dataPath= if ([string]::IsNullOrEmpty($FileLocations.DataPath)) 
-        {'data'} else {"$($FileLocations.DataPath)"}
-#$ReportLocation is used for the  classic version
-$VersionsPath= if ([string]::IsNullOrEmpty($FileLocations.VersionsPath)) 
-        {'Versions'} else {"$($FileLocations.VersionsPath)"}
-$Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory)) 
-        {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
-#$ReportLocation is used for the branch version
-$ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
-
-
 #look for the common resources directory for all assets such as modules that are shared
-$dir = $pwd.Path; 
-#is it a 'branches' version?
-if ((Test-Path "$dir\branches" -PathType Container) -or (Test-Path "$(Split-Path $Dir)\branches" -PathType Container))
-    {$structure='branch'} else {$structure='classic'}
-
-$ii = 10; # $ii merely prevents runaway looping.
-write-Warning "... starting at $dir"
+$dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
-
-while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
+while ($dir -ne '' -and -not (Test-Path "$dir\resources" -PathType Container
 	) -and $ii -gt 0)
 {
 	$Project = split-path -path $dir -leaf
 	$dir = Split-Path $Dir;
-    write-Warning "... now at $dir"
 	$ii = $ii - 1;
 }
-
 if ($dir -eq '') { throw "no resources directory found" }
 #Read in shared resources
-write-warning "... about to load PS1 files from $("$Dir\$ResourcesPath\*.ps1")"
-dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)";write-warning "executed $($_.Fullname)"}
-
+dir "$Dir\resources\*.ps1" | foreach{ . "$($_.FullName)" }
+$ReportDirectory = $null #to be certain that this is calculated for us as a team version
 
 <# We now know the project name ($project) and the name of the branch (Branch), and have installed all the resources
 
 Now we check that the directories and files that we need are there #>
 @(@{ path = "$($pwd.Path)"; desc = 'project directory'; type = 'container' },
-	@{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
+	@{ path = "$($pwd.Path)\migrations"; desc = 'Scripts Location'; type = 'container' },
 	@{ path = "$($pwd.Path)\flyway.conf"; desc = 'flyway.conf file'; type = 'leaf' }
 ) | foreach{
 	if (-not (Test-Path $_.path -PathType $_.type))
@@ -138,18 +93,8 @@ if (!([string]::IsNullOrEmpty($FlywayContent.'flyway.url')))
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
 $DBDetails = @{
-    'RDBMS'= $RDBMS; 
 	'server' = $server; #The Server name
-    'directoryStructure'=$structure
 	'database' = $database; #The Database
-	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
-	'resourcesPath' = "$ResourcesPath"; #the directory that stores the project-wide resources
-	'sourcePath' = $sourcePath; #where the source of any branch version is stored
-	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
-	'dataPath' = $DataPath; #where the data for any branch version is stored #>
-    'versionsPath'=$VersionsPath;
-    'reportDirectory'=$Reportdirectory;
-    'reportLocation'=$ReportLocation; # part of path from user area to project artefacts folder location 
 	'Port' = $port
 	'uid' = $FlywayContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in if you request it
@@ -158,11 +103,11 @@ $DBDetails = @{
 	'branch' = $branch;
 	'schemas' = 'dbo,classic,people';
 	'project' = $project; #Just the simple name of the project
-	'projectDescription' = $FlywayContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
-	'projectFolder' = $FlywayContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
-	'resources' = "$Dir\$ResourcesPath"
-	'warnings' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
-	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           
+	'ProjectDescription' = $FlywayContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
+	'ProjectFolder' = $FlywayContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
+	'resources' = "$Dir\resources"
+	'Warnings' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
+	'Problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
 $DBDetails.pwd = "$(GetorSetPassword $FlywayContent.'flyway.user' $server $RDBMS)"
@@ -207,6 +152,4 @@ catch
     { 
     write-warning "$($PSItem.Exception.Message) getting environment variables at line $($_.InvocationInfo.ScriptLineNumber)"
     }
-$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) {'dbo'} else {"$($DBDetails.'defaultSchema')"}
-$defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
-$DBDetails.'flywayTable'="$($defaultSchema).$($defaultTable)"
+[version]::Parse('1.1.1')
