@@ -16,9 +16,9 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 {
 	write-error "Your Flyway Version is too outdated to work" -ErrorAction Stop
 }
-
 <#
-Firstly, pick up any changed locations that the user wants. If nothing exists, then create the file with the default settings in place
+pick up any changed locations that the user wants. If nothing exists, then 
+create the file with the default settings in place
 #>
  If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
     {@{
@@ -32,6 +32,7 @@ Firstly, pick up any changed locations that the user wants. If nothing exists, t
     'Reportdirectory'='Documents\GitHub\'<# path to the directory where data about migration is stored #>
     } |convertto-json > "$pwd\DirectoryNames.json"
     }
+
 $FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json
 
 $MigrationsPath= if ([string]::IsNullOrEmpty($FileLocations.MigrationsPath)) 
@@ -54,29 +55,21 @@ $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project art
 
 
 #look for the common resources directory for all assets such as modules that are shared
-$dir = $pwd.Path; 
-#is it a 'branches' version?
-if ((Test-Path "$dir\branches" -PathType Container) -or (Test-Path "$(Split-Path $Dir)\branches" -PathType Container))
-    {$structure='branch'} else {$structure='classic'}
-
-$ii = 10; # $ii merely prevents runaway looping.
-write-Warning "... starting at $dir"
+$dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
-
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
 {
 	$Project = split-path -path $dir -leaf
 	$dir = Split-Path $Dir;
-    write-Warning "... now at $dir"
 	$ii = $ii - 1;
 }
-
+$structure=if ($ii -eq 7) {'classic'} else {'branch'} 
 if ($dir -eq '') { throw "no resources directory found" }
 #Read in shared resources
-write-warning "... about to load PS1 files from $("$Dir\$ResourcesPath\*.ps1")"
-dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)";write-warning "executed $($_.Fullname)"}
-
+dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
+if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
+    {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
 
 <# We now know the project name ($project) and the name of the branch (Branch), and have installed all the resources
 
@@ -143,7 +136,7 @@ $DBDetails = @{
     'directoryStructure'=$structure
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
-	'resourcesPath' = "$ResourcesPath"; #the directory that stores the project-wide resources
+	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
 	'dataPath' = $DataPath; #where the data for any branch version is stored #>

@@ -73,7 +73,10 @@ SELECT @JSONDatabaseModel=
  		SELECT 'System Type', 'ST',types.user_type_id
 		FROM sys.types 
 		WHERE  types.is_user_defined<>0
-		UNION all
+		UNION ALL
+       	(SELECT 'Code', 'SM', object_id 
+	   FROM sys.sql_modules)
+	   	UNION all
 	   SELECT DISTINCT 'Indexes', 'IX', objects.object_id
          FROM
          sys.indexes
@@ -101,6 +104,9 @@ SELECT @JSONDatabaseModel=
          is_ms_shipped = 0 AND parent_object_id <> 0
 		 AND type NOT IN ('PK','UQ')-- do the primary key and unique constraint separately
 	   UNION ALL
+	   SELECT 'Code' AS TheType, Left(definition,40)+'... (' + Convert(NVARCHAR(12),Checksum(Definition))+')' AS name,object_id,1
+	   FROM sys.sql_modules
+	   UNION All
        SELECT 'System Type', Coalesce(usertypes.name,'')
 			+CASE WHEN types.precision>0 AND types.scale>0
 			   THEN '('+Convert(VARCHAR(10),types.precision)+','

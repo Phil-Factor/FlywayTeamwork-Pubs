@@ -212,7 +212,7 @@ set 'simpleText' to true #>
     {"[{`"Error`":`"Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided `"}]"}
     else
     {
-	    $TempOutputFile = "$($env:Temp)\TempOutput.json"
+	    $TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).json"
         if (!($simpleText))
             {
 	    $FullQuery = "Set nocount on; Declare @Json nvarchar(max) 
@@ -833,6 +833,10 @@ $CreateScriptFoldersIfNecessary = {
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
         else {"$ReportLocation\$($param1.Version)\$sourcePath"} #else the simple version
+    $MyCurrentPath = 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$sourcePath"} 
+        else {"$ReportLocation\current\$sourcePath"} #else the simple version
 	$CLIArgs = @(
 		"/server1:$($param1.server)",
 		"/database1:$($param1.database)",
@@ -864,6 +868,7 @@ $CreateScriptFoldersIfNecessary = {
     	else
 	    {
 	    $Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
+        copy-item $MyDatabasePath $MyCurrentPath # copy over the current model
 	    }
 	}
 	else { "This version is already scripted in $MyDatabasePath " }
@@ -1896,7 +1901,7 @@ Function GetorSetPassword{
     $PwdDetails= @{
         'RDBMS'=$RDBMS; #jdbc name. Only necessary for systems with several RDBMS on the same server
 	    'Server'=$server;
-        'pwd' = 'sex'; #Always leave blank
+        'pwd' = ''; #Always leave blank
 	    'uid' = $uid; #leave blank unless you use credentials
 	    'problems' = @{ }; # for reporting any big problems
          }
@@ -1961,10 +1966,15 @@ function Process-FlywayTasks
 		foreach { write-warning  "`t$_" }
 	$DatabaseDetails.Warnings=@{}    
     }
+	$Reports=@{}
 	$DatabaseDetails.WriteLocations.GetEnumerator() |
 		Foreach{ Write-Output "For the $($_.Key), we saved the report in $($_.Value)" } 
 
+    #$Reports=$DatabaseDetails.WriteLocations.GetEnumerator() |
+	#	Foreach{ @{"Source"= $($_.Key); "Report"=$($_.Value)} 
+    #if ($Reports.Count -gt 0) {write-warning "$($Reports| ConvertTo-Json)"}
+    
    }
 
 
-'scriptblocks and cmdlet loaded. V1.2.63'
+'scriptblocks and cmdlet loaded. V1.2.66'

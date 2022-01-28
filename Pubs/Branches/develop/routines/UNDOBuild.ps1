@@ -18,7 +18,7 @@ else
 	$canDoStringAgg=false;
 }
 if (!(Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOJSON )) {$Env:FLYWAY_PLACEHOLDERS_CANDOJSON=$canDoJSON} 
-if (!(Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOSTRINGAGG )) {$Env:FLYWAY_PLACEHOLDERS_canDoStringAgg=$canDoStringAgg}
+if (!(Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOSTRINGAGG )) {$Env:FLYWAY_PLACEHOLDERS_CANDOSTRINGAGG=$canDoStringAgg}
 # we now set the password. This can be done as an environment variable. but that isn't quite as saecure #/ 
 $pword="-password=$($dbDetails.pwd)"
 
@@ -40,7 +40,8 @@ Flyway  $pword migrate  '-target=1.1.2'
 Flyway  $pword migrate  '-target=1.1.3'
 Flyway  $pword migrate  '-target=1.1.4'
 
-Flyway $pwords undo '-target=1.1.2'
+Flyway $pword undo '-target=1.1.9'
+Flyway $pword migrate  '-target=1.1.11'
 
 if (Test-Path Env:FLYWAY_PLACEHOLDERS_CANDOJSON )  {remove-item Env:FLYWAY_PLACEHOLDERS_CANDOJSON}
 if (Test-Path Env:FLYWAY_PLACEHOLDERS_canDoStringAgg ) {remove-item Env:FLYWAY_PLACEHOLDERS_canDoStringAgg}
