@@ -1,5 +1,5 @@
 -- -====================================
--- Flyway Dry Run (2022-01-28 15:23:23)
+-- Flyway Dry Run (2022-01-31 14:53:10)
 -- -====================================
 
 USE [PubsDev]
@@ -393,7 +393,7 @@ ELSE BEGIN
   PRINT 'The database update failed'
 END
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (3, '1.1.3', 'UseNVarcharetc', 'SQL', 'V1.1.3__UseNVarcharetc.sql', 1055608783, 'Phil Factor', 16, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (3, '1.1.3', 'UseNVarcharetc', 'SQL', 'V1.1.3__UseNVarcharetc.sql', 1055608783, 'Phil Factor', 21, 1)
 GO
 USE [PubsDev]
 GO
@@ -817,7 +817,7 @@ REVOKE REFERENCES ON TYPE:: [dbo].[tid] TO [public]
 GO
 IF @@ERROR <> 0 SET NOEXEC ON
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (4, '1.1.4', 'RenameConstraintsAdd tables', 'SQL', 'V1.1.4__RenameConstraintsAdd tables.sql', 938953110, 'Phil Factor', 18, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (4, '1.1.4', 'RenameConstraintsAdd tables', 'SQL', 'V1.1.4__RenameConstraintsAdd tables.sql', 938953110, 'Phil Factor', 10, 1)
 GO
 USE [PubsDev]
 GO
@@ -9646,7 +9646,7 @@ EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
 -- and enable all triggers
 ENABLE TRIGGER ALL ON DATABASE;
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (5, '1.1.5', 'Add New Data', 'SQL', 'V1.1.5__Add_New_Data.sql', 1988279248, 'Phil Factor', 509, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (5, '1.1.5', 'Add New Data', 'SQL', 'V1.1.5__Add_New_Data.sql', 1988279248, 'Phil Factor', 1280, 1)
 GO
 USE [PubsDev]
 GO
@@ -9848,7 +9848,7 @@ AS
       GROUP BY titles.pub_id, TN.Tag WITH ROLLUP;
   END;
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (6, '1.1.6', 'Add Tags', 'SQL', 'V1.1.6__Add_Tags.sql', -1129011805, 'Phil Factor', 16, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (6, '1.1.6', 'Add Tags', 'SQL', 'V1.1.6__Add_Tags.sql', -1129011805, 'Phil Factor', 25, 1)
 GO
 USE [PubsDev]
 GO
@@ -9910,7 +9910,7 @@ IF  (IndexProperty(Object_Id('dbo.publications'),'pubid_index','IndexID') IS NOT
 
 */
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (7, '1.1.7', 'Add Indexes', 'SQL', 'V1.1.7__Add_Indexes.sql', 375231610, 'Phil Factor', 18, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (7, '1.1.7', 'Add Indexes', 'SQL', 'V1.1.7__Add_Indexes.sql', 375231610, 'Phil Factor', 15, 1)
 GO
 USE [PubsDev]
 GO
@@ -10016,7 +10016,7 @@ SELECT publishers.pub_name AS publisher, publications.title,
     INNER JOIN dbo.publications
       ON publications.pub_id = publishers.pub_id;
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (8, '1.1.8', 'AddEditions', 'SQL', 'V1.1.8__AddEditions.sql', 193641410, 'Phil Factor', 29, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (8, '1.1.8', 'AddEditions', 'SQL', 'V1.1.8__AddEditions.sql', 193641410, 'Phil Factor', 11, 1)
 GO
 USE [PubsDev]
 GO
@@ -10048,7 +10048,7 @@ SELECT publishers.pub_name AS publisher, title,
   WHERE prices.PriceEndDate IS NULL
   GROUP BY publishers.pub_name, title;
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (9, '1.1.9', 'AddconditionalVersion', 'SQL', 'V1.1.9__AddconditionalVersion.sql', 884685532, 'Phil Factor', 7, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (9, '1.1.9', 'AddconditionalVersion', 'SQL', 'V1.1.9__AddconditionalVersion.sql', 884685532, 'Phil Factor', 12, 1)
 GO
 USE [PubsDev]
 GO
@@ -10398,7 +10398,7 @@ SELECT Replace (Address.LegacyIdentifier, 'au-', '') AS au_id,
   AND phone.End_date IS null
   AND Person.LegacyIdentifier LIKE 'au-%';
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (10, '1.1.10', 'AddAddressesPhonesEtc', 'SQL', 'V1.1.10__AddAddressesPhonesEtc.sql', -530857679, 'Phil Factor', 36, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (10, '1.1.10', 'AddAddressesPhonesEtc', 'SQL', 'V1.1.10__AddAddressesPhonesEtc.sql', -530857679, 'Phil Factor', 60, 1)
 GO
 USE [PubsDev]
 GO
@@ -10664,7 +10664,7 @@ references, this can potentially lead to a deadly embrace. This checks for that 
     RETURN @Output; --and return whatever (it could be a novel!)
   END;
 GO
-INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (11, '1.1.11', 'AddProcedureWithTest', 'SQL', 'V1.1.11__AddProcedureWithTest.sql', 836652121, 'Phil Factor', 7, 1)
+INSERT INTO [PubsDev].[dbo].[flyway_schema_history] ([installed_rank], [version], [description], [type], [script], [checksum], [installed_by], [execution_time], [success]) VALUES (11, '1.1.11', 'AddProcedureWithTest', 'SQL', 'V1.1.11__AddProcedureWithTest.sql', 836652121, 'Phil Factor', 29, 1)
 GO
 USE [PubsDev]
 GO

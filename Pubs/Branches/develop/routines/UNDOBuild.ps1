@@ -1,4 +1,6 @@
-﻿. '.\preliminary.ps1'
+﻿cd S:\work\Github\FlywayTeamwork\Pubs
+
+. '.\preliminary.ps1'
 
 <# now we use the GetdataFromSQLCMD scriptblock to determine the version number and name from SQL Server.
 we then set the placeholder values for the capability of the version of SQL Server.
@@ -27,13 +29,10 @@ Processing the $($dbDetails.branch) branch of the $($dbDetails.project) project 
 "@
 
 Flyway $pword clean
-@('1.1.1','1.1.2','1.1.3','1.1.4',
-'1.1.5','1.1.6','1.1.7','1.1.8',
-'1.1.9','1.1.10','1.1.11')| foreach{
-Flyway  $pword migrate  "-target=$_"
-}
+Flyway  $pword migrate 
+
        
-Flyway $pword info 
+
 
 Flyway  $pword migrate  '-target=1.1.1'
 Flyway  $pword migrate  '-target=1.1.2'

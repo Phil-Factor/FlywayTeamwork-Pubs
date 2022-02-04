@@ -868,7 +868,7 @@ $CreateScriptFoldersIfNecessary = {
     	else
 	    {
 	    $Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
-        copy-item $MyDatabasePath $MyCurrentPath # copy over the current model
+        copy-item -path "$MyDatabasePath\*"  -recurse -destination $MyCurrentPath # copy over the current model
 	    }
 	}
 	else { "This version is already scripted in $MyDatabasePath " }
