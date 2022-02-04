@@ -136,6 +136,7 @@ if (!([string]::IsNullOrEmpty($FlywayContent.'flyway.url')))
 	}
 }
 
+
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
 $DBDetails = @{
@@ -179,6 +180,7 @@ foreach{
 }
 
 
+
 #now add in any values passed as environment variables
 try{
 $EnvVars=@{};
@@ -211,3 +213,4 @@ catch
 $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) {'dbo'} else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema).$($defaultTable)"
+

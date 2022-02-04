@@ -22,7 +22,7 @@ create the file with the default settings in place
 #>
  If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
     {@{
-	'migrationsPath' = if ($structure -eq 'classic') {'Scripts'} else {'Migrations'}; 
+	'migrationsPath' = 'Unknown'; 
         #where the migration scripts are stored-branch structure default to Migrations
 	'resourcesPath' = 'resources'; #the directory that stores the project-wide resources
 	'sourcePath' = 'Source'; #where the source of any branch version is stored
@@ -35,8 +35,6 @@ create the file with the default settings in place
 
 $FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json
 
-$MigrationsPath= if ([string]::IsNullOrEmpty($FileLocations.MigrationsPath)) 
-        {'migrations'} else {"$($FileLocations.MigrationsPath)"}
 $ResourcesPath= if ([string]::IsNullOrEmpty($FileLocations.ResourcePath)) 
         {'resources'} else {"$($FileLocations.ResourcesPath)"}
 $sourcePath= if ([string]::IsNullOrEmpty($FileLocations.SourcePath))
@@ -57,14 +55,24 @@ $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project art
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
+$structure='classic'
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
 {
 	$Project = split-path -path $dir -leaf
+    if ($Project -eq 'Branches') {$structure='branch'} 
 	$dir = Split-Path $Dir;
 	$ii = $ii - 1;
 }
-$structure=if ($ii -eq 7) {'classic'} else {'branch'} 
+$MigrationsPath= if ($FileLocations.MigrationsPath -ieq 'Unknown') 
+        {if ($structure -eq 'branch'){'Migrations'} else {'Scripts'}}
+         else {"$($FileLocations.MigrationsPath)"}
+
+if ($FileLocations.MigrationsPath -ieq 'Unknown') 
+    {$FileLocations.MigrationsPath=$MigrationsPath;
+    $FileLocations|convertto-json > "$pwd\DirectoryNames.json"
+    }
+
 if ($dir -eq '') { throw "no resources directory found" }
 #Read in shared resources
 dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
@@ -128,6 +136,7 @@ if (!([string]::IsNullOrEmpty($FlywayContent.'flyway.url')))
 	}
 }
 
+
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
 $DBDetails = @{
@@ -171,6 +180,7 @@ foreach{
 }
 
 
+
 #now add in any values passed as environment variables
 try{
 $EnvVars=@{};
@@ -203,3 +213,4 @@ catch
 $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) {'dbo'} else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema).$($defaultTable)"
+
