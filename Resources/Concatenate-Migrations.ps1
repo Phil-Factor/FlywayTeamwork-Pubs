@@ -38,9 +38,9 @@ function Concatenate-Migrations
 				   Position = 2)]
 		[string]$DestinationFile,
 		[Parameter(Position = 3)]
-		[version]$StartVersion = [version]'0.0.0',
+		[version]$StartVersion = $null,
 		[Parameter(Position = 4)]
-		[version]$EndVersion = [version]'32000.0.0' #latest version to do, leave to do all
+		[version]$EndVersion = [version]$null #latest version to do, leave to do all
 	)
 	
 	$FileContents = [string]'';
@@ -51,12 +51,13 @@ function Concatenate-Migrations
 			'version' = [version]($_.Name -ireplace '(?m:^)V(?<Version>.*)__.*', '${Version}')
 		}
 	} |
-	where { (!($_.version -lt $StartVersion) -and !($_.version -gt $EndVersion)) } |
-	Sort-Object -Property @{ Expression = "version"; Descending = $false } |
-	foreach{
-		Write-Verbose "processing $($_.file)"
-		[IO.File]::ReadAllText("$TheDirectory\$($_.file)")
-	}
+	  where { (!($StartVersion -ne $null -and $_.version -lt $StartVersion) -and 
+                     !($EndVersion -ne $null -and $_.version -gt $EndVersion))} |
+	    Sort-Object -Property @{ Expression = "version"; Descending = $false } |
+	       foreach{
+		   Write-Verbose "processing $($_.file)"
+		   [IO.File]::ReadAllText("$TheDirectory\$($_.file)")
+	       }
 	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #Flyway likes this
 	$FileContents> $DestinationFile
 }

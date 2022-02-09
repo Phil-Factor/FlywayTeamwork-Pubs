@@ -1,6 +1,4 @@
-﻿cd S:\work\Github\FlywayTeamwork\Pubs
-
-. '.\preliminary.ps1'
+﻿. '.\preliminary.ps1'
 
 <# now we use the GetdataFromSQLCMD scriptblock to determine the version number and name from SQL Server.
 we then set the placeholder values for the capability of the version of SQL Server.

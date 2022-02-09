@@ -869,6 +869,8 @@ $CreateScriptFoldersIfNecessary = {
 	    {
 	    $Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
         copy-item -path "$MyDatabasePath\*"  -recurse -destination $MyCurrentPath # copy over the current model
+        @{'version'=$Param1.version;'Author'=$Param1.InstalledBy;'Branch'=$param1.branch}|
+            convertTo-json >"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\Version.json"
 	    }
 	}
 	else { "This version is already scripted in $MyDatabasePath " }
