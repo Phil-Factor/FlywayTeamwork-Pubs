@@ -5,7 +5,7 @@ This is a sample  Flyway database project. If you clone it, you will have a play
 
 We’re using the following model of branching. 
 
-![TheStructureOfTheDevelopmentProjectFolder](.\FlywayHierarchy.png)
+![FlywayHierarchy](https://user-images.githubusercontent.com/917048/152835501-ddc5c01a-c707-45b3-b5d3-e4e20efb8108.png)
 
 Within each branch is held all the migrations, scripts, models and reports. Each branch therefor has the same  names and purpose for its subdirectories. The sub-branches of any branch are contained in a ‘branches’ directory. 
 
