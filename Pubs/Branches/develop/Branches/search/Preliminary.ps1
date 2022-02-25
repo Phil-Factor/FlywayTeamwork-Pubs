@@ -100,19 +100,26 @@ Now we check that the directories and files that we need are there #>
 
 #cd S:\work\Github\FlywayTeamwork\Pubs\Branches\develop
 
-
-$FlywayContent = (Get-Content "flyway.conf") + (Get-content "$env:userProfile\flyway.conf") |
+$FlywayConfContent=@()
+$FlywayKeys = (Get-Content "flyway.conf")  |
 where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
-ConvertFrom-StringData
+    ConvertFrom-StringData -OutVariable FlywayConfContent|foreach {$_.keys}
+Get-content "$env:userProfile\flyway.conf" |where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') }|
+ConvertFrom-StringData|foreach{
+    if (!($_.Keys -in $FlywayKeys)) 
+        {$FlywayConfContent+=$_}
+    }
+
+
 # use this information for our own local data
-if (!([string]::IsNullOrEmpty($FlywayContent.'flyway.url')))
+if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 {
 	$FlywayURLRegex =
 	'jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
 	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\]{1,80})';
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing
-	$ConnectionInfo = $FlywayContent.'flyway.url' #get the environment variable
+	$ConnectionInfo = $FlywayConfContent.'flyway.url' #get the environment variable
 	
 	if ($ConnectionInfo -imatch $FlywayURLRegex) #This copes with having no port.
 	{
@@ -153,23 +160,24 @@ $DBDetails = @{
     'reportDirectory'=$Reportdirectory;
     'reportLocation'=$ReportLocation; # part of path from user area to project artefacts folder location 
 	'Port' = $port
-	'uid' = $FlywayContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
+	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in if you request it
 	'version' = ''; # TheCurrent Version. This gets filled in if you request it
 	'flywayTable' = 'dbo.flyway_schema_history';
 	'branch' = $branch;
 	'schemas' = 'dbo,classic,people';
 	'project' = $project; #Just the simple name of the project
-	'projectDescription' = $FlywayContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
-	'projectFolder' = $FlywayContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
+	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
+	'projectFolder' = $FlywayConfContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
 	'resources' = "$Dir\$ResourcesPath"
+	'feedback' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'warnings' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
-$DBDetails.pwd = "$(GetorSetPassword $FlywayContent.'flyway.user' $server $RDBMS)"
+$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"
 
-$FlywayContent |
+$FlywayConfContent |
 foreach{
 	$what = $_;
 	$variable = $_.Keys;

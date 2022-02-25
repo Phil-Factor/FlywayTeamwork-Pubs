@@ -75,9 +75,6 @@ $DatabaseDetails =
      }
 
  
-$CreateBuildScriptIfNecessary 
-a script block that produces a build script from a database, using SQL Compare.
-
 $CheckCodeInDatabase 
 This scriptblock checks the code in the database for any issues,
 using SQL Code Guard to do all the work. This runs SQL Codeguard 
@@ -184,6 +181,10 @@ contents of the previous version.
 $GeneratePUMLforGanttChart
 This script creates a PUML file for a Gantt chart at the current version of the database. This can be
 read into any editor that takes PlantUML files to give a Gantt chart
+
+$CreatePossibleMigrationScript
+This creates a forward migration that scripts out all the changes made to the database since the current
+migration
 #>
 
 
@@ -195,10 +196,15 @@ $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
 # We use SQL Compare to compare build script with database
 # and for generating scripts.
 $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
+$PGDumpAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\pg_dump.exe"
+$psqlAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\psql.exe"
+
+
+
 #where we want to store reports, the sub directories from the user area.
 
 Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
-
+Set-Alias psql $psqlAlias -Scope local
 
 #This is a utility scriptblock used by the task scriptblocks
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
@@ -272,6 +278,46 @@ set 'simpleText' to true #>
 		    { $response }
 	    }
     }
+}
+
+$GetdataFromPsql = {<# a Scriptblock way of accessing PosgreSQL via a CLI to get JSON-based  results without having to 
+explicitly open a connection. it will take either SQL files or queries.  #>
+	Param (
+        $Theargs, #this is the same ubiquitous hashtable 
+		$query, #a query. If a file, put the path in the $fileBasedQuery parameter
+        $fileBasedQuery=$null)  # $GetdataFromPsql: (Don't delete this)
+ 
+    $problems=@()
+    @('server', 'database', 'port','user','pwd') |
+	        foreach{ if ($TheArgs.$_ -in @($null,'')) { $problems += "Can't do this: no value for '$($_)'" } }
+    
+    if ($problems.Count -eq 0)
+    {
+	    $TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).csv"
+        $TempInputFile = "$($env:Temp)\TempInput.sql"
+        if ($FileBasedQuery-ne $null) #if we've been passed a file ....
+            {$TempInputFile=$FileBasedQuery}
+        else
+            {[System.IO.File]::WriteAllLines($TempInputFile, $query);}
+       Try
+        {
+        $Params=@(
+        "--dbname=$($TheArgs.database)",
+        "--host=$($TheArgs.server)",
+        "--username=$($TheArgs.user)",
+        "--password=$($TheArgs.pwd)",
+        "--port=$($TheArgs.Port -replace '[^\d]','')",
+        "--file=$TempInputFile",
+        "--no-password",
+        "--csv")
+        $result=psql @params
+        }
+        catch
+        {$Param1.Problems.'GetCurrentVersion' += "$($What.TestDesc)  failed because $($_)"}
+       if ($?)
+        {$result|convertFrom-csv|convertto-json}
+    }
+    else{$Param1.Problems.'GetCurrentVersion'+=$problems}
 }
 
 
@@ -642,6 +688,7 @@ $CheckCodeInMigrationFiles = {
 }
 
 
+
 <#This scriptblock gets the current version of a flyway_schema_history data from the 
 table in the database. if there is no Flyway Data, then it returns a version of 0.0.0
  #>
@@ -656,25 +703,47 @@ $GetCurrentVersion = {
 			$DoIt = $False;
 		}
 	}
-    $flywayTable=$Param1.flywayTable
-   if ($flywayTable -eq $null)
-        {$flywayTable='dbo.flyway_schema_history'}
+	$flywayTable = $Param1.flywayTable
+	if ($flywayTable -eq $null)
+	{ $flywayTable = 'dbo.flyway_schema_history' }
 	$Version = 'unknown'
-	$AllVersions = $GetdataFromSQLCMD.Invoke(
-		$param1, "SELECT DISTINCT version
-  FROM $flywayTable
-  WHERE version IS NOT NULL
-FOR JSON AUTO") |
-	convertfrom-json
-	$LastAction = $GetdataFromSQLCMD.Invoke(
-		$param1, "SELECT version, type
-  FROM $flywayTable
-  WHERE
-  installed_rank =
-    (SELECT Max (installed_rank) FROM $flywayTable
-       WHERE success = 1)
-FOR JSON AUTO") |
-	convertfrom-json
+	if ($param1.RDBMS -eq 'sqlserver')
+	{
+		# Do it the SQL Server way.
+		$AllVersions = $GetdataFromSQLCMD.Invoke(
+			$param1, "SELECT DISTINCT version
+      FROM $flywayTable
+      WHERE version IS NOT NULL
+    FOR JSON AUTO") |
+		convertfrom-json
+		$LastAction = $GetdataFromSQLCMD.Invoke(
+			$param1, "SELECT version, type
+      FROM $flywayTable
+      WHERE
+      installed_rank =
+        (SELECT Max (installed_rank) FROM $flywayTable
+           WHERE success = 1)
+    FOR JSON AUTO") |
+		convertfrom-json
+	} ##
+	elseif ($param1.RDBMS -eq 'postgresql')
+	{
+		# Do it the PostgreSQL way
+		$AllVersions = $GetdataFrompsql.Invoke(
+			$param1, "SELECT DISTINCT version
+      FROM $($param1.flywayTable)
+      WHERE version IS NOT NULL
+    ") | convertfrom-json
+		$LastAction = $GetdataFrompsql.Invoke(
+			$param1, "SELECT version, type
+      FROM $flywayTable
+      WHERE
+      installed_rank =
+        (SELECT Max (installed_rank) FROM $flywayTable
+           WHERE success = true)
+    ") | convertfrom-json
+	}
+	else { $problems += "$($param1.RDBMS) is not supported yet. " }
 	if ($AllVersions.error -ne $null) { $problems += $AllVersions.error }
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
 	if ($AllVersions -eq $null) { $problems += 'No respose for version list' }
@@ -686,13 +755,14 @@ FOR JSON AUTO") |
 			$OrderedVersions = $AllVersions | %{
 				new-object System.Version ($_.version)
 			} |
-			sort | % -Begin { $ii = 1 }{ 
-                [pscustomobject]@{ 'Order' = $ii++; 'version' = $_.ToString() } };
+			sort | % -Begin { $ii = 1 }{
+				[pscustomobject]@{ 'Order' = $ii++; 'version' = $_.ToString() }
+			};
 			$VersionOrder = $OrderedVersions |
-               where{ $_.version -eq $Lastaction.version } | Select Order -First 1;
-			$Version = ($OrderedVersions | 
-                where{ $_.Order -eq $VersionOrder.Order - 1 } | 
-                    Select version -First 1).version;
+			where{ $_.version -eq $Lastaction.version } | Select Order -First 1;
+			$Version = ($OrderedVersions |
+				where{ $_.Order -eq $VersionOrder.Order - 1 } |
+				Select version -First 1).version;
 		}
 		else
 		{
@@ -701,12 +771,14 @@ FOR JSON AUTO") |
 	}
 	if ($problems.Count -gt 0)
 	{
-		Write-error "$problems happened!";
 		$Param1.Problems.'GetCurrentVersion' += $problems;
-        $version='0.0.0'
+		$version = '0.0.0'
 	}
+    $Param1.feedback.'GetCurrentVersion'="current version is $version"
 	$param1.Version = $version
 }
+
+
 
 <# This uses SQL Compare to check that a version of a database is correct and hasn't been changed.
 It returns comparison equal to true if it was the same or false if there has been drift, 
@@ -876,81 +948,114 @@ $CreateScriptFoldersIfNecessary = {
 	else { "This version is already scripted in $MyDatabasePath " }
 }
 
-<# a script block that produces a build script from a database, using SQL Compare. #>
+<# $param1=$dbDetails
+a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever. #>
 
 $CreateBuildScriptIfNecessary = {
 	Param ($param1) # $CreateBuildScriptIfNecessary (Don't delete this) 
 	$problems = @();
 	@('version', 'server', 'database', 'project') |
-	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
-	<#if ($param1.Escapedserver -eq $null) #check that escapedValues are in place
-	{
-		$EscapedValues = $param1.GetEnumerator() |
-		where { $_.Name -in ('server', 'Database', 'Project') } | foreach{
-			@{ "Escaped$($_.Name)" = ($_.Value.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') }
-		}
-		$EscapedValues | foreach{ $param1 += $_ }
-	}#>
-	#the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
-	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
-	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
+	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
+
 	#the database scripts path would be up to you to define, of course
-    $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-    $scriptsPath= if ([string]::IsNullOrEmpty($param1.scriptsPath)) {'scripts'} else {"$($param1.scriptsPath)"}
-	$MyDatabasePath = $MyDatabasePath = 
-        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath"} 
-        else {"$ReportLocation\$($param1.Version)\$scriptsPath"} #else the simple version
-	$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
-		# can use a hash-table 
-		"/server1:$($param1.server)",
-		"/database1:$($param1.database)",
-		"/exclude:table:$($param1.flywayTable)",
-		"/empty2",
-		"/force", # 
-		"/options:NoTransactions,NoErrorHandling", # so that we can use the script with Flyway more easily
-		"/LogLevel:Warning",
-		"/ScriptFile:$MyDatabasePath\V$($param1.Version)__Build.sql"
-	)
-	
-	if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
-	{
-		$CLIArgs += @(
-			"/username1:$($param1.uid)",
-			"/Password1:$($param1.pwd)"
-		)
-	}
-	if (-not (Test-Path -PathType Container $MyDatabasePath))
-	{
-		# is the path to the scripts directory
-		# not there, so we create the directory 
-		$null = New-Item -ItemType Directory -Force $MyDatabasePath;
-	}
-	
+	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	$scriptsPath = if ([string]::IsNullOrEmpty($param1.scriptsPath)) { 'scripts' }
+	else { "$($param1.scriptsPath)" }
+	$MyDatabasePath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath" }
+	else { "$ReportLocation\$($param1.Version)\$scriptsPath" } #else the simple version
 	
 	if (-not (Test-Path -PathType Leaf "$MyDatabasePath\V$($param1.Version)__Build.sql"))
 	{
-		# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
-		Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
-		if ($?) { "Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
-		else # if no errors then simple message, otherwise....
+		if (-not (Test-Path -PathType Container $MyDatabasePath))
 		{
-			#report a problem and send back the args for diagnosis (hint, only for script development)
-			$Arguments = '';
-			$Arguments += $CLIArgs | foreach{ $_ }
-			$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments."
+			# is the path to the scripts directory
+			# not there, so we create the directory 
+			$null = New-Item -ItemType Directory -Force $MyDatabasePath;
+		}
+		switch ($param1.RDBMS)
+		{
+			'sqlserver' #using SQL Server
+			{
+            	#the alias must be set to the path of your installed version of SQL Compare
+				Set-Alias SQLCompare $SQLCompareAlias -Scope Script;
+				if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
+				{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
+				$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
+					# can use a hash-table 
+					"/server1:$($param1.server)",
+					"/database1:$($param1.database)",
+					"/exclude:table:$($param1.flywayTable)",
+					"/empty2",
+					"/force", # 
+					"/options:NoTransactions,NoErrorHandling", # so that we can use the script with Flyway more easily
+					"/LogLevel:Warning",
+					"/ScriptFile:$MyDatabasePath\V$($param1.Version)__Build.sql"
+				)
+				
+				if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
+				{
+					$CLIArgs += @(
+						"/username1:$($param1.uid)",
+						"/Password1:$($param1.pwd)"
+					)
+				}
+				
+				# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
+				Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
+				if ($?) { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+				else # if no errors then simple message, otherwise....
+				{
+					#report a problem and send back the args for diagnosis (hint, only for script development)
+					$Arguments = '';
+					$Arguments += $CLIArgs | foreach{ $_ }
+					$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments."
+				}
+				break;
+			}
+			'postgresql' #using SPostgreSQL
+			{
+            	#the alias must be set to the path of your installed version of Spg_dump
+			    Set-Alias pg_dump   $PGDumpAlias -Scope Script;
+			    if (!(test-path  ((Get-alias -Name pg_dump).definition) -PathType Leaf))
+			    { $Problems += 'The alias for pg_dump is not set correctly yet' }
+                $env:PGPASSWORD="$($param1.pwd)"
+                $Params=@(
+                    "--dbname=$($param1.database)",
+                    "--host=$($param1.server)",
+                    "--username=$($param1.user)",
+                    "--port=$($param1.Port -replace '[^\d]','')",
+                    "--file=$MyDatabasePath\V$($param1.Version)__Build.sql",
+                    '--encoding=UTF8',
+                    '--schema-only')
+                 pg_dump @Params 
+				if ($?) 
+                { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+				else # if no errors then simple message, otherwise....
+				{
+					$Problems += "pg_dump Went badly. (code $LASTEXITCODE)"
+				}
+				break;
+			}
+            default
+                {
+                $problems += "cannot do a build script for $($param1.RDBMS) "
+                }
 		}
 		if ($problems.count -gt 0)
 		{ $Param1.Problems.'CreateBuildScriptIfNecessary' += $problems; }
-        else
-	        {
-	        $Param1.WriteLocations.'CreateBuildScriptIfNecessary' = "$MyDatabasePath\V$($param1.Version)__Build.sql";
-	        }
+		else
+		{
+			$Param1.WriteLocations.'CreateBuildScriptIfNecessary' = "$MyDatabasePath\V$($param1.Version)__Build.sql";
+		}
 	}
-	else { "This version '$($param1.Version)' already has a build script at $MyDatabasePath " }
+	
+	else {$Param1.feedback.'CreateBuildScriptIfNecessary'="This version '$($param1.Version)' already has a build script at $MyDatabasePath " }
 	
 }
+
+
 <#This scriptblock executes SQL that produces a report in XML or JSON from the database
 #>
 
@@ -1560,7 +1665,7 @@ FOR JSON AUTO") | convertfrom-json
 		    "/database2:$($param1.database)",
 		    "/exclude:table:$($param1.flywayTable)",
 		    "/force", # 
-		    "/options:NoErrorHandling,NoTransactions,DoNotOutputCommentHeader,ThrowOnFileParseFailed,ForceColumnOrder,IgnoreNoCheckAndWithNoCheck,IgnoreSquareBrackets,IgnoreWhiteSpace,ObjectExistenceChecks,IgnoreSystemNamedConstraintNames,IgnoreTSQLT,NoDeploymentLogging", 
+		    "/options:NoErrorHandling,IgnoreQuotedIdentifiersAndAnsiNullSettings,NoTransactions,DoNotOutputCommentHeader,ThrowOnFileParseFailed,ForceColumnOrder,IgnoreNoCheckAndWithNoCheck,IgnoreSquareBrackets,IgnoreWhiteSpace,ObjectExistenceChecks,IgnoreSystemNamedConstraintNames,IgnoreTSQLT,NoDeploymentLogging", 
 # so that we can use the script with Flyway more easily
 		    "/LogLevel:Warning",
 		    "/ScriptFile:$CurrentUndoPath\U$($Param1.Version)__Undo.sql"
@@ -1601,6 +1706,80 @@ FOR JSON AUTO") | convertfrom-json
 	else { "This version '$($param1.Version)' already has a undo script to get to $PreviousVersion at $CurrentUndoPath\U$($Param1.Version)__Undo.sql " }
 	
 }
+
+<# this creates a first-cut migration script for the metadata (not the data) which can
+be adjusted, documented  and modified quickly to produce an migration Script. It does this by using
+SQL Compare to generate a  idepotentic script comparing contents of the current version of the database with the 
+ live version. Do not do this within a Flyway Session (such as an 'afterEach')#>
+$CreatePossibleMigrationScript = {
+	Param ($param1) # $CreatePossibleMigrationScript (Don't delete this) 
+	$problems = @(); # well, not yet
+     #check that we have values for the necessary details
+	@('version', 'server', 'database', 'project') |
+	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
+	# the alias must be set to the path of your installed version of SQL Compare
+	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
+	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
+	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
+	#the database scripts path would be up to you to define, of course
+    $scriptsPath= if ([string]::IsNullOrEmpty($param1.scriptsPath)) {'scripts'} else {"$($param1.scriptsPath)"}
+    $sourcePath= if ([string]::IsNullOrEmpty($param1.sourcePath)) {'Source'} else {"$($param1.SourcePath)"}
+    $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
+    $CurrentVersionPath = 
+        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
+          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)"} 
+        else {"$ReportLocation\$($param1.Version)"} #else the simple version
+ 	
+    $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
+		# can use a hash-table 
+        "/Scripts2:$CurrentVersionPath\$SourcePath"
+		"/server1:$($param1.server)",
+        '/include:identical',#a migration may just be data, no metadata.
+		"/database1:$($param1.database)",
+		"/exclude:table:$($param1.flywayTable)",
+        "/report:$CurrentVersionPath\Drift.xml",
+        "/reportType:XML"
+		"/force", # 
+		"/options:NoErrorHandling,IgnoreExtendedProperties,IgnoreQuotedIdentifiersAndAnsiNullSettings,NoTransactions,DoNotOutputCommentHeader,ThrowOnFileParseFailed,ForceColumnOrder,IgnoreNoCheckAndWithNoCheck,IgnoreSquareBrackets,IgnoreWhiteSpace,ObjectExistenceChecks,IgnoreSystemNamedConstraintNames,IgnoreTSQLT,NoDeploymentLogging", 
+# so that we can use the script with Flyway more easily
+		"/LogLevel:Warning",
+		"/ScriptFile:$CurrentVersionPath\$scriptsPath\MigrationFrom$($param1.Version)ToNextVersion.sql"
+	)
+	
+	if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
+	{
+		$CLIArgs += @(
+			"/username1:$($param1.uid)",
+			"/Password1:$($param1.pwd)"
+		)
+	}
+	if (-not (Test-Path -PathType Container $CurrentVersionPath))
+	{
+		# is the path to the scripts directory
+		# not there, so we create the directory 
+		$null = New-Item -ItemType Directory -Force $CurrentVersionPath;
+	}
+	# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
+	Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
+	if ($LASTEXITCODE-eq 63) {$param1.feedback.'CreatePossibleMigrationScript'= "There have been no changes to version $($param1.Version) of $($param1.Project)" }
+	if ($?) { "Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+	else # if no errors then simple message, otherwise....
+	{
+		#report a problem and send back the args for diagnosis (hint, only for script development)
+		$Arguments = '';
+		$Arguments += $CLIArgs | foreach{ $_ }
+		$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments"
+	}
+	if ($problems.count -gt 0)
+	{ $Param1.Problems.'CreatePossibleMigrationScript' += $problems; }
+	else
+	{
+	$Param1.WriteLocations.'CreatePossibleMigrationScript' = "$CurrentVersionPath\$scriptsPath\MigrationFrom$($param1.Version)ToNextVersion.sql";
+    $Param1.feedback.'CreatePossibleMigrationScript'="A migration file has been created from the present version ($($param1.Version))" 
+	}
+	
+}
+
 
 <#
 This script performs a bulk copy operation to get data into a database. It
@@ -1957,9 +2136,7 @@ function Process-FlywayTasks
 		$DatabaseDetails.Problems.GetEnumerator() |
 		   Foreach{ Write-warning "Problem! $($_.Key)---------"; $_.Value } |
 		      foreach { write-warning "`t$_" }
-        gci env:* | sort-object name| 
-           where {$_.Name -like 'FP*' -or $_.Name -like 'Fly*'}|
-              foreach {Write-warning "$($_.Name)=$($_.value)"}
+        
 	}
 	if ($DatabaseDetails.Warnings.Count -gt 0) #list out exery warning and which task failed
 	{
@@ -1968,9 +2145,16 @@ function Process-FlywayTasks
 		foreach { write-warning  "`t$_" }
 	$DatabaseDetails.Warnings=@{}    
     }
-	$Reports=@{}
+
 	$DatabaseDetails.WriteLocations.GetEnumerator() |
-		Foreach{ Write-Output "For the $($_.Key), we saved the report in $($_.Value)" } 
+		Foreach{ Write-Output "For the $($_.Key), we saved the report in $($_.Value)"
+    $DatabaseDetails.WriteLocations=@{}   
+ } 
+
+	$DatabaseDetails.feedback.GetEnumerator() |
+		Foreach{ Write-Output "in $($_.Key), $($_.Value)"
+    $DatabaseDetails.feedback=@{}  
+     } 
 
     #$Reports=$DatabaseDetails.WriteLocations.GetEnumerator() |
 	#	Foreach{ @{"Source"= $($_.Key); "Report"=$($_.Value)} 
@@ -1979,4 +2163,4 @@ function Process-FlywayTasks
    }
 
 
-'scriptblocks and cmdlet loaded. V1.2.67'
+'scriptblocks and cmdlet loaded. V1.2.75'
