@@ -353,6 +353,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
         "--file=$TempInputFile",
         "--no-password",
         "--csv")
+        $env:PGPASSWORD="$($TheArgs.pwd)"
         $result=psql @params
         }
         catch
@@ -806,7 +807,7 @@ $GetCurrentVersion = {
 	else { $problems += "$($param1.RDBMS) is not supported yet. " }
 	if ($AllVersions.error -ne $null) { $problems += $AllVersions.error }
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
-	if ($AllVersions -eq $null) { $problems += 'No respose for version list' }
+	if ($AllVersions -eq $null) { $problems += 'No response for version list' }
 	if ($LastAction -eq $null) { $problems += 'no response for last migration' }
 	if ($problems.count -eq 0)
 	{
@@ -1112,7 +1113,7 @@ $CreateBuildScriptIfNecessary = {
 		        { $problems += "SQL called to SQLite  failed because $($_)"
                 }           
                 if ($?)
-                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project)" }
                 else
                 {$problems += "SQLite couldn't create the build script for $($param1.Version) $($param1.RDBMS)"}
             }
@@ -1883,7 +1884,7 @@ $BulkCopyIn = {
 	#Now finished getting credentials. Is the data directory there
 	if (!(Test-Path -path $Filepath -PathType Container))
 	{
-		$Problems += 'No appropriate directory with BCP files yet';
+		$Problems += 'No appropriate directory with bulk files yet';
 		$weCanDoIt = $false;
 	}
 	if ($weCanDoIt)
