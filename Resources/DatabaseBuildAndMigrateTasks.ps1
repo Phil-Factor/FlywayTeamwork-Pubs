@@ -198,6 +198,7 @@ $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
 $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
 $PGDumpAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\pg_dump.exe"
 $psqlAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\psql.exe"
+$sqliteAlias='C:\ProgramData\chocolatey\lib\SQLite\tools\sqlite-tools-win32-x86-3360000\sqlite3.exe'
 
 
 
@@ -205,6 +206,48 @@ $psqlAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\psql.exe"
 
 Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
 Set-Alias psql $psqlAlias -Scope local
+Set-Alias sqlite $sqliteAlias -Scope local
+
+$GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
+without having to explicitly open a connection. it will take either SQL files or queries.  #>
+	Param (
+		$Theargs,
+		#this is the same ubiquitous hashtable 
+		$query,
+		#a query. If a file, put the path in the $fileBasedQuery parameter
+		$fileBasedQuery = $null) # $GetdataFromSqlite: (Don't delete this)
+	
+	$problems = @()
+	if ($TheArgs.Database -in @($null, '')) # do we have the necessary values
+    { $problems += "Can't do this: no value for the database" }
+	
+	if ($problems.Count -eq 0)
+	{
+		$TempInputFile = "$($env:Temp)\TempInput$(Get-Random -Minimum 1 -Maximum 900).sql"
+		if ($FileBasedQuery -ne $null) #if we've been passed a file ....
+		{ $TempInputFile = $FileBasedQuery }
+		else
+		{ [System.IO.File]::WriteAllLines($TempInputFile, $query); }
+		
+		$params = @(
+			'.bail on',
+			'.mode json',
+			'.headers off',
+			#".output $($TempOutputFile -replace '\\','/')",
+			".read $($TempInputFile -replace '\\', '/')",
+			'.quit')
+		try
+		{
+			$result = sqlite "$($param1.database)" @Params
+		}
+		catch
+		{ $problems += "SQL called to SQLite  failed because $($_)" }
+        if ($?) { $result }
+        else {$problems +='The SQL Call to SQLite failed'}
+		if ($FileBasedQuery -eq $null) { Remove-Item $TempInputFile }
+	}
+if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
+}
 
 #This is a utility scriptblock used by the task scriptblocks
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
@@ -313,11 +356,11 @@ explicitly open a connection. it will take either SQL files or queries.  #>
         $result=psql @params
         }
         catch
-        {$Param1.Problems.'GetCurrentVersion' += "$($What.TestDesc)  failed because $($_)"}
+        {$Param1.Problems.'GetdataFromPsql' += "$psql query failed because $($_)"}
        if ($?)
         {$result|convertFrom-csv|convertto-json}
     }
-    else{$Param1.Problems.'GetCurrentVersion'+=$problems}
+    else{$Param1.Problems.'GetdataFromPsql'+=$problems}
 }
 
 
@@ -743,6 +786,23 @@ $GetCurrentVersion = {
            WHERE success = true)
     ") | convertfrom-json
 	}
+    elseif ($param1.RDBMS -eq 'sqlite')
+	{
+		# Do it the SQLite way
+		$AllVersions = $GetdataFromsqlite.Invoke(
+			$param1, "SELECT DISTINCT version
+      FROM $($param1.flywayTable)
+      WHERE version IS NOT NULL
+    ") | convertfrom-json
+		$LastAction = $GetdataFromSqlite.Invoke(
+			$param1, "SELECT version, type
+      FROM $($param1.flywayTable)
+      WHERE
+      installed_rank =
+        (SELECT Max (installed_rank) FROM $($param1.flywayTable)
+           WHERE success = 1)
+    ") | convertfrom-json
+	}
 	else { $problems += "$($param1.RDBMS) is not supported yet. " }
 	if ($AllVersions.error -ne $null) { $problems += $AllVersions.error }
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
@@ -1031,16 +1091,34 @@ $CreateBuildScriptIfNecessary = {
                     '--schema-only')
                  pg_dump @Params 
 				if ($?) 
-                { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
 				else # if no errors then simple message, otherwise....
 				{
 					$Problems += "pg_dump Went badly. (code $LASTEXITCODE)"
 				}
 				break;
 			}
+            'sqlite' #using SQLite
+            {
+         		$params = @(
+			        '.bail on',
+                    '.schema',
+			        '.quit')
+		        try
+		        {
+			        sqlite "$($param1.database)" @Params > "$MyDatabasePath\V$($param1.Version)__Build.sql"
+		        }		
+                catch
+		        { $problems += "SQL called to SQLite  failed because $($_)"
+                }           
+                if ($?)
+                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+                else
+                {$problems += "SQLite couldn't create the build script for $($param1.Version) $($param1.RDBMS)"}
+            }
             default
                 {
-                $problems += "cannot do a build script for $($param1.RDBMS) "
+                $problems += "cannot do a build script for $($param1.Version) $($param1.RDBMS) "
                 }
 		}
 		if ($problems.count -gt 0)
@@ -2163,4 +2241,4 @@ function Process-FlywayTasks
    }
 
 
-'scriptblocks and cmdlet loaded. V1.2.75'
+'scriptblocks and cmdlet loaded. V1.2.76'

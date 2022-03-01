@@ -116,7 +116,7 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 {
 	$FlywayURLRegex =
 	'jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
-	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\]{1,80})';
+	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\/\.]{1,80})';
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing
 	$ConnectionInfo = $FlywayConfContent.'flyway.url' #get the environment variable
@@ -163,7 +163,7 @@ $DBDetails = @{
 	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in if you request it
 	'version' = ''; # TheCurrent Version. This gets filled in if you request it
-	'flywayTable' = 'dbo.flyway_schema_history';
+	'flywayTable' = 'dbo.flyway_schema_history';#this gets filled in later
 	'branch' = $branch;
 	'schemas' = 'dbo,classic,people';
 	'project' = $project; #Just the simple name of the project
@@ -175,7 +175,8 @@ $DBDetails = @{
 	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
-$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"
+if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null))) #if there is a UID then it needs credentials
+    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
 
 $FlywayConfContent |
 foreach{
@@ -184,9 +185,7 @@ foreach{
 	$Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
 	$value = $what."$($_.Keys)"
 	$dbDetails."$variable" = $value;
-	
 }
-
 
 
 #now add in any values passed as environment variables
@@ -218,7 +217,8 @@ catch
     { 
     write-warning "$($PSItem.Exception.Message) getting environment variables at line $($_.InvocationInfo.ScriptLineNumber)"
     }
-$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) {'dbo'} else {"$($DBDetails.'defaultSchema')"}
+$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
+                     {($DBDetails.schemas -split ','|select -First 1)} 
+                     else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
-$DBDetails.'flywayTable'="$($defaultSchema).$($defaultTable)"
-
+$DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"

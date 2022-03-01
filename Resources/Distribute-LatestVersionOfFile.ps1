@@ -12,6 +12,7 @@
 	
 	.EXAMPLE
 		Distribute-LatestVersionOfFile '<pathTo>\github' 'DatabaseBuildAndMigrateTasks.ps1'
+		Distribute-LatestVersionOfFile 'S:\work\Github\PubsAndFlyway' 'preliminary.ps1'
 	
 	.NOTES
 		Additional information about the function.
