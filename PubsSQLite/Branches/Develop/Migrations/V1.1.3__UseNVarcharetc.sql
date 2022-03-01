@@ -1,191 +1,386 @@
--- 'Dropping foreign keys from dbo.sales'
-ALTER TABLE dbo.sales DROP CONSTRAINT FK__sales__stor_id;
-ALTER TABLE dbo.sales DROP CONSTRAINT FK__sales__title_id;
--- 'Dropping constraints from dbo.sales'
-ALTER TABLE dbo.sales DROP CONSTRAINT UPKCL_sales;
--- 'Dropping constraints from dbo.authors'
-ALTER TABLE dbo.authors ALTER COLUMN phone DROP DEFAULT; 
--- 'Dropping constraints from dbo.publishers'
-ALTER TABLE dbo.publishers ALTER COLUMN  country DROP DEFAULT;
--- 'Dropping constraints from dbo.titles'
-ALTER TABLE dbo.titles ALTER COLUMN type DROP DEFAULT;
--- 'Dropping index aunmind from dbo.authors'
-DROP INDEX aunmind;
-
--- 'Dropping index titleind from dbo.titles'
-DROP INDEX titleind;
-
--- 'Dropping index employee_ind from dbo.employee'
-DROP INDEX employee_ind;
-
--- 'Altering dbo.stores'
-
-ALTER TABLE dbo.stores ALTER COLUMN stor_name SET DATA TYPE character varying(80);
-ALTER TABLE dbo.stores ALTER COLUMN stor_address SET DATA TYPE character varying(80);
-ALTER TABLE dbo.stores ALTER COLUMN city SET DATA TYPE character varying(40);
-
--- 'Altering dbo.discounts'
-
-ALTER TABLE dbo.discounts ADD
-Discount_id int  NOT NULL GENERATED ALWAYS AS IDENTITY;
-
-ALTER TABLE dbo.discounts ALTER COLUMN discounttype SET DATA TYPE character varying(80);
-ALTER TABLE dbo.discounts ALTER COLUMN discounttype SET NOT NULL;
-
--- 'Creating primary key PK__discount__63D7679C0CEEA6FF on dbo.discounts'
-ALTER TABLE dbo.discounts ADD PRIMARY KEY  (Discount_id);
-
-CREATE INDEX pk_discounts_idx
-    ON dbo.discounts  USING btree
-    (Discount_id ASC NULLS LAST)
-    TABLESPACE pg_default;
-
-ALTER TABLE dbo.discounts 
-    CLUSTER ON pk_discounts_idx;
-
-ALTER TABLE dbo.employee ALTER COLUMN fname SET DATA TYPE  character varying(40);
-ALTER TABLE dbo.employee ALTER COLUMN fname SET NOT NULL;
-
-ALTER TABLE dbo.employee ALTER COLUMN lname SET DATA TYPE character varying(60);
-ALTER TABLE dbo.employee ALTER COLUMN lname SET NOT NULL;
-
--- 'Creating index employee_ind on dbo.employee'
-CREATE INDEX employee_ind ON dbo.employee (lname, fname, minit);
-ALTER TABLE dbo.employee 
-    CLUSTER ON employee_ind;
--- 'Altering dbo.publishers'
-
-ALTER TABLE dbo.publishers ALTER COLUMN pub_name SET DATA TYPE character varying(100);
-
-ALTER TABLE dbo.publishers ALTER COLUMN city SET DATA TYPE character varying(100);
-
-ALTER TABLE dbo.publishers ALTER COLUMN country SET DATA TYPE character varying(80);
-
-Drop View dbo.titleview;
-
--- 'Altering dbo.titles'
-
-ALTER TABLE dbo.titles ALTER COLUMN title SET DATA TYPE character varying(255);
-ALTER TABLE  dbo.titles ALTER COLUMN title SET NOT NULL;
-
-ALTER TABLE dbo.titles ALTER COLUMN type SET DATA TYPE character varying(80);
-ALTER TABLE dbo.titles ALTER COLUMN type SET NOT NULL;
-
-ALTER TABLE dbo.titles ALTER COLUMN notes SET DATA TYPE character varying(4000);
-
--- 'Creating index titleind on dbo.titles'
-CREATE INDEX titleind ON dbo.titles (title);
-
--- 'Altering dbo.roysched'
-
-ALTER TABLE dbo.roysched ADD
-roysched_id int NOT NULL GENERATED ALWAYS AS IDENTITY;
-ALTER TABLE dbo.roysched  ADD PRIMARY KEY  (roysched_id);
-
-CREATE INDEX pk_roysched_id_idx
-    ON dbo.roysched  USING btree
-    (roysched_id  ASC NULLS LAST)
-    TABLESPACE pg_default;
-
-ALTER TABLE dbo.roysched
-    CLUSTER ON pk_roysched_id_idx;
-
--- 'Altering dbo.sales'
-
-ALTER TABLE dbo.sales ALTER COLUMN ord_num SET DATA TYPE character varying(80);
-ALTER TABLE dbo.sales ALTER COLUMN ord_num  SET NOT NULL;
-ALTER TABLE dbo.sales ALTER COLUMN payterms SET DATA TYPE character varying(40) ;
-ALTER TABLE dbo.sales ALTER COLUMN payterms SET NOT NULL;
--- 'Creating primary key UPKCL_sales on dbo.sales'
-ALTER TABLE dbo.sales ADD CONSTRAINT UPKCL_sales PRIMARY KEY (stor_id, ord_num, title_id);
-
-CREATE INDEX Store_ID_Ord_Titleidx
-    ON dbo.sales USING btree
-    (stor_id, ord_num, title_id)
-    TABLESPACE pg_default;
-
-ALTER TABLE dbo.sales 
-    CLUSTER ON Store_ID_Ord_Titleidx;
--- 'Altering dbo.authors'
-
-ALTER TABLE dbo.authors ALTER COLUMN au_lname SET DATA TYPE character varying(80);
-ALTER TABLE dbo.authors ALTER COLUMN au_lname  SET NOT NULL;
-ALTER TABLE dbo.authors ALTER COLUMN au_fname SET DATA TYPE character varying(80) ;
-ALTER TABLE dbo.authors ALTER COLUMN au_fname  SET NOT NULL;
-ALTER TABLE dbo.authors ALTER COLUMN phone SET DATA TYPE character varying(40);
-ALTER TABLE dbo.authors ALTER COLUMN phone  SET NOT NULL;
-ALTER TABLE dbo.authors ALTER COLUMN address SET DATA TYPE character varying(80);
-ALTER TABLE dbo.authors ALTER COLUMN city SET DATA TYPE character varying(40);
-
--- 'Creating index aunmind on dbo.authors'
-CREATE INDEX aunmind ON dbo.authors (au_lname, au_fname);
-
--- 'Altering dbo.titleview'
-
-CREATE OR REPLACE VIEW dbo.titleview
-AS 
-Select title, au_ord, au_lname, price, ytd_sales, pub_id
-from dbo.titleauthor  inner join dbo.titles
-on titles.title_id = titleauthor.title_id
-inner join dbo.authors
-on dbo.authors.au_id = dbo.titleauthor.au_id;
 
 
+drop TABLE roysched;
 
--- 'Altering dbo.byroyalty'
+CREATE TABLE roysched (
+	roysched_id INTEGER PRIMARY KEY AUTOINCREMENT ,
+	title_id varchar(6) NOT NULL,
+	lorange int,
+	hirange int,
+	royalty int
+);
 
-CREATE OR REPLACE PROCEDURE dbo.byroyalty (percentage int)
-  LANGUAGE 'sql'
-AS $BODY$
-select au_id from titleauthor
-where titleauthor.royaltyper = percentage
-$BODY$;
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 2001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 3001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 4001, 10000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 10001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 1001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 3001, 5000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 5001, 7000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 7001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 1001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 2001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 1001, 2000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 2001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 4001, 6000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 6001, 8000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 8001, 10000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 10001, 12000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 12001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 4001, 6000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 6001, 8000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 8001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 0, 4000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 4001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 8001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 12001, 16000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 16001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 20001, 24000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 24001, 28000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 28001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 4001, 8000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 8001, 12000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 12001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 20001, 50000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 5001, 15000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 15001, 50000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 2001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 8001, 16000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 16001, 24000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 24001, 32000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 32001, 40000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 40001, 50000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 15001, 20000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 20001, 25000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 25001, 30000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 30001, 35000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 35001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 0, 10000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 10001, 20000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 20001, 30000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 30001, 40000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 40001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 2001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 3001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 4001, 10000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 10001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 1001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 3001, 5000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 5001, 7000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 7001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 1001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 2001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 1001, 2000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 2001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 4001, 6000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 6001, 8000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 8001, 10000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 10001, 12000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 12001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 4001, 6000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 6001, 8000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 8001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 0, 4000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 4001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 8001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 12001, 16000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 16001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 20001, 24000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 24001, 28000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 28001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 4001, 8000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 8001, 12000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 12001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 20001, 50000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 5001, 15000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 15001, 50000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 2001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 8001, 16000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 16001, 24000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 24001, 32000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 32001, 40000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 40001, 50000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 15001, 20000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 20001, 25000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 25001, 30000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 30001, 35000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 35001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 0, 10000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 10001, 20000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 20001, 30000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 30001, 40000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 40001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 2001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 3001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 4001, 10000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 10001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 1001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 3001, 5000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 5001, 7000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 7001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 1001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 2001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 1001, 2000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 2001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 4001, 6000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 6001, 8000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 8001, 10000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 10001, 12000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 12001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 4001, 6000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 6001, 8000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 8001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 0, 4000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 4001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 8001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 12001, 16000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 16001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 20001, 24000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 24001, 28000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 28001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 4001, 8000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 8001, 12000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 12001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 20001, 50000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 5001, 15000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 15001, 50000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 2001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 8001, 16000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 16001, 24000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 24001, 32000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 32001, 40000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 40001, 50000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 15001, 20000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 20001, 25000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 25001, 30000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 30001, 35000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 35001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 0, 10000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 10001, 20000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 20001, 30000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 30001, 40000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 40001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1032', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 2001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 3001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 4001, 10000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC1035', 10001, 50000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 1001, 3000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 3001, 5000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 5001, 7000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 7001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU2075', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 1001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2091', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 2001, 5000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 5001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS2106', 10001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 0, 1000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 1001, 2000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 2001, 4000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 4001, 6000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 6001, 8000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 8001, 10000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 10001, 12000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC3021', 12001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 4001, 6000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 6001, 8000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 8001, 10000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 10001, 12000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 12001, 14000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC3218', 14001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PC8888', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS7777', 5001, 50000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS3333', 15001, 50000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 0, 4000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 4001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 8001, 10000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 12001, 16000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 16001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 20001, 24000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 24001, 28000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU1111', 28001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 2001, 4000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 4001, 8000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 8001, 12000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 12001, 20000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('MC2222', 20001, 50000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 5001, 15000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC7777', 15001, 50000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 0, 2000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 2001, 8000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 8001, 16000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 16001, 24000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 24001, 32000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 32001, 40000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('TC4203', 40001, 50000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 0, 5000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 5001, 10000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 10001, 15000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 15001, 20000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 20001, 25000, 18);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 25001, 30000, 20);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 30001, 35000, 22);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('BU7832', 35001, 50000, 24);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 0, 10000, 10);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 10001, 20000, 12);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 20001, 30000, 14);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 30001, 40000, 16);
+INSERT INTO roysched(title_id, lorange, hirange, royalty) VALUES ('PS1372', 40001, 50000, 18);
 
--- 'Altering dbo.reptq1'
+
+DROP TABLE discounts;
+
+CREATE TABLE discounts (
+   discount_id INTEGER PRIMARY KEY AUTOINCREMENT,
+	discounttype varchar(40) NOT NULL,
+	stor_id char(4),
+	lowqty int,
+	highqty int,
+	discount decimal(4,2) NOT NULL,
+	FOREIGN KEY (stor_id) 
+	REFERENCES stores (stor_id)
+);
+
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Initial Customer', null, null, null, 10.50);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Volume Discount', null, 100, 1000, 6.70);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Customer Discount', '8042', null, null, 5.00);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Initial Customer', null, null, null, 10.50);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Volume Discount', null, 100, 1000, 6.70);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Customer Discount', '8042', null, null, 5.00);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Initial Customer', null, null, null, 10.50);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Volume Discount', null, 100, 1000, 6.70);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Customer Discount', '8042', null, null, 5.00);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Initial Customer', null, null, null, 10.50);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Volume Discount', null, 100, 1000, 6.70);
+INSERT INTO discounts(discounttype, stor_id, lowqty, highqty, discount) VALUES ('Customer Discount', '8042', null, null, 5.00);
 
 
-
--- 'Altering dbo.reptq2'
-
-CREATE OR REPLACE PROCEDURE dbo.reptq2 ()
-  LANGUAGE 'sql'
-AS $BODY$
-SELECT CASE WHEN Grouping(type) = 1 THEN 'ALL' ELSE type END AS type,
-  CASE WHEN Grouping(pub_id) = 1 THEN 'ALL' ELSE pub_id END AS pub_id,
-  avg(ytd_sales) AS avg_ytd_sales
-  FROM titles
-  WHERE pub_id IS NOT NULL
-  GROUP BY pub_id, type 
-$BODY$;
-
--- 'Altering dbo.reptq3'
-
-CREATE OR REPLACE PROCEDURE dbo.reptq3(
-	lolimit money,
-	hilimit money,
-	type character)
-LANGUAGE 'sql'
-AS $BODY$
-select 
-	case when grouping(pub_id) = 1 then 'ALL' else pub_id end as pub_id, 
-	case when grouping(type) = 1 then 'ALL' else type end as type, 
-	count(title_id) as cnt
-from titles
-where price > lolimit AND price < hilimit AND type =  type OR type LIKE '%cook%'
-  GROUP BY pub_id, type
-$BODY$;
-
--- 'Adding constraints to dbo.authors'
-ALTER TABLE dbo.authors ALTER COLUMN phone SET DEFAULT ('UNKNOWN');
-
--- 'Adding constraints to dbo.publishers'
-ALTER TABLE dbo.publishers ALTER COLUMN country SET DEFAULT ('USA');
-
--- 'Adding constraints to dbo.titles'
-ALTER TABLE dbo.titles ALTER COLUMN type SET DEFAULT ('UNDECIDED');
-
--- 'Adding foreign keys to dbo.sales'
--- 'Adding foreign keys to dbo.sales'
-ALTER TABLE dbo.sales ADD CONSTRAINT FK_Sales_Stores FOREIGN KEY (stor_id) REFERENCES dbo.stores (stor_id);
-ALTER TABLE dbo.sales ADD CONSTRAINT FK_Sales_Title FOREIGN KEY (title_id) REFERENCES dbo.titles (title_id);
 

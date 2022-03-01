@@ -1,65 +1,49 @@
-﻿-- ''Creating types'
+﻿
 
-CREATE DOMAIN dbo.Dollars as numeric (9, 2) NULL;
--- 'Altering dbo.employee'
-ALTER TABLE dbo.employee ALTER COLUMN pub_id type char (8);
-ALTER TABLE dbo.employee ALTER COLUMN pub_id  set NOT NULL;
 
--- ''Altering dbo.publishers'
 
-ALTER TABLE dbo.publishers ALTER COLUMN pub_id type char (8);
-ALTER TABLE dbo.publishers ALTER COLUMN pub_id set NOT NULL;
 
--- ''Altering dbo.pub_info'
-
-ALTER TABLE dbo.pub_info ALTER COLUMN pub_id type char (8);
-ALTER TABLE dbo.pub_info ALTER COLUMN pub_id set NOT NULL;
-
--- ''Altering dbo.titles'
-
-drop view dbo.titleview;
-
-ALTER TABLE dbo.titles ALTER COLUMN pub_id type char (8);
-
-CREATE OR REPLACE VIEW dbo.titleview
+Create VIEW titleview
 AS 
 Select title, au_ord, au_lname, price, ytd_sales, pub_id
-from dbo.titleauthor  inner join dbo.titles
+from titleauthor  inner join titles
 on titles.title_id = titleauthor.title_id
-inner join dbo.authors
-on dbo.authors.au_id = dbo.titleauthor.au_id;
+inner join authors
+on authors.au_id = titleauthor.au_id;
 
--- ''Creating dbo.publications'
-CREATE TABLE dbo.publications
+-- ''Creating publications'
+CREATE TABLE publications
 (
-Publication_id dbo.tid NOT NULL primary key,
+Publication_id varchar(6) NOT NULL primary key,
 title character varying (255) NOT NULL,
-pub_id dbo.tid NULL,
+pub_id char (8) NULL,
 notes character varying(4000) NULL,
-pubdate date NOT NULL DEFAULT (current_date)
+pubdate datetime DEFAULT ( CURDATE() ) NOT NULL
 );
 
--- ''Creating dbo.editions'
-CREATE TABLE dbo.editions
+-- ''Creating editions'
+CREATE TABLE editions
 (
-Edition_id int  NOT NULL GENERATED ALWAYS AS IDENTITY Primary Key,
-publication_id dbo.tid NOT NULL,
+Edition_id INTEGER PRIMARY KEY AUTOINCREMENT,
+publication_id varchar(6) NOT NULL,
 Publication_type character varying (20) NOT NULL DEFAULT ('book'),
-EditionDate date NOT NULL DEFAULT (current_date)
+EditionDate datetime DEFAULT ( CURDATE() ) NOT NULL
 );
 
--- ''Creating dbo.prices'
-CREATE TABLE dbo.prices
+-- ''Creating prices'
+CREATE TABLE prices
 (
-Price_id int  NOT NULL GENERATED ALWAYS AS IDENTITY Primary Key,
+Price_id INTEGER PRIMARY KEY AUTOINCREMENT,
 Edition_id int NULL,
-price dbo.Dollars NULL,
-advance dbo.Dollars NULL,
+price decimal(19,4) NULL,
+advance decimal(19,4) NULL,
 royalty int NULL,
 ytd_sales int NULL,
 PriceStartDate date NOT NULL DEFAULT (current_Date),
 PriceEndDate date NULL
 );
+
+
 
 
 
