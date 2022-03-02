@@ -1,0 +1,9 @@
+﻿{
+    "sourcePath":  "Source",
+    "Reportdirectory":  "Documents\\GitHub\\",
+    "resourcesPath":  "resources",
+    "scriptsPath":  "Scripts",
+    "migrationsPath":  "Migrations",
+    "DataPath":  "Data",
+    "VersionsPath":  "Versions"
+}

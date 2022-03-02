@@ -56,6 +56,8 @@ $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project art
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
 $structure='classic'
+if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
+    {$structure='branch'}
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
 {
