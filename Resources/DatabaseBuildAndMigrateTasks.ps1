@@ -208,6 +208,8 @@ Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
 Set-Alias psql $psqlAlias -Scope local
 Set-Alias sqlite $sqliteAlias -Scope local
 
+
+
 $GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
 without having to explicitly open a connection. it will take either SQL files or queries.  #>
 	Param (
@@ -224,7 +226,7 @@ without having to explicitly open a connection. it will take either SQL files or
 	if ($problems.Count -eq 0)
 	{
 		$TempInputFile = "$($env:Temp)\TempInput$(Get-Random -Minimum 1 -Maximum 900).sql"
-		if ($FileBasedQuery -ne $null) #if we've been passed a file ....
+		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
 		{ $TempInputFile = $FileBasedQuery }
 		else
 		{ [System.IO.File]::WriteAllLines($TempInputFile, $query); }
@@ -236,6 +238,7 @@ without having to explicitly open a connection. it will take either SQL files or
 			#".output $($TempOutputFile -replace '\\','/')",
 			".read $($TempInputFile -replace '\\', '/')",
 			'.quit')
+        
 		try
 		{
 			$result = sqlite "$($param1.database)" @Params
@@ -249,7 +252,8 @@ without having to explicitly open a connection. it will take either SQL files or
 if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
 }
 
-#This is a utility scriptblock used by the task scriptblocks
+#This is a utility scriptblock used by the task scriptblocks.
+#with SQL Server, you really want your datab back as JSN, but SQLcmd can't do it.
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
 set 'simpleText' to true #>
@@ -269,15 +273,15 @@ set 'simpleText' to true #>
             }
         else
             {$FullQuery=$query};
-	    if ($FileBasedQuery-ne $null) #if we've been passed a file ....
+	    if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
             {$TempInputFile=$FileBasedQuery}
         else
             {$TempInputFile = "$($env:Temp)\TempInput.sql"}
         #If we can't pass a query string directly, or we have a file ...
-        if ($FullQuery -like '*"*' -or ($FileBasedQuery-ne $null))
+        if ($FullQuery -like '*"*' -or (!([string]::IsNullOrEmpty($FileBasedQuery))))
 	    { #Then we can't pass a query as a string. It must be passed as a file
 		    #Deal with query strings 
-            if ($FileBasedQuery -eq $null) {$FullQuery>$TempInputFile;}
+            if ([string]::IsNullOrEmpty($FileBasedQuery)) {$FullQuery>$TempInputFile;}
 		    if ($TheArgs.uid -ne $null) #if we need to use credentials
 		    {
 			    sqlcmd -S $TheArgs.server -d $TheArgs.database `
@@ -290,7 +294,7 @@ set 'simpleText' to true #>
 				       -i $TempInputFile -E -o "$TempOutputFile" -u -y0
 		    }
             #if it is just for storing a query
-		    if ($FileBasedQuery-eq $null) {Remove-Item $TempInputFile}
+		    if ([string]::IsNullOrEmpty($FileBasedQuery)) {Remove-Item $TempInputFile}
 	    }
 	
 	    else #we can pass a query as a string
@@ -338,7 +342,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
     {
 	    $TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).csv"
         $TempInputFile = "$($env:Temp)\TempInput.sql"
-        if ($FileBasedQuery-ne $null) #if we've been passed a file ....
+        if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
             {$TempInputFile=$FileBasedQuery}
         else
             {[System.IO.File]::WriteAllLines($TempInputFile, $query);}
@@ -357,11 +361,12 @@ explicitly open a connection. it will take either SQL files or queries.  #>
         $result=psql @params
         }
         catch
-        {$Param1.Problems.'GetdataFromPsql' += "$psql query failed because $($_)"}
+        {$problems += "$psql query failed because $($_)"}
        if ($?)
         {$result|convertFrom-csv|convertto-json}
+       else {$problems += "The PSql CLI returned an error $($error[1])" }
     }
-    else{$Param1.Problems.'GetdataFromPsql'+=$problems}
+    if ($problems.Count -gt 0) {$Theargs.Problems.'GetdataFromPsql'+=$problems}
 }
 
 
@@ -1551,6 +1556,10 @@ SELECT @JSON
 <#This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
 flyway project between versions. */#>
+
+<#This writes a JSON model of the database to a file that can be used subsequently
+to check for database version-drift or to create a narrative of changes for the
+flyway project between versions. */#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
 	$problems = @() #none yet!
@@ -1559,122 +1568,162 @@ $SaveDatabaseModelIfNecessary = {
 		if ([string]::IsNullOrEmpty($param1.$_))
 		{ $Problems += "no value for '$($_)'" }
 	}
-	try
+	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	$MyDatabasePath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
+	else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
+	$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
+	if (!(Test-Path -PathType Leaf $MyOutputReport))
 	{
-		if (!([string]::IsNullOrEmpty($param1.resources)))
-		{ $routine = "$($param1.resources)\TheGloopDatabaseModel.sql" }
-		elseif (!([string]::IsNullOrEmpty($param1.ProjectFolder)))
-		{ $routine = "$($param1.ProjectFolder)\TheGloopDatabaseModel.sql" }
-		else
-		{ $routine = "$pwd\TheGloopDatabaseModel.sql" }
-		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
-		$MyDatabasePath =
-		if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-		{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
-		else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
-		$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
-		if (!(Test-Path -PathType Leaf $MyOutputReport))
+		if (Test-Path -PathType Leaf $MyDatabasePath)
 		{
-			if (Test-Path -PathType Leaf $MyDatabasePath)
-			{
-				# does the path to the reports directory exist as a file for some reason?
-				# there, so we delete it 
-				remove-Item $MyDatabasePath;
-			}
-			if (-not (Test-Path -PathType Container $MyDatabasePath))
-			{
-				# does the path to the reports directory exist?
-				# not there, so we create the directory 
-				$null = New-Item -ItemType Directory -Force $MyDatabasePath;
-			}
-			#the alias must be set to the path of your installed version of SQLcmd
-			Set-Alias SQLCmd   $SQLCMDAlias -Scope local
-			#is that alias correct?
-			if (!(test-path  ((Get-alias -Name SQLCmd).definition) -PathType Leaf))
-			{ $Problems += 'The alias for SQLCMD is not set correctly yet' }
-			#The JSON Query must have 'SET NOCOUNT ON' and assign the result to 'NVARCHAR MAX' which you select from.
-			if (!([string]::IsNullOrEmpty($param1.uid)) -and ([string]::IsNullOrEmpty($param1.pwd)))
-			{ $problems += 'No password is specified' }
-			If (!(Test-Path -PathType Leaf  $MyOutputReport) -and ($problems.Count -eq 0)) # do the report once only
-			{
-				#make sure that the SQL File is there
-				if (!(test-path  $routine -PathType Leaf))
-				{ $Problems += "$Routine needs to be installed in the project'" }
-				else
+			# does the path to the reports directory exist as a file for some reason?
+			# there, so we delete it 
+			remove-Item $MyDatabasePath;
+		}
+		if (-not (Test-Path -PathType Container $MyDatabasePath))
+		{
+			# does the path to the reports directory exist?
+			# not there, so we create the directory 
+			$null = New-Item -ItemType Directory -Force $MyDatabasePath;
+		}
+		switch ($param1.RDBMS)
+		{
+			'sqlite' {
+				$lines=@()
+                $TablesAndViews = Execute-SQL $dbDetails "SELECT Name, Type FROM sqlite_schema WHERE TYPE <> 'index';" | convertfrom-json
+                $TablesAndViews | foreach{$type=$_.type;
+	                $Lines += "SELECT '$($_.type)' as type, '$($_.name)' as object, Name||' '||TYPE||CASE `"notnull`" when 1 THEN ' NOT' ELSE '' END
+                     ||' NULL '||CASE WHEN dflt_value IS NOT NULL THEN 'DEFAULT ('||`"dflt_value`"||')' ELSE '' end as col, pk
+                      FROM pragma_table_info('$($_.name)')"
+                }
+                $query = ($Lines -join "`r`nUNION ALL`r`n") + ';'
+                $TheSchema = Execute-SQL $dbDetails $query | ConvertFrom-json
+                $THeTypes=$TablesAndViews|Select type -Unique #|foreach{$_.type}
+
+                $SchemaTree = @{ }
+                $TheTypes | foreach{
+	                $SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
+                }
+
+                $TheSchema | Select type, object -Unique |  foreach{
+	                $type = $_.type;
+	                $object = $_.object;
+                    $pk=@{}
+	                $TheColumnList =$TheSchema | where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk | foreach{ $_.col } 
+                    $primaryKey=@();
+                    $SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+                    $primaryKey=$pk|Where {$_.pk -gt 0}|Sort-Object -Property pk|Foreach{[regex]::matches($_.col, '\A\S{1,80}').value }
+                    if ($primaryKey.count -gt 0)
+                        {
+                        $SchemaTree.$type.$object += @{ 'PrimaryKey' =$primaryKey  }
+                        }
+                }
+
+                $SchemaTree|convertTo-json -depth 10 > $MyOutputReport
+				
+			} #end of SQLite version
+			'sqlserver'  {
+				try
 				{
-					try
+					if (!([string]::IsNullOrEmpty($param1.resources)))
+					{ $routine = "$($param1.resources)\TheGloopDatabaseModel.sql" }
+					elseif (!([string]::IsNullOrEmpty($param1.ProjectFolder)))
+					{ $routine = "$($param1.ProjectFolder)\TheGloopDatabaseModel.sql" }
+					else
+					{ $routine = "$pwd\TheGloopDatabaseModel.sql" }
+					#the alias must be set to the path of your installed version of SQLcmd
+					Set-Alias SQLCmd   $SQLCMDAlias -Scope local
+					#is that alias correct?
+					if (!(test-path  ((Get-alias -Name SQLCmd).definition) -PathType Leaf))
+					{ $Problems += 'The alias for SQLCMD is not set correctly yet' }
+					#The JSON Query must have 'SET NOCOUNT ON' and assign the result to 'NVARCHAR MAX' which you select from.
+					if (!([string]::IsNullOrEmpty($param1.uid)) -and ([string]::IsNullOrEmpty($param1.pwd)))
+					{ $problems += 'No password is specified' }
+					If (!(Test-Path -PathType Leaf  $MyOutputReport) -and ($problems.Count -eq 0)) # do the report once only
 					{
-						$JSONMetadata = $GetdataFromSQLCMD.Invoke(
-							$param1, $null, $routine) | convertfrom-json
-					}
-					catch
-					{
-						write-error "the SQL came up with an error $DatabaseModel"
+						#make sure that the SQL File is there
+						if (!(test-path  $routine -PathType Leaf))
+						{ $Problems += "$Routine needs to be installed in the project'" }
+						else
+						{
+							try
+							{
+								$JSONMetadata = $GetdataFromSQLCMD.Invoke(
+									$param1, $null, $routine) | convertfrom-json
+							}
+							catch
+							{
+								write-error "the SQL came up with an error $DatabaseModel"
+							}
+							
+							if ($JSONMetadata.error -ne $null) { $problems += $JSONMetadata.error }
+							else
+							{
+								$dlm0 = ''; #the first level delimiter
+								$PSSourceCode = $JSONMetadata |
+								foreach{
+									$dlm1 = ''; #the second level delimiter
+									"$dlm0`"$($_.Schema -replace '"', '`"')`"= @{"
+									$_.types |
+									foreach{
+										$dlm2 = ''; #the third leveldelimiter
+										"    $dlm1`"$($_.type -replace '"', '`"')`"= @{"
+										$_.names |
+										foreach{
+											$dlm3 = ''; #the fourth-level delimiter
+											if ($_.attributes -eq $null -or ($_.attributes[0].attr[0].name -eq $null))
+											{ "      $dlm2`"$($_.Name -replace '"', '`"')`"= '' " }
+											else
+											{
+												"      $dlm2`"$($_.Name -replace '"', '`"')`"= @{"
+												$_.attributes | #where {$_.attr[0].name -ne $null}|
+												foreach{
+													$dlm4 = ''; #the fifth-level delimiter
+													"        $dlm3`"$($_.TheType -replace '"', '`"')`"= @("
+													$_.attr | #where {$_.name -ne $null}|
+													foreach{
+														"        $dlm4`"$($_.name -replace '"', '`"')`"";
+														$dlm4 = ','
+													}
+													"        )"
+													$dlm3 = ';'
+												}
+												"      }"
+											}
+											$dlm2 = ';'
+										}
+										"    }"
+										$dlm1 = ';'
+									}
+									"  }"
+									$dlm0 = ';'
+								}
+								try
+								{
+									$DataObject = Invoke-Expression  "@{$PSSourceCode}"
+									$dataObject | convertTo-json -depth 10 >$MyOutputReport
+								}
+								catch
+								{
+									$PSSourceCode >$MyOutputReport
+									$Param1.Problems.'SaveDatabaseModelIfNecessary' += "could not convert the json object"
+								}
+							}
+							if ($problems.Count -eq 0) { $Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport; }
+						}
 					}
 					
-					if ($JSONMetadata.error -ne $null) { $problems += $JSONMetadata.error }
-					else
-					{
-						$dlm0 = ''; #the first level delimiter
-						$PSSourceCode = $JSONMetadata |
-						foreach{
-							$dlm1 = ''; #the second level delimiter
-							"$dlm0`"$($_.Schema -replace '"', '`"')`"= @{"
-							$_.types |
-							foreach{
-								$dlm2 = ''; #the third leveldelimiter
-								"    $dlm1`"$($_.type -replace '"', '`"')`"= @{"
-								$_.names |
-								foreach{
-									$dlm3 = ''; #the fourth-level delimiter
-									if ($_.attributes -eq $null -or ($_.attributes[0].attr[0].name -eq $null))
-									{ "      $dlm2`"$($_.Name -replace '"', '`"')`"= '' " }
-									else
-									{
-										"      $dlm2`"$($_.Name -replace '"', '`"')`"= @{"
-										$_.attributes | #where {$_.attr[0].name -ne $null}|
-										foreach{
-											$dlm4 = ''; #the fifth-level delimiter
-											"        $dlm3`"$($_.TheType -replace '"', '`"')`"= @("
-											$_.attr | #where {$_.name -ne $null}|
-											foreach{
-												"        $dlm4`"$($_.name -replace '"', '`"')`"";
-												$dlm4 = ','
-											}
-											"        )"
-											$dlm3 = ';'
-										}
-										"      }"
-									}
-									$dlm2 = ';'
-								}
-								"    }"
-								$dlm1 = ';'
-							}
-							"  }"
-							$dlm0 = ';'
-						}
-						try
-						{
-							$DataObject = Invoke-Expression  "@{$PSSourceCode}"
-							$dataObject | convertTo-json -depth 10 >$MyOutputReport
-						}
-						catch
-						{
-							$PSSourceCode >$MyOutputReport
-							$Param1.Problems.'SaveDatabaseModelIfNecessary' += "could not convert the json object"
-						}
-					}
-					if ($problems.Count -eq 0) { $Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport; }
 				}
-			}
+				catch
+				{
+					$Param1.Problems.'SavedDatabaseModelIfNecessary' += "$($PSItem.Exception.Message)"
+				}
+			} #end SQL Server
 		}
 	}
-	catch
-	{
-		$Param1.Problems.'SavedDatabaseModelIfNecessary' += "$($PSItem.Exception.Message)"
-	}
-	
+	else { $Param1.Feedback.'SaveDatabaseModelIfNecessary' = "$MyOutputReport already exists" }
 	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'SaveDatabaseModelIfNecessary' += $problems;
@@ -2241,5 +2290,52 @@ function Process-FlywayTasks
     
    }
 
+<#
+	.SYNOPSIS
+		Executes SQL according to the RDBMS you have
+	
+	.DESCRIPTION
+		This is a simple front-end for all the scritblocks that can be used to execute SQL for its corresponding RDBMS. This isn't the quickest way of doing it because a connection isn't maintained but, hell, we are scripting.
+	
+	.PARAMETER DatabaseDetails
+		A description of the DatabaseDetails parameter.
+	
+	.PARAMETER query
+		A description of the query parameter.
+	
+	.PARAMETER fileBasedQuery
+		a query. If a file, put the path in the $fileBasedQuery parameter
+	
+	.NOTES
+		Additional information about the function.
+#>
+function Execute-SQL
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true,
+				   Position = 1)]
+		[System.Collections.Hashtable]$DatabaseDetails,
+		[Parameter(Mandatory = $true,
+				   Position = 2)]
+		[String]$query,
+		[Parameter(Position = 3)]
+		[String]$fileBasedQuery = $null
+	)
+	
+	$Scriptblock = switch ($DatabaseDetails.RDBMS)
+	{
+		'postgresql'   { $GetdataFromPsql }
+		'sqlserver'  { $GetdataFromSQLCMD }
+		'sqlite' { $GetdataFromSqlite }
+	}
+	$ErrorsSoFar = $Error.count
+	$Scriptblock.invoke($DatabaseDetails,$query,$fileBasedQuery) ;
+	if ($Error.Count -gt $ErrorsSoFar)
+	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
+}
 
-'scriptblocks and cmdlet loaded. V1.2.76'
+
+
+'scriptblocks and cmdlet loaded. V1.2.77'
