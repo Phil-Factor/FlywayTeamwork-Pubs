@@ -37,7 +37,8 @@ $DatabaseDetails = @{
 	'pwd' = ''; #only if you use a uid. Leave blank. we fill it in for you
 	'WriteLocations' = @{ }; # for reporting file WriteLocations used
 	'problems' = @{ }; # for reporting any big problems
-	'warnings' = @{ } # for reporting any issues
+	'warnings' = @{ }; # for reporting any issues
+    'feedback' = @{ } # for reporting any issues
 } # for reporting any warnings
 
 These Scriptblocks can be batched up into an array
@@ -54,27 +55,7 @@ needs maintenance, it is very easy to pull it apart and run it interactively.
 The reason for using this design was to make it easy to choose what gets run 
 and in what order. 
 
-$DatabaseDetails = 
-    @{
-    'RDBMS'=''; #jdbc name. Only necessary for systems with several RDBMS on the same server
-    'ProjectFolder' = 'MyPathToTheFlywayFolder\PubsFlywaySecondMigration';
-    'ProjectDescription'='However you describe your project';
-    'schemas'='dbo' # only needed if you are calling flyway
-	'pwd' = ''; #Always leave blank
-	'uid' = 'MyUserName'; #leave blank unless you use credentials
-	'Database' = 'MyDatabase'; # fill this in please
-	'server' = 'MyServer'; # We need to know the server!
-	'port' = $null; #Not normally needed with SQL Server. add if required
-	#set to $null or leave it out if you want to let jdbc detect it 
-	'project' = $MyProject; # the name of the project-needed for saving files
-	'version' = ''; # current version of database - 
-	# leave blank unless you know
-	'WriteLocations' = @{ }; # for reporting file WriteLocations used
-	'problems' = @{ }; # for reporting any big problems
-	'warnings' = @{ } # for reporting any issues
-     }
 
- 
 $CheckCodeInDatabase 
 This scriptblock checks the code in the database for any issues,
 using SQL Code Guard to do all the work. This runs SQL Codeguard 
@@ -188,26 +169,7 @@ migration
 #>
 
 
- #>
-#we always use SQLCMD to access SQL Server
-$SQLCmdAlias = "$($env:ProgramFiles)\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\sqlcmd.exe"
-#We use SQL Code Guard just for code analysis.
-$CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
-# We use SQL Compare to compare build script with database
-# and for generating scripts.
-$SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
-$PGDumpAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\pg_dump.exe"
-$psqlAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\psql.exe"
-$sqliteAlias='C:\ProgramData\chocolatey\lib\SQLite\tools\sqlite-tools-win32-x86-3360000\sqlite3.exe'
-
-
-
 #where we want to store reports, the sub directories from the user area.
-
-Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
-Set-Alias psql $psqlAlias -Scope local
-Set-Alias sqlite $sqliteAlias -Scope local
-
 
 
 $GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
@@ -218,8 +180,12 @@ without having to explicitly open a connection. it will take either SQL files or
 		$query,
 		#a query. If a file, put the path in the $fileBasedQuery parameter
 		$fileBasedQuery = $null) # $GetdataFromSqlite: (Don't delete this)
-	
 	$problems = @()
+   if ($sqliteAlias -ne $null)
+        {Set-Alias sqlite $sqliteAlias -Scope local}
+    else
+        {$problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder'}
+	
 	if ($TheArgs.Database -in @($null, '')) # do we have the necessary values
     { $problems += "Can't do this: no value for the database" }
 	
@@ -332,9 +298,14 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 	Param (
         $Theargs, #this is the same ubiquitous hashtable 
 		$query, #a query. If a file, put the path in the $fileBasedQuery parameter
-        $fileBasedQuery=$null)  # $GetdataFromPsql: (Don't delete this)
+        $fileBasedQuery=$null,
+        $simpleText=$false)  # $GetdataFromPsql: (Don't delete this)
  
     $problems=@()
+    if ($psqlAlias -ne $null)
+        {Set-Alias psql $psqlAlias -Scope local}
+    else
+        {$problems += 'You must have provided a path to psql in the ToolLocations.ps1 file in the resources folder'}
     @('server', 'database', 'port','user','pwd') |
 	        foreach{ if ($TheArgs.$_ -in @($null,'')) { $problems += "Can't do this: no value for '$($_)'" } }
     
@@ -355,15 +326,16 @@ explicitly open a connection. it will take either SQL files or queries.  #>
         "--password=$($TheArgs.pwd)",
         "--port=$($TheArgs.Port -replace '[^\d]','')",
         "--file=$TempInputFile",
-        "--no-password",
-        "--csv")
+        '--tuples-only',
+        '-Pformat=unaligned',
+        "--no-password")
         $env:PGPASSWORD="$($TheArgs.pwd)"
         $result=psql @params
         }
         catch
         {$problems += "$psql query failed because $($_)"}
        if ($?)
-        {$result|convertFrom-csv|convertto-json}
+        {$result}
        else {$problems += "The PSql CLI returned an error $($error[1])" }
     }
     if ($problems.Count -gt 0) {$Theargs.Problems.'GetdataFromPsql'+=$problems}
@@ -560,10 +532,13 @@ Hashtable. It checks the current database, not the scripts
 $CheckCodeInDatabase = {
 	Param ($param1) # $CheckCodeInDatabase - (Don't delete this)
 	#you must set this value correctly before starting.
-	Set-Alias CodeGuard $CodeGuardAlias -Scope local
+	$Problems = @(); #our local problem counter    
+    if ($CodeGuardAlias -ne $null)
+        {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
+    else
+        {$problems += 'You must have provided a path to CodeGuard.exe in the ToolLocations.ps1 file in the resources folder'}
     try
     {
-	$Problems = @(); #our local problem counter
 	#is that alias correct?
 	if (!(test-path  ((Get-alias -Name codeguard).definition) -PathType Leaf))
 	{ $Problems += 'The alias for Codeguard is not set correctly yet' }
@@ -575,7 +550,7 @@ $CheckCodeInDatabase = {
 	$MyDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-        else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if ($MyDatabasePath -like '*\\*'){ } { $Problems += "created an illegal path '$MyDatabasePath'" }
     $Arguments = @{
 		server = $($param1.server) #The server name to connect
@@ -664,9 +639,12 @@ $CheckCodeInMigrationFiles.Invoke($Details) #>
 $CheckCodeInMigrationFiles = {
 	Param ($param1) # $CheckCodeInMigrationFiles - (Don't delete this)
 	#you must set this value correctly before starting.
-	Set-Alias CodeGuard $CodeGuardAlias -Scope local
 	$Problems = @(); #our local problem counter
-	#is that alias correct?
+    if ($CodeGuardAlias -ne $null)
+        {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
+    else
+        {$problems += 'You must have provided a path to CodeGuard.exe in the ToolLocations.ps1 file in the resources folder'}
+    	#is that alias correct?
 	if (!(test-path  ((Get-alias -Name codeguard).definition) -PathType Leaf))
 	{ $Problems += 'The alias for Codeguard is not set correctly yet' }
 	#check that all the values we need are in the hashtable
@@ -687,7 +665,7 @@ $CheckCodeInMigrationFiles = {
 		    $MyVersionReportPath = 
               if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
                 {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-              else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
+              else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 		    $Arguments = @{
 			    source = $ThePath
 			    outfile = "$MyVersionReportPath\FilecodeAnalysis.xml" <#
@@ -774,25 +752,28 @@ $GetCurrentVersion = {
            WHERE success = 1)
     FOR JSON AUTO") |
 		convertfrom-json
-	} ##
+	} ## we do it the postgresql way
 	elseif ($param1.RDBMS -eq 'postgresql')
 	{
 		# Do it the PostgreSQL way
-		$AllVersions = $GetdataFrompsql.Invoke(
-			$param1, "SELECT DISTINCT version
+		$AllVersions = Execute-SQL $param1  "
+            SELECT json_agg(e) 
+            FROM (SELECT DISTINCT version
       FROM $($param1.flywayTable)
       WHERE version IS NOT NULL
-    ") | convertfrom-json
-		$LastAction = $GetdataFrompsql.Invoke(
-			$param1, "SELECT version, type
-      FROM $flywayTable
+      )e;          
+    " | convertfrom-json
+		$LastAction = Execute-SQL $param1 "
+      SELECT json_agg(e) 
+            FROM (SELECT version, type
+      FROM $($param1.flywayTable)
       WHERE
       installed_rank =
-        (SELECT Max (installed_rank) FROM $flywayTable
-           WHERE success = true)
-    ") | convertfrom-json
-	}
-    elseif ($param1.RDBMS -eq 'sqlite')
+        (SELECT Max (installed_rank) FROM $($param1.flywayTable)
+           WHERE success = true))e;
+    " | convertfrom-json
+	} ## OK, lets do it the SQLite way.
+	elseif ($param1.RDBMS -eq 'sqlite')
 	{
 		# Do it the SQLite way
 		$AllVersions = $GetdataFromsqlite.Invoke(
@@ -814,36 +795,40 @@ $GetCurrentVersion = {
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
 	if ($AllVersions -eq $null) { $problems += 'No response for version list' }
 	if ($LastAction -eq $null) { $problems += 'no response for last migration' }
+    $version = '0.0.0'; $previous = '0.0.0'
 	if ($problems.count -eq 0)
 	{
+		$OrderedVersions = $AllVersions | %{
+			new-object System.Version ($_.version)
+		} |
+		sort | % -Begin { $ii = 1 }{
+			[pscustomobject]@{ 'Order' = $ii++; 'version' = $_.ToString() }
+		};
+		
+		$VersionOrder = $OrderedVersions |
+		where{ $_.version -eq $Lastaction.version } | Select Order -First 1;
+		$previous = ($OrderedVersions |
+			where{ $_.Order -eq $VersionOrder.Order - 1 } |
+			Select version -First 1).version;
+        if ($previous -eq $null) {$previous = '0.0.0'}
+		$version = $LastAction.version;
 		if ($LastAction.type -like 'UNDO*')
 		{
-			$OrderedVersions = $AllVersions | %{
-				new-object System.Version ($_.version)
-			} |
-			sort | % -Begin { $ii = 1 }{
-				[pscustomobject]@{ 'Order' = $ii++; 'version' = $_.ToString() }
-			};
-			$VersionOrder = $OrderedVersions |
-			where{ $_.version -eq $Lastaction.version } | Select Order -First 1;
-			$Version = ($OrderedVersions |
-				where{ $_.Order -eq $VersionOrder.Order - 1 } |
-				Select version -First 1).version;
+			$param1.Version = $previous;
+			$param1.Previous = $Version;
 		}
 		else
 		{
-			$Version = $LastAction.version;
+			$param1.Version = $version;
+			$param1.Previous = $previous;
 		}
 	}
 	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'GetCurrentVersion' += $problems;
-		$version = '0.0.0'
 	}
-    $Param1.feedback.'GetCurrentVersion'="current version is $version"
-	$param1.Version = $version
+	$Param1.feedback.'GetCurrentVersion' = "current version is $version, previous $previous. $OrderedVersions "
 }
-
 
 
 <# This uses SQL Compare to check that a version of a database is correct and hasn't been changed.
@@ -871,7 +856,10 @@ $IsDatabaseIdenticalToSource = {
 	if (-not ($goodVersion))
 	{ $problems += "Bad version number '$($param1.Version)'" }
 	#the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
+    if ($SQLCompareAlias-ne $null)
+        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+    else
+        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
     $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
@@ -883,7 +871,7 @@ $IsDatabaseIdenticalToSource = {
 		$MyDatabasePath =
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
-        else {"$ReportLocation\$($param1.Version)\$sourcePath"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\$sourcePath"} #else the simple version
 		$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
 			"/Scripts1:$MyDatabasePath",
@@ -895,6 +883,7 @@ $IsDatabaseIdenticalToSource = {
 			'/exclude:ExtendedProperty', #trivial
 			"/LogLevel:Warning"
 		)
+        
         if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
 		{
 			$CLIArgs += @(
@@ -902,11 +891,17 @@ $IsDatabaseIdenticalToSource = {
 				"/Password2:$($param1.pwd)"
 			)
 		}
+        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		{
+			$CLIArgs += @(
+				"/filter:$($param1.filterpath)"
+			)
+		}
 	}
     $MyVersionReportPath = 
               if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
                 {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-              else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
+              else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if ($problems.Count -eq 0)
 	{
 		if (Test-Path -PathType Container $MyDatabasePath) #if it does already exist
@@ -961,7 +956,10 @@ $CreateScriptFoldersIfNecessary = {
 		$EscapedValues | foreach{ $param1 += $_ }
 	}#>
 	#the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
+	if ($SQLCompareAlias-ne $null)
+        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+    else
+        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
 	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 	#the database scripts path would be up to you to define, of course
@@ -970,11 +968,11 @@ $CreateScriptFoldersIfNecessary = {
     $MyDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
-        else {"$ReportLocation\$($param1.Version)\$sourcePath"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\$sourcePath"} #else the simple version
     $MyCurrentPath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$sourcePath"} 
-        else {"$ReportLocation\current\$sourcePath"} #else the simple version
+        else {"$($param1.reportLocation)\current\$sourcePath"} #else the simple version
 	$CLIArgs = @(
 		"/server1:$($param1.server)",
 		"/database1:$($param1.database)",
@@ -989,7 +987,14 @@ $CreateScriptFoldersIfNecessary = {
 			"/username1:$($param1.uid)",
 			"/Password1:$($param1.pwd)"
 		)
+	}    
+    if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+	{
+		$CLIArgs += @(
+			"/filter:$($param1.filterpath)"
+		)
 	}
+
 	if ($problems.Count -eq 0 -and (!(Test-Path -PathType Container $MyDatabasePath))) #if it doesn't already erxist
 	{
 		Sqlcompare @CLIArgs #write an object-level  script folder that represents the vesion of the database
@@ -1027,10 +1032,11 @@ $CreateBuildScriptIfNecessary = {
 	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 	$scriptsPath = if ([string]::IsNullOrEmpty($param1.scriptsPath)) { 'scripts' }
 	else { "$($param1.scriptsPath)" }
-	$MyDatabasePath =
 	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
-	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath" }
-	else { "$ReportLocation\$($param1.Version)\$scriptsPath" } #else the simple version
+	    {$MyDatabasePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
+         $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\Reports";}
+	else {$MyDatabasePath = "$($param1.reportLocation)\$($param1.Version)\Reports";
+          $MyCurrentPath = "$($param1.reportLocation)\current\Reports"; } #else the simple version
 	
 	if (-not (Test-Path -PathType Leaf "$MyDatabasePath\V$($param1.Version)__Build.sql"))
 	{
@@ -1040,12 +1046,21 @@ $CreateBuildScriptIfNecessary = {
 			# not there, so we create the directory 
 			$null = New-Item -ItemType Directory -Force $MyDatabasePath;
 		}
+		if (-not (Test-Path -PathType Container $MyCurrentPath))
+		{
+			# is the path to the current directory
+			# not there, so we create the directory 
+			$null = New-Item -ItemType Directory -Force $MyCurrentPath;
+		}
 		switch ($param1.RDBMS)
 		{
 			'sqlserver' #using SQL Server
 			{
             	#the alias must be set to the path of your installed version of SQL Compare
-				Set-Alias SQLCompare $SQLCompareAlias -Scope Script;
+			    if ($SQLCompareAlias-ne $null)
+                    {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+                else
+                    {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
 				if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
 				{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 				$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
@@ -1067,10 +1082,18 @@ $CreateBuildScriptIfNecessary = {
 						"/Password1:$($param1.pwd)"
 					)
 				}
+                if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		        {
+			        $CLIArgs += @(
+				        "/filter:$($param1.filterpath)"
+			        )
+		        }
 				
 				# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
 				Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
-				if ($?) { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+				if ($?) { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath"
+                Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql"
+                }
 				else # if no errors then simple message, otherwise....
 				{
 					#report a problem and send back the args for diagnosis (hint, only for script development)
@@ -1083,7 +1106,10 @@ $CreateBuildScriptIfNecessary = {
 			'postgresql' #using SPostgreSQL
 			{
             	#the alias must be set to the path of your installed version of Spg_dump
-			    Set-Alias pg_dump   $PGDumpAlias -Scope Script;
+                if ($PGDumpAlias -ne $null)
+                    {Set-Alias pg_dump   $PGDumpAlias -Scope Script;}
+                else
+                    {$problems += 'You must have provided a path to pg_dump.exe in the ToolLocations.ps1 file in the resources folder'}
 			    if (!(test-path  ((Get-alias -Name pg_dump).definition) -PathType Leaf))
 			    { $Problems += 'The alias for pg_dump is not set correctly yet' }
                 $env:PGPASSWORD="$($param1.pwd)"
@@ -1097,7 +1123,9 @@ $CreateBuildScriptIfNecessary = {
                     '--schema-only')
                  pg_dump @Params 
 				if ($?) 
-                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" 
+                Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
+                }
 				else # if no errors then simple message, otherwise....
 				{
 					$Problems += "pg_dump Went badly. (code $LASTEXITCODE)"
@@ -1106,6 +1134,11 @@ $CreateBuildScriptIfNecessary = {
 			}
             'sqlite' #using SQLite
             {
+                if ($sqliteAlias -ne $null)
+                    {Set-Alias sqlite $sqliteAlias -Scope local}
+                else
+                    {$problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder'}
+
          		$params = @(
 			        '.bail on',
                     '.schema',
@@ -1118,7 +1151,9 @@ $CreateBuildScriptIfNecessary = {
 		        { $problems += "SQL called to SQLite  failed because $($_)"
                 }           
                 if ($?)
-                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project)" }
+                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project)" 
+                Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
+                }
                 else
                 {$problems += "SQLite couldn't create the build script for $($param1.Version) $($param1.RDBMS)"}
             }
@@ -1162,7 +1197,7 @@ $ExecuteTableSmellReport = {
 	$MyDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-        else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
 		# does the path to the reports directory exist?
@@ -1171,7 +1206,10 @@ $ExecuteTableSmellReport = {
 	}
 	$MyOutputReport = "$MyDatabasePath\TableIssues.JSON"
 	#the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCmd   $SQLCmdAlias  -Scope local
+  if ($SQLCmdAlias -ne $null)
+        {Set-Alias SQLCmd   $SQLCmdAlias  -Scope local}
+    else
+        {$problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder'}
 	#is that alias correct?
 	if (!(test-path  ((Get-alias -Name SQLCmd).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCMD is not set correctly yet' }
@@ -1432,7 +1470,7 @@ $ExecuteTableDocumentationReport = {
 	$MyDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-        else {"$ReportLocation\$($param1.Version)\Reports"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
 		# does the path to the reports directory exist?
@@ -1442,7 +1480,11 @@ $ExecuteTableDocumentationReport = {
 	$MyOutputReport = "$MyDatabasePath\TableDocumentation.JSON"
     
 	#the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCmd   $SQLCMDAlias -Scope local
+	  if ($SQLCmdAlias -ne $null)
+        {Set-Alias SQLCmd   $SQLCmdAlias  -Scope local}
+    else
+        {$problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder'}
+
 	#is that alias correct?
 	if (!(test-path  ((Get-alias -Name SQLCmd).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCMD is not set correctly yet' }
@@ -1571,59 +1613,248 @@ $SaveDatabaseModelIfNecessary = {
 	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 	$MyDatabasePath =
 	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
-	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
-	else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
+     $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\Reports";}
+	else {"$($param1.reportLocation)\$($param1.Version)\Reports";
+          $MyCurrentPath = "$($param1.reportLocation)\current\Reports"; } #else the simple version
 	$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
-	if (!(Test-Path -PathType Leaf $MyOutputReport))
-	{
-		if (Test-Path -PathType Leaf $MyDatabasePath)
-		{
-			# does the path to the reports directory exist as a file for some reason?
-			# there, so we delete it 
-			remove-Item $MyDatabasePath;
-		}
-		if (-not (Test-Path -PathType Container $MyDatabasePath))
-		{
-			# does the path to the reports directory exist?
-			# not there, so we create the directory 
-			$null = New-Item -ItemType Directory -Force $MyDatabasePath;
-		}
+    $MyCurrentReport = "$MyCurrentPath\DatabaseModel.JSON"
+    if (!(Test-Path -PathType Leaf $MyOutputReport)) #only do it once
+    {
+		@($MyDatabasePath,$MyCurrentPath)| foreach {
+            if (Test-Path -PathType Leaf $_)
+		    {
+			    # does the path to the reports directory exist as a file for some reason?
+			    # there, so we delete it 
+			    remove-Item $_;
+		    }
+ 		    if (-not (Test-Path -PathType Container $_))
+		    {
+			    # does the path to the reports directory exist?
+			    # not there, so we create the directory 
+			    $null = New-Item -ItemType Directory -Force $_;
+		    }
+        }
 		switch ($param1.RDBMS)
 		{
 			'sqlite' {
-				$lines=@()
-                $TablesAndViews = Execute-SQL $dbDetails "SELECT Name, Type FROM sqlite_schema WHERE TYPE <> 'index';" | convertfrom-json
-                $TablesAndViews | foreach{$type=$_.type;
-	                $Lines += "SELECT '$($_.type)' as type, '$($_.name)' as object, Name||' '||TYPE||CASE `"notnull`" when 1 THEN ' NOT' ELSE '' END
-                     ||' NULL '||CASE WHEN dflt_value IS NOT NULL THEN 'DEFAULT ('||`"dflt_value`"||')' ELSE '' end as col, pk
-                      FROM pragma_table_info('$($_.name)')"
-                }
-                $query = ($Lines -join "`r`nUNION ALL`r`n") + ';'
-                $TheSchema = Execute-SQL $dbDetails $query | ConvertFrom-json
-                $THeTypes=$TablesAndViews|Select type -Unique #|foreach{$_.type}
+            $SQLlines=@() #we build the SQL dynamically - SQLite is a bit awkward for metadata!
+            $TablesAndViews = Execute-SQL $param1 "SELECT Name, Type FROM sqlite_schema WHERE TYPE <> 'index';" | convertfrom-json
+            <# we process tables and views first but not indexes as they are actually child objects of tables  #>
+            $TablesAndViews | foreach{$type=$_.type;
+	            $SQLlines += "SELECT '$($_.type)' as type, '$($_.name)' as object, Name||' '||TYPE||CASE `"notnull`" when 1 THEN ' NOT' ELSE '' END
+                 ||' NULL '||CASE WHEN dflt_value IS NOT NULL THEN 'DEFAULT ('||`"dflt_value`"||')' ELSE '' end as col, pk
+                  FROM pragma_table_info('$($_.name)')"
+            }
+            <# we want to scoop up as much metadata as we can in one query so we do this with a UNION ALL. #>
+            $query = ($SQLlines -join "`r`nUNION ALL`r`n") + ';'
+            <# The query was created dynamically, now we execute it  #>
+            $TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 
-                $SchemaTree = @{ }
-                $TheTypes | foreach{
-	                $SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
-                }
+            <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
+            $indexes =Execute-SQL $param1 @"
+            SELECT m.name as index_name, m.tbl_Name as table_name, i.seqno, i.cid, i.name as column_name
+              FROM sqlite_schema AS m,
+              pragma_index_info(m.name) AS i
+               WHERE TYPE='index' AND sql IS NOT NULL;
+"@ | ConvertFrom-Json
 
-                $TheSchema | Select type, object -Unique |  foreach{
-	                $type = $_.type;
-	                $object = $_.object;
-                    $pk=@{}
-	                $TheColumnList =$TheSchema | where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk | foreach{ $_.col } 
-                    $primaryKey=@();
-                    $SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
-                    $primaryKey=$pk|Where {$_.pk -gt 0}|Sort-Object -Property pk|Foreach{[regex]::matches($_.col, '\A\S{1,80}').value }
-                    if ($primaryKey.count -gt 0)
-                        {
-                        $SchemaTree.$type.$object += @{ 'PrimaryKey' =$primaryKey  }
-                        }
-                }
+            <# we get the list of different base types (obvious in SQLite but it can get tricky with other
+            RDBMS  #>
+            $THeTypes=$TablesAndViews|Select type -Unique #|foreach{$_.type}
+            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
+            $SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+            all the types of relations  #>
+            $TheTypes | foreach{
+	            $SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
+            }
 
-                $SchemaTree|convertTo-json -depth 10 > $MyOutputReport
+            <# now inject all the objects into the schema tree. First we get all the relations  #>
+            $TheRelationMetadata | Select type, object -Unique |  foreach{
+	            $type = $_.type;
+	            $object = $_.object;
+                $pk=@{} 
+	            $TheColumnList =$TheRelationMetadata | 
+                  where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+                     foreach{ $_.col } 
+                $primaryKey=@();
+                $SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+                $primaryKey=$pk|Where {$_.pk -gt 0}|
+                    Sort-Object -Property pk|
+                         Foreach{[regex]::matches($_.col, '\A\S{1,80}').value }
+                if ($primaryKey.count -gt 0)
+                    {
+                    $SchemaTree.$type.$object += @{ 'PrimaryKey' =$primaryKey  }
+                    }
+            }
+            <# now stitch in the indexes with their columns  #>
+            $indexes | Select table_name, index_name -Unique|foreach{
+                $indexedTable=$_.table_name
+                $indexName=$_.index_name
+                $columns=$indexes|
+                   where{$_.table_name -eq $indexedTable -and $_.index_name -eq $indexName}|
+                     Sort-Object -Property seqno|Select  -ExpandProperty column_name 
+                $SchemaTree.table.$indexedTable.indexes+=@{$indexName=$columns}    
+                }
+            $SchemaTree|convertTo-json -depth 10 > "$MyOutputReport"
+            $SchemaTree|convertTo-json -depth 10 > "$MycurrentReport"
 				
 			} #end of SQLite version
+
+            'postgresql' {
+            #fetch all the relations (anything that produces columns)
+            $query=@'
+            SELECT json_agg(e) 
+            FROM (
+            Select columns.table_schema as schema, columns.TABLE_NAME as object, COLUMN_NAME||' '||data_type||
+               CASE WHEN data_type LIKE 'char%' THEN ' ('||character_maximum_length||')'ELSE''END||
+	            CASE WHEN numeric_precision IS NOT NULL THEN 
+		            CASE WHEN data_type LIKE '%int%' THEN ' '
+		            ELSE ' ('|| numeric_precision_radix ||','|| numeric_scale || ')' END
+	            ELSE '' END||
+	            CASE is_identity WHEN 'YES' THEN 'GENERATED '||identity_generation||' AS IDENTITY'
+	            ELSE	 
+		            CASE is_nullable WHEN 'NO' THEN ' NOT' ELSE '' END ||
+	            ' NULL ' ||
+		            CASE when column_default is NOT NULL THEN 'DEFAULT ('||
+		              column_default || ')' ELSE '' END
+	            END AS COLUMN,
+	            CASE WHEN views.table_name IS NULL THEN 'table' else 'view' END AS type
+            --SELECT * 
+            FROM information_schema."columns" 
+            left outer JOIN (SELECT  table_schema,table_name FROM information_schema."views")as views
+            ON columns.table_schema=views.table_schema AND  columns.TABLE_NAME=views.table_name
+            WHERE columns.table_catalog=current_database() AND columns.table_schema NOT IN ('pg_catalog','information_schema')
+            ORDER BY columns.table_schema, columns.TABLE_NAME, ordinal_position
+                ) e;
+'@
+            $TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+            #now get the details of the routines
+            $query= @'
+            SELECT json_agg(e) 
+            FROM (
+            SELECT lower(routine_type) as type, routine_name, ROUTINE_SCHEMA as schema, 
+            left(routine_definition,70)||CASE when LENGTH(routine_definition)>70 THEN '...' ELSE '' END AS definition, 
+            MD5(routine_definition) AS hash 
+            FROM information_schema.routines
+            WHERE routine_catalog=CURRENT_DATABASE() 
+              AND routine_schema NOT IN ('pg_catalog','information_schema')
+                ) e;
+'@
+            $Routines= Execute-SQL $param1 $query | ConvertFrom-json
+            #now do the constraints
+            $query=@'
+            SELECT json_agg(e) 
+            FROM (SELECT lower(tc.constraint_type) as type, tc.table_schema as schema, 
+               tc.Table_name, kcu.constraint_name, kcu.column_name, ordinal_position
+            FROM information_schema.table_constraints AS tc 
+            JOIN information_schema.key_column_usage AS kcu 
+              ON tc.constraint_name = kcu.constraint_name 
+              AND tc.table_name=kcu.table_name
+              AND tc.table_schema=kcu.table_schema
+            WHERE tc.table_catalog=current_database() 
+              AND tc.table_schema NOT IN ('pg_catalog','information_schema')
+                ) e;
+'@
+            $Constraints= Execute-SQL $param1 $query | ConvertFrom-json
+            <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
+            $indexes =Execute-SQL $param1 @"
+            SELECT json_agg(e) 
+            FROM(SELECT distinct
+	             allindexes.schemaname AS schema,
+                t.relname as table_name,
+                i.relname as index_name,
+                a.attname AS "column_name",
+                allindexes.indexdef AS definition
+            from
+                pg_index ix 
+	             INNER join pg_class t on t.oid = ix.indrelid
+                INNER JOIN  pg_class i ON i.oid = ix.indexrelid
+                inner join pg_attribute a on a.attrelid = t.oid
+                LEFT OUTER JOIN pg_indexes allindexes ON t.relname= allindexes.tablename AND i.relname=allindexes.indexname
+            where
+                a.attnum = ANY(ix.indkey)
+                and t.relkind = 'r'
+                AND indisprimary=FALSE AND indisunique=FALSE
+                AND allindexes.schemaname <>'pg_catalog'
+    
+            order by
+                t.relname,
+                i.relname
+                ) e;    
+"@ | ConvertFrom-Json
+
+            #now get all the triggers
+            $triggers =Execute-SQL $param1 @'
+            SELECT json_agg(e) 
+            FROM(
+            SELECT TRIGGER_SCHEMA as schema, TRIGGER_NAME, event_object_schema, event_object_table
+            FROM information_schema.triggers t
+            WHERE t.trigger_catalog=current_database() 
+              AND t.trigger_schema NOT IN ('pg_catalog','information_schema')
+                ) e; 
+'@ | ConvertFrom-Json
+
+            <# RDBMS  #>
+            $THeTypes=$TheRelationMetadata|Select schema,type -Unique #|foreach{$_.type}
+            $THeTypes+=$Routines|Select schema, type -Unique 
+            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
+            $SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+            all the types of relations  #>
+
+
+            $TheTypes |Select  -ExpandProperty schema -Unique| foreach{
+                $TheSchema=$_;
+                $ourtypes=@{}
+                $TheTypes| where {$_.schema -eq $TheSchema}|Select  -ExpandProperty type|foreach{$OurTypes+=@{$_=@{}}}
+                $SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
+        
+            }
+
+            <# now inject all the objects into the schema tree. First we get all the relations  #>
+            $TheRelationMetadata | Select schema, type, object -Unique |  foreach{
+	            $schema = $_.schema;
+                $type = $_.type;
+	            $object = $_.object;
+                $TheColumnList =$TheRelationMetadata | 
+                  where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+                     foreach{ $_.column } 
+                $SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+            }
+            #display-object $schemaTree
+            <# now stitch in the constraints with their columns  #>
+            $constraints | Select schema, table_name, Type, constraint_name -Unique|foreach{
+                $constraintSchema=$_.schema;
+                $constrainedTable=$_.table_name;
+                $constraintName=$_.constraint_name;
+                $ConstraintType=$_.type;
+                $columns=$constraints|
+                   where{
+                     $_.schema -eq $constraintSchema -and 
+                     $_.table_name -eq $constrainedTable -and 
+                     $_.constraint_name -eq $constraintName}|
+                     Sort-Object -Property ordinal_position|Select  -ExpandProperty column_name
+                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType+=@{$constraintName=$columns}    
+                }
+
+            <# now stitch in the indexes with their columns  #>
+            $indexes | Select schema, table_name, Type, index_name,definition -Unique|foreach{
+                $indexSchema=$_.schema;
+                $indexedTable=$_.table_name;
+                $indexName=$_.index_name;
+                $definition=$_.definition;
+                $columns=$indexes|
+                   where{
+                     $_.schema -eq $indexSchema -and 
+                     $_.table_name -eq $indexedTable -and 
+                     $_.index_name -eq $indexName}|
+                     Select  -ExpandProperty column_name
+                $SchemaTree.$indexSchema.table.$indexedTable.index+=@{$indexName=@{'Indexing'=$columns;'def'="$definition"}}    
+                }
+
+             $SchemaTree|convertTo-json -depth 10 > "$MyOutputReport"
+            $SchemaTree|convertTo-json -depth 10 > "$MycurrentReport"
+            }
 			'sqlserver'  {
 				try
 				{
@@ -1634,7 +1865,11 @@ $SaveDatabaseModelIfNecessary = {
 					else
 					{ $routine = "$pwd\TheGloopDatabaseModel.sql" }
 					#the alias must be set to the path of your installed version of SQLcmd
-					Set-Alias SQLCmd   $SQLCMDAlias -Scope local
+					if ($SQLCmdAlias -ne $null)
+                        {Set-Alias SQLCmd   $SQLCmdAlias  -Scope local}
+                    else
+                        {$problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder'}
+
 					#is that alias correct?
 					if (!(test-path  ((Get-alias -Name SQLCmd).definition) -PathType Leaf))
 					{ $Problems += 'The alias for SQLCMD is not set correctly yet' }
@@ -1703,15 +1938,14 @@ $SaveDatabaseModelIfNecessary = {
 								try
 								{
 									$DataObject = Invoke-Expression  "@{$PSSourceCode}"
-									$dataObject | convertTo-json -depth 10 >$MyOutputReport
+									$dataObject | convertTo-json -depth 10 > $MyOutputReport
+                                    $dataObject | convertTo-json -depth 10 > $MyCurrentReport
 								}
 								catch
 								{
-									$PSSourceCode >$MyOutputReport
 									$Param1.Problems.'SaveDatabaseModelIfNecessary' += "could not convert the json object"
 								}
 							}
-							if ($problems.Count -eq 0) { $Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport; }
 						}
 					}
 					
@@ -1723,11 +1957,22 @@ $SaveDatabaseModelIfNecessary = {
 			} #end SQL Server
 		}
 	}
-	else { $Param1.Feedback.'SaveDatabaseModelIfNecessary' = "$MyOutputReport already exists" }
+	else {$AlreadyDone=$true;
+         }
 	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'SaveDatabaseModelIfNecessary' += $problems;
 	}
+    else
+    {
+    if ($AlreadyDone) {
+            $Param1.Feedback.'SaveDatabaseModelIfNecessary' = "$MyOutputReport already exists" 
+            }
+    else
+        {
+        $Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport; 
+        }
+    }
 }
 
 <# this creates a first-cut UNDO script for the metadata (not the data) which can
@@ -1742,7 +1987,10 @@ $CreateUndoScriptIfNecessary = {
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
 	# the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
+	if ($SQLCompareAlias-ne $null)
+        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+    else
+        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
 	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 	#the database scripts path would be up to you to define, of course
@@ -1772,7 +2020,7 @@ FOR JSON AUTO") | convertfrom-json
         $PreviousDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($PreviousVersion)\$sourcePath"} 
-        else {"$ReportLocation\$($PreviousVersion)\$sourcePath"} #else the simple version
+        else {"$($param1.reportLocation)\$($PreviousVersion)\$sourcePath"} #else the simple version
 
         If (!(Test-Path -path $PreviousDatabasePath -PathType Container)) 
             {$WeCanDoIt=$False} #Because no previous source
@@ -1780,7 +2028,7 @@ FOR JSON AUTO") | convertfrom-json
     $CurrentUndoPath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath"} 
-        else {"$ReportLocation\$($param1.Version)\$scriptsPath"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)\$scriptsPath"} #else the simple version
     if (Test-Path -Path "$CurrentUndoPath\U$($Param1.Version)__Undo.sql" -PathType Leaf )
         {$WeCanDoIt=$False} #Because it has already been done             
     If ($WeCanDoIt)
@@ -1806,6 +2054,12 @@ FOR JSON AUTO") | convertfrom-json
 			    "/Password2:$($param1.pwd)"
 		    )
 	    }
+        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		{
+			$CLIArgs += @(
+				"/filter:$($param1.filterpath)"
+			)
+		}
 	    if (-not (Test-Path -PathType Container $CurrentUndoPath))
 	    {
 		    # is the path to the scripts directory
@@ -1831,7 +2085,7 @@ FOR JSON AUTO") | convertfrom-json
 	    }
 
 	}
-	else { "This version '$($param1.Version)' already has a undo script to get to $PreviousVersion at $CurrentUndoPath\U$($Param1.Version)__Undo.sql " }
+	else {$Param1.feedback.'CreateUNDOScriptIfNecessary' = "This version '$($param1.Version)' already has a undo script to get to $PreviousVersion at $CurrentUndoPath\U$($Param1.Version)__Undo.sql " }
 	
 }
 
@@ -1846,7 +2100,10 @@ $CreatePossibleMigrationScript = {
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
 	# the alias must be set to the path of your installed version of SQL Compare
-	Set-Alias SQLCompare $SQLCompareAlias -Scope Script
+	if ($SQLCompareAlias-ne $null)
+        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+    else
+        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
 	if (!(test-path  ((Get-alias -Name SQLCompare).definition) -PathType Leaf))
 	{ $Problems += 'The alias for SQLCompare is not set correctly yet' }
 	#the database scripts path would be up to you to define, of course
@@ -1856,7 +2113,7 @@ $CreatePossibleMigrationScript = {
     $CurrentVersionPath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)"} 
-        else {"$ReportLocation\$($param1.Version)"} #else the simple version
+        else {"$($param1.reportLocation)\$($param1.Version)"} #else the simple version
  	
     $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		# can use a hash-table 
@@ -1879,6 +2136,12 @@ $CreatePossibleMigrationScript = {
 		$CLIArgs += @(
 			"/username1:$($param1.uid)",
 			"/Password1:$($param1.pwd)"
+		)
+	}
+    if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+	{
+		$CLIArgs += @(
+			"/filter:$($param1.filterpath)"
 		)
 	}
 	if (-not (Test-Path -PathType Container $CurrentVersionPath))
@@ -2087,7 +2350,7 @@ $GeneratePUMLforGanttChart = {
 	$MyDatabasePath =
 	if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
 	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
-	else { "$ReportLocation\$($param1.Version)\Reports" } #else the simple version
+	else { "$($param1.reportLocation)\$($param1.Version)\Reports" } #else the simple version
 	$flywayTable = $Param1.flywayTable
 	if ($flywayTable -eq $null)
 	{ $flywayTable = 'dbo.flyway_schema_history' }
@@ -2185,6 +2448,140 @@ if ($problems.count -gt 0)
 	$Param1.WriteLocations.'GeneratePUMLforGanttChart' = "$MyDatabasePath\GanttChart.puml";
 	}
 
+}
+
+
+$CreateVersionNarrativeIfNecessary = {
+	Param ($param1) # $CreateVersionNarrativeIfNecessary - dont delete this
+	$problems = @() #none yet!
+	#check that you have the  entries that we need in the parameter table.
+    try
+        {
+	    @( 'version', 'previous', 'project') | foreach{
+		    if ([string]::IsNullOrEmpty($param1.$_))
+		    { $Problems += "no value for '$($_)'" }
+	    }
+	
+	    $escapedProject = ($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	
+	    if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	    {
+		    $PreviousVersionReportPath =
+		    "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Previous)\Reports"
+		    $currentVersionReportPath =
+		    "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.version)\Reports"
+	    }
+	    else
+	    {
+		    $PreviousVersionReportPath = "$($param1.reportLocation)\$($param1.previous)\Reports"
+		    $currentVersionReportPath = "$($param1.reportLocation)\$($param1.Version)\Reports"
+		
+	    }
+	}
+	catch
+	{
+		$problems += "$($PSItem.Exception.Message)"
+	}
+
+
+	if ($param1.Version -eq '0.0.0') { $warnings += "Cannot compare an empty database" }
+	$GoodVersion = try { $null = [Version]$param1.Version; $true }
+	catch { $false }
+	if (-not ($goodVersion))
+	{ $problems += "Bad version number '$($param1.Version)'" }
+	
+	if ($goodVersion)
+	{
+		if ($param1.previous -eq '0.0.0') { $warnings += "Cannot compare an empty database" }
+		$GoodVersion = try { $null = [Version]$param1.previous; $true }
+		catch { $false }
+		if (-not ($goodVersion))
+		{ $problems += "Bad previous version number '$($param1.Version)'" }
+	}
+	
+	if ($goodVersion)
+	{
+		If (Test-Path -Path "$currentVersionReportPath\VersionNarrative.MD")
+		{
+			$AlreadyDone = $true
+		}
+		If (!(Test-Path -Path "$PreviousVersionReportPath\DatabaseModel.JSON"))
+		{
+			$problems += "No database model exists for '$($param1.Previous)'"
+		}
+		If (!(Test-Path -Path "$currentVersionReportPath\DatabaseModel.JSON"))
+		{
+			$problems += "No database model exists for '$($param1.version)'"
+		}
+		if ($problems.Count -eq 0 -and !$AlreadyDone)
+		{
+			try
+			{
+				#see what is changed by comparing the models before and after the migration
+				$Comparison = Diff-Objects -Parent $Details.Database -depth 10 <#get the previous model from file#>`
+				([IO.File]::ReadAllText("$PreviousVersionReportPath\DatabaseModel.JSON") |
+					ConvertFrom-JSON)<#and get the current model from file#> `
+				([IO.File]::ReadAllText("$currentVersionReportPath\DatabaseModel.JSON") |
+					ConvertFrom-JSON) |
+				where { $_.match -ne '==' }
+				$Comparison | Export-CSV -Path "$currentVersionReportPath\MetadataChanges.report"
+				($Comparison | ConvertTo-JSON) > "$currentVersionReportPath\MetadataChanges.json"
+				#we can do all sorts of more intutive reports from the output
+                $ObjectName='nomatch';
+				$narrative=$Comparison | foreach{
+					$current = $_;
+                    switch ($current.Match)
+					{
+						'->' {
+							  if ($current.Target -ne '(PSCustomObject)')
+                               {
+                                   if ($current.ref -like "$($ObjectName)*")
+								    { "  - Added $($current.Target) to $($current.Ref -replace $ObjectName,'' )`n " }
+                                    else
+                                    {"- Added '$($current.Target -replace $ObjectName,'' )' to '$($current.Ref)'`n ";
+                                      $ObjectName='nomatch';
+                                    }
+                                }
+							else {
+                                     "- Added  '$($current.Ref)'`n";
+                                     $objectName=$current.Ref;
+						         }
+                            }
+						'<>' {
+							"- Changed '$($current.Source)' to '$($current.Target
+							)' at '$($current.Ref)`n"
+						}
+						'<-' {
+							"- Deleted '$($current.Source)' at '$($current.Ref
+							) with version $version'`n"
+						}
+						default { "No metadata change `n" }
+					}
+                }					
+			$Narrative > "$currentVersionReportPath\VersionNarrative.MD"
+
+			}
+			catch
+			{
+				$problems += "$($PSItem.Exception.Message)"
+			}
+		}
+		if ($problems.Count -gt 0)
+		{
+			$Param1.Problems.'CreateVersionNarrativeIfNecessary' += $problems;
+		}
+		else
+		{
+			if ($AlreadyDone)
+			{
+				$Param1.Feedback.'CreateVersionNarrativeIfNecessary' = "$Version narrative for $($param1.version) already exists"
+			}
+			else
+			{
+				$Param1.WriteLocations.'CreateVersionNarrativeIfNecessary' = "$currentVersionReportPath\VersionNarrative.MD";
+			}
+		}
+	}
 }
 
 
@@ -2338,4 +2735,4 @@ function Execute-SQL
 
 
 
-'scriptblocks and cmdlet loaded. V1.2.77'
+'scriptblocks and cmdlet loaded. V1.2.86'

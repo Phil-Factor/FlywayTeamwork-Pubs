@@ -51,7 +51,6 @@ $Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory))
 #$ReportLocation is used for the branch version
 $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
 
-
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
@@ -80,6 +79,11 @@ if ($dir -eq '') { throw "no resources directory found" }
 dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
+
+#find any SQL Compare filters
+$Filterpath =$null
+if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
+{$Filterpath= dir "$Dir\$ResourcesPath\*.scpf" |select -first 1|foreach{$_.FullName}}
 
 <# We now know the project name ($project) and the name of the branch (Branch), and have installed all the resources
 
@@ -151,7 +155,8 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 $DBDetails = @{
     'RDBMS'= $RDBMS; 
 	'server' = $server; #The Server name
-    'directoryStructure'=$structure
+    'directoryStructure'=$structure;
+    'filterpath'=$filterpath
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
 	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
@@ -165,6 +170,7 @@ $DBDetails = @{
 	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in if you request it
 	'version' = ''; # TheCurrent Version. This gets filled in if you request it
+    'previous'=''; # The previous Version. This gets filled in if you request it
 	'flywayTable' = 'dbo.flyway_schema_history';#this gets filled in later
 	'branch' = $branch;
 	'schemas' = 'dbo,classic,people';
@@ -224,3 +230,4 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
+$env:FLYWAY_PASSWORD=$DBDetails.Pwd
