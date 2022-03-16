@@ -24,7 +24,7 @@ AS
         ON Customers.CustomerID = Orders.CustomerID
     WHERE
     (Order_Subtotals.Subtotal > cast(2500 AS money))
-AND (Orders.ShippedDate BETWEEN '1996-02-01' AND '1998-03-01');
+AND (Orders.ShippedDate BETWEEN '2016-02-01' AND '2018-03-01');
 
   
 CREATE VIEW dbo.Order_Details_Extended
@@ -56,7 +56,7 @@ AS
         ON Products.ProductID = Order_Details_Extended.ProductID)
         ON categories.categoryID = Products.categoryID
     WHERE
-    Orders.OrderDate BETWEEN '1996-02-01' AND '1998-03-01'
+    Orders.OrderDate BETWEEN '2016-02-01' AND '2018-03-01'
     GROUP BY
     categories.categoryID, categories.categoryName, Products.ProductName;
 	 --ORDER BY Products.ProductName
@@ -84,7 +84,7 @@ AS
 --ORDER BY Orders.ShippedDate
    
    
-CREATE VIEW dbo.Product_Sales_for_1997
+CREATE VIEW dbo.Product_Sales_for_2017
 AS
   SELECT categories.categoryName, Products.ProductName,
          Sum (
@@ -97,18 +97,18 @@ AS
       INNER JOIN "Order Details" AS "Order Details"
         ON Orders.OrderID = "Order Details".OrderID)
         ON Products.ProductID = "Order Details".ProductID
-    WHERE (((Orders.ShippedDate) BETWEEN '19970101' AND '19971231'))
+    WHERE (((Orders.ShippedDate) BETWEEN '2016-02-01' AND '2018-03-01'))
     GROUP BY
     categories.categoryName, Products.ProductName;
    
    
    
-CREATE VIEW dbo.category_Sales_for_1997
+CREATE VIEW dbo.category_Sales_for_2017
 AS
-  SELECT Product_Sales_for_1997.categoryName,
-         Sum (Product_Sales_for_1997.ProductSales) AS categorySales
-    FROM Product_Sales_for_1997
-    GROUP BY Product_Sales_for_1997.categoryName;
+  SELECT Product_Sales_for_2017.categoryName,
+         Sum (Product_Sales_for_2017.ProductSales) AS categorySales
+    FROM Product_Sales_for_2017
+    GROUP BY Product_Sales_for_2017.categoryName;
    
    
 CREATE VIEW dbo.Alphabetical_list_of_products
@@ -225,5 +225,5 @@ AS
       RIGHT JOIN Orders
         ON Customers.CustomerID = Orders.CustomerID
     WHERE
-    Orders.OrderDate BETWEEN '19970101' AND '19971231';
+    Orders.OrderDate BETWEEN '20170101' AND '20171231';
    
