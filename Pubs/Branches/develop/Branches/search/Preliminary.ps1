@@ -109,9 +109,10 @@ Now we check that the directories and files that we need are there #>
 $FlywayConfContent=@()
 $FlywayKeys = (Get-Content "flyway.conf")  |
 where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
+    foreach{$_ -replace '\\','\\'}|
     ConvertFrom-StringData -OutVariable FlywayConfContent|foreach {$_.keys}
 Get-content "$env:userProfile\flyway.conf" |where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') }|
-ConvertFrom-StringData|foreach{
+foreach{$_ -replace '\\','\\'}|ConvertFrom-StringData|foreach{
     if (!($_.Keys -in $FlywayKeys)) 
         {$FlywayConfContent+=$_}
     }
@@ -121,7 +122,7 @@ ConvertFrom-StringData|foreach{
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 {
 	$FlywayURLRegex =
-	'jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
+	'jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
 	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\/\.]{1,80})';
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing

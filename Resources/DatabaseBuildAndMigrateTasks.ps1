@@ -166,10 +166,20 @@ read into any editor that takes PlantUML files to give a Gantt chart
 $CreatePossibleMigrationScript
 This creates a forward migration that scripts out all the changes made to the database since the current
 migration
+
+$SaveDatabaseModelIfNecessary
+This writes a JSON model of the database to a file that can be used subsequently
+to check for database version-drift or to create a narrative of changes for the
+flyway project between versions. 
+
+$SaveFlywaySchemaHistoryIfNecessary
+This reads the flyway history table, and uses the information to annotate the directories
+containing the various reports and scripts for that version
+
+$CreateVersionNarrativeIfNecessary
+This aims to tell you what has changed between each versdion of the database.
 #>
 
-
-#where we want to store reports, the sub directories from the user area.
 
 
 $GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
@@ -532,7 +542,8 @@ Hashtable. It checks the current database, not the scripts
 $CheckCodeInDatabase = {
 	Param ($param1) # $CheckCodeInDatabase - (Don't delete this)
 	#you must set this value correctly before starting.
-	$Problems = @(); #our local problem counter    
+	$Problems = @(); #our local problem counter  
+    $Feedback=@();  
     if ($CodeGuardAlias -ne $null)
         {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
     else
@@ -579,13 +590,17 @@ $CheckCodeInDatabase = {
 	}
 	<# we only do the analysis if it hasn't already been done for this version,
     and we've hit no problems #>
-    if (($problems.Count -eq 0) -and (-not (
-				Test-Path -PathType leaf  "$MyDatabasePath\codeAnalysis.xml")))
+    $AlreadyDone= Test-Path -PathType leaf  "$MyDatabasePath\codeAnalysis.xml"
+    if (($problems.Count -eq 0) -and (-not $alreadyDone))
 	{
 		$result = codeguard @Arguments; #execute the command-line Codeguard.
 		if ($? -or $LASTEXITCODE -eq 1)
 		{
-			"Written Code analysis for $($param1.Project) $($param1.Version
+        $CodeAnalysis =[xml] [IO.File]::ReadAllText("$MyDatabasePath\codeAnalysis.xml")
+        $object=convertfrom-xml $CodeAnalysis
+        $object|convertTo-json -depth 10 > "$MyDatabasePath\CodeAnalysis.json"
+
+		$feedback += "Written Code analysis for $($param1.Project) $($param1.Version
 			) to $MyDatabasePath\codeAnalysis.xml"
 		}
 		else
@@ -608,11 +623,14 @@ $CheckCodeInDatabase = {
 
 	if ($problems.Count -gt 0)
 	{
-		Write-warning "Problem '$problems' with CheckCodeInDatabase! ";
 		$Param1.Problems.'CheckCodeInDatabase' += $problems;
 	}
 	else
-    {$Param1.WriteLocations.'CheckCodeInDatabase' = "$MyDatabasePath\codeAnalysis.xml";}
+    {
+    if ($AlreadyDone) {$Param1.feedback.'CheckCodeInDatabase'="There is already a database code check for version $($param1.version)"}
+    else 
+        { $Param1.feedback.'CheckCodeInDatabase' += $Feedback }   
+    $Param1.WriteLocations.'CheckCodeInDatabase' = "$MyDatabasePath\codeAnalysis.xml";}
 }
 
 
@@ -621,25 +639,13 @@ using SQL Code Guard to do all the work. This runs SQL Codeguard
 and saves the report in a subdirectory the version directory of your 
 project artefacts. It also reports back in the $DatabaseDetails
 Hashtable. It checks the scripts not the current database.
-$OurDetails=@{
-  'project'='MyProjectName';
-  '
-  'warnings'=@{};'problems'=@{};}
-$CheckCodeInMigrationFiles.Invoke($OurDetails)
-
- $Details=@{
-'Project'='publications';                                                                                                                                                                                                          
-'Warnings'=@{};                                                                                                                                                                                                            
-'Problems'=@{};                                                                                                                                                                                                            
-'projectFolder'='YourPathTo\PubsAndFlyway\PubsFlywaySecondMigration'                                                                                                                                                        
-}
-$param1=$dbDetails
-$CheckCodeInMigrationFiles.Invoke($Details) #>
+#>
 
 $CheckCodeInMigrationFiles = {
 	Param ($param1) # $CheckCodeInMigrationFiles - (Don't delete this)
 	#you must set this value correctly before starting.
 	$Problems = @(); #our local problem counter
+    $Feedback = @();
     if ($CodeGuardAlias -ne $null)
         {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
     else
@@ -681,15 +687,18 @@ $CheckCodeInMigrationFiles = {
 			    # not there, so we create the directory 
 			    $null = New-Item -ItemType Directory -Force $MyVersionReportPath;
 		    }
+            $alreadyDone=Test-Path -PathType leaf  "$MyVersionReportPath\FilecodeAnalysis.xml"
 	        <# we only do the analysis if it hasn't already been done for this version,
             and we've hit no problems #>
-		    if (($problems.Count -eq 0) -and (-not (
-					    Test-Path -PathType leaf  "$MyVersionReportPath\FilecodeAnalysis.xml")))
+		    if (($problems.Count -eq 0) -and (-not ( $alreadyDone)))
 		    {
 			    $result = codeguard @Arguments; #execute the command-line Codeguard.
 			    if ($? -or $LASTEXITCODE -eq 1)
 			    {
-				    Write-Verbose  "Written file Code analysis for $TheFile for $($param1.Project) project) to $MyVersionReportPath\FilecodeAnalysis.xml"
+                $CodeAnalysis =[xml] [IO.File]::ReadAllText("$MyVersionReportPath\FilecodeAnalysis.xml")
+                $object=convertfrom-xml $CodeAnalysis
+                $object|convertTo-json -depth 10 > "$MyVersionReportPath\FilecodeAnalysis.json"
+				$feedback += "Written file Code analysis for $TheFile for $($param1.Project) project) to $MyVersionReportPath\FilecodeAnalysis.xml and .json"
 			    }
 			    else
 			    {
@@ -706,15 +715,20 @@ $CheckCodeInMigrationFiles = {
 	}
 	if ($problems.Count -gt 0)
 	{
-		Write-warning "Problem '$problems' with CheckCodeInMigrationFiles! ";
 		$Param1.Problems.'CheckCodeInMigrationFiles' += $problems;
 	}
     else
-    {$Param1.WriteLocations.'CheckCodeInMigrationFiles' = "$MyVersionReportPath\FilecodeAnalysis.xml"; }
+    {
+    if ($AlreadyDone) {$Param1.feedback.'CheckCodeInMigrationFiles'="There is already a database code check for version $($param1.version)"}
+    else 
+        { $Param1.feedback.'CheckCodeInMigrationFiles' += $Feedback }   
+
+    $Param1.WriteLocations.'CheckCodeInMigrationFiles' = "$MyVersionReportPath\FilecodeAnalysis.xml"; }
+	$Param1.feedback.'CheckCodeInMigrationFiles' += $Feedback
 		
 }
 
-
+$Param1=$dbDetails
 
 <#This scriptblock gets the current version of a flyway_schema_history data from the 
 table in the database. if there is no Flyway Data, then it returns a version of 0.0.0
@@ -879,8 +893,6 @@ $IsDatabaseIdenticalToSource = {
 			"/database2:$($param1.database)",
 			"/Assertidentical",
 			"/force",
-            "/exclude:table:$($param1.flywayTable)",
-			'/exclude:ExtendedProperty', #trivial
 			"/LogLevel:Warning"
 		)
         
@@ -891,12 +903,18 @@ $IsDatabaseIdenticalToSource = {
 				"/Password2:$($param1.pwd)"
 			)
 		}
-        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+         if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		{
 			$CLIArgs += @(
 				"/filter:$($param1.filterpath)"
 			)
-		}
+         }
+        else
+            {
+            $CLIArgs += @(
+              "/exclude:table:$($param1.flywayTable)",
+			   '/exclude:ExtendedProperty') #trivial}
+		} 
 	}
     $MyVersionReportPath = 
               if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
@@ -988,12 +1006,18 @@ $CreateScriptFoldersIfNecessary = {
 			"/Password1:$($param1.pwd)"
 		)
 	}    
-    if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
-	{
-		$CLIArgs += @(
-			"/filter:$($param1.filterpath)"
-		)
-	}
+        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		{
+			$CLIArgs += @(
+				"/filter:$($param1.filterpath)"
+			)
+         }
+        else
+            {
+            $CLIArgs += @(
+              "/exclude:table:$($param1.flywayTable)",
+			   '/exclude:ExtendedProperty') #trivial}
+		} 
 
 	if ($problems.Count -eq 0 -and (!(Test-Path -PathType Container $MyDatabasePath))) #if it doesn't already erxist
 	{
@@ -1067,7 +1091,6 @@ $CreateBuildScriptIfNecessary = {
 					# can use a hash-table 
 					"/server1:$($param1.server)",
 					"/database1:$($param1.database)",
-					"/exclude:table:$($param1.flywayTable)",
 					"/empty2",
 					"/force", # 
 					"/options:NoTransactions,NoErrorHandling", # so that we can use the script with Flyway more easily
@@ -1087,7 +1110,12 @@ $CreateBuildScriptIfNecessary = {
 			        $CLIArgs += @(
 				        "/filter:$($param1.filterpath)"
 			        )
-		        }
+                 }
+                else
+                    {
+                    $CLIArgs += @(
+                      "/exclude:table:$($param1.flywayTable)")
+		        } 
 				
 				# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
 				Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
@@ -1598,10 +1626,6 @@ SELECT @JSON
 <#This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
 flyway project between versions. */#>
-
-<#This writes a JSON model of the database to a file that can be used subsequently
-to check for database version-drift or to create a narrative of changes for the
-flyway project between versions. */#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
 	$problems = @() #none yet!
@@ -2057,7 +2081,6 @@ FOR JSON AUTO") | convertfrom-json
 		    "/server2:$($param1.server)",
             '/include:identical',#a migration may just be data, no metadata.
 		    "/database2:$($param1.database)",
-		    "/exclude:table:$($param1.flywayTable)",
 		    "/force", # 
 		    "/options:NoErrorHandling,IgnoreQuotedIdentifiersAndAnsiNullSettings,NoTransactions,DoNotOutputCommentHeader,ThrowOnFileParseFailed,ForceColumnOrder,IgnoreNoCheckAndWithNoCheck,IgnoreSquareBrackets,IgnoreWhiteSpace,ObjectExistenceChecks,IgnoreSystemNamedConstraintNames,IgnoreTSQLT,NoDeploymentLogging", 
 # so that we can use the script with Flyway more easily
@@ -2072,12 +2095,17 @@ FOR JSON AUTO") | convertfrom-json
 			    "/Password2:$($param1.pwd)"
 		    )
 	    }
-        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+         if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		{
 			$CLIArgs += @(
 				"/filter:$($param1.filterpath)"
 			)
-		}
+         }
+        else
+            {
+            $CLIArgs += @(
+              "/exclude:table:$($param1.flywayTable)")
+		} 
 	    if (-not (Test-Path -PathType Container $CurrentUndoPath))
 	    {
 		    # is the path to the scripts directory
@@ -2139,7 +2167,6 @@ $CreatePossibleMigrationScript = {
 		"/server1:$($param1.server)",
         '/include:identical',#a migration may just be data, no metadata.
 		"/database1:$($param1.database)",
-		"/exclude:table:$($param1.flywayTable)",
         "/report:$CurrentVersionPath\Drift.xml",
         "/reportType:XML"
 		"/force", # 
@@ -2161,7 +2188,12 @@ $CreatePossibleMigrationScript = {
 		$CLIArgs += @(
 			"/filter:$($param1.filterpath)"
 		)
-	}
+        }
+    else
+        {
+        $CLIArgs += @(
+            "/exclude:table:$($param1.flywayTable)")
+	} 
 	if (-not (Test-Path -PathType Container $CurrentVersionPath))
 	{
 		# is the path to the scripts directory
@@ -2508,7 +2540,7 @@ $CreateVersionNarrativeIfNecessary = {
 		$problems += "$($PSItem.Exception.Message)"
 	}
 
-	if ($param1.Version -eq '0.0.0') { $warnings += "Cannot compare an empty database" }
+	if ($param1.Version -eq '0.0.0') { $warnings += "Cannot compare an empty database with anything" }
 	$GoodVersion = try { $null = [Version]$param1.Version; $true }
 	catch { $false }
 	if (-not ($goodVersion))
@@ -2516,7 +2548,10 @@ $CreateVersionNarrativeIfNecessary = {
 	
 	if ($goodVersion)
 	{
-		if ($param1.previous -eq '0.0.0') { $warnings += "Cannot compare an empty database" }
+		if ($param1.previous -eq '0.0.0') {
+          $feedback += "Cannot compare with an empty database";
+          $unnecessary=$true
+           }
 		$GoodVersion = try { $null = [Version]$param1.previous; $true }
 		catch { $false }
 		if (-not ($goodVersion))
@@ -2597,7 +2632,7 @@ $CreateVersionNarrativeIfNecessary = {
 		}
 		elseif ($warnings.Count -gt 0)
 		{
-			$Param1.Problems.'CreateVersionNarrativeIfNecessary' += $warnings;
+			$Param1.warnings.'CreateVersionNarrativeIfNecessary' += $warnings;
 		}
 		else
 		{
@@ -2607,7 +2642,7 @@ $CreateVersionNarrativeIfNecessary = {
 			}
 			if ($unnecessary)
 			{
-				$Param1.Feedback.'CreateVersionNarrativeIfNecessary' += "$Version narrative for $($param1.version) isn't necessarys"
+				$Param1.Feedback.'CreateVersionNarrativeIfNecessary' += "$Version narrative for $($param1.version) isn't necessary"
 			}
 			else
 			{
@@ -2616,6 +2651,80 @@ $CreateVersionNarrativeIfNecessary = {
 		}
 	}
 }
+
+$SaveFlywaySchemaHistoryIfNecessary = {
+	Param ($param1) # $SaveFlywaySchemaHistoryIfNecessary - dont delete this
+	$problems = @() #none yet!
+	$warnings = @()
+	$feedback = @()
+	$WriteLocations = @()
+	$unnecessary = $false;
+	
+	$info = Flyway info -outputType=json # collect Flyway's info as a JSON file
+	if ($info.error -ne $null) { $Problems += $info.error.message }
+	else
+	{
+		$InfoObject = $info | convertFrom-json #convert it to something Powershell can read
+		$SaveAsFile = "$($dbDetails.Reportlocation)\current\Migrationinfo.json"
+		#where we store the reports. We get this from the framework from dbDetails
+		$Report = $InfoObject.psobject.Properties | where { $_.name -ne 'migrations' } |
+		foreach{ @{ $_.name = $_.value } } #Get all the base info 
+		#add to this, the extra info that we collect from the framework
+		$Report += @('Branch', 'Variant', 'Server', 'Database', 'InstalledBy', 'previous') | foreach{
+			@{ $_ = "$($param1.$_)" }
+		}
+		#save it to the report for the current migration
+		$Report | convertTo-json > $SaveAsFile
+		# now we get the migration collection that came from RFlkyway Info
+		$infoObject.migrations | where {$_.state -eq 'success'}| foreach{
+			if ($_.version -eq '') # it is the initial state before a migration is applied
+			{
+				# Write this to the base of the report location just once
+				$SaveAsFile = "$($dbDetails.Reportlocation)\Creationinfo.json"
+				if (!(Test-Path $SaveAsFile -PathType leaf))
+				{
+					convertTo-json $_ > $SaveAsFile;
+					$WriteLocations += $SaveAsFile;
+				}
+				else
+				{ $feedback += "$SaveAsFile with the database creation info already existed" }
+			}
+			else #it must be a valid migration version
+			{
+				#write it to the current version report folder just once
+                if (!(Test-Path "$($dbDetails.Reportlocation)\$($_.Version)" -PathType Container))
+                    {New-Item -ItemType directory -Path "$($dbDetails.Reportlocation)\$($_.Version)"}
+                if (!(Test-Path "$($dbDetails.Reportlocation)\$($_.Version)\reports" -PathType Container))
+                    {New-Item -ItemType directory -Path "$($dbDetails.Reportlocation)\$($_.Version)\reports"}
+				$SaveAsFile = "$($dbDetails.Reportlocation)\$($_.Version)\reports\ApplyInfo.json"
+				if (!(Test-Path $SaveAsFile -PathType leaf))
+				{
+					convertTo-json $_ > $SaveAsFile;
+					$WriteLocations += $SaveAsFile;
+				}
+				else
+				{ $feedback += "$SaveAsFile already existed" }
+			}
+		}
+	}
+	if ($WriteLocations.Count -gt 0)
+	{
+		$Param1.WriteLocations.'SaveFlywaySchemaHistoryIfNecessary' = $writeLocations
+	};
+	if ($feedback.Count -gt 0)
+	{
+		$Param1.Feedback.'SaveFlywaySchemaHistoryIfNecessary' = $feedback
+	};
+	if ($problems.Count -gt 0)
+	{
+		$Param1.Problems.'SaveFlywaySchemaHistoryIfNecessary' += $problems;
+	}
+	if ($warnings.Count -gt 0)
+	{
+		$Param1.warnings.'SaveFlywaySchemaHistoryIfNecessary' += $warnings;
+	}
+}
+
 
 
 
@@ -2694,7 +2803,8 @@ function Process-FlywayTasks
 		$DatabaseDetails.Problems.GetEnumerator() |
 		   Foreach{ Write-warning "Problem! $($_.Key)---------"; $_.Value } |
 		      foreach { write-warning "`t$_" }
-        
+	$DatabaseDetails.Errors=@{}        
+
 	}
 	if ($DatabaseDetails.Warnings.Count -gt 0) #list out exery warning and which task failed
 	{
@@ -2768,4 +2878,4 @@ function Execute-SQL
 
 
 
-'scriptblocks and cmdlet loaded. V1.2.86'
+'scriptblocks and cmdlet loaded. V1.2.92'
