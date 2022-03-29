@@ -86,3 +86,29 @@ This reads the flyway history table, and uses the information to annotate the di
 
 **$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
+
+## Examples of usage
+
+Tasks can be executed one at a time or stacked up and executed one after another. 
+
+Here are several being done together 
+
+`$PostMigrationTasks = @(`
+	`$GetCurrentVersion, #checks the database and gets the current version number`
+	`#it does this by reading the Flyway schema history table.` 
+    `$GetCurrentServerVersion, #get the current version of the database server`
+	`$CreateBuildScriptIfNecessary, #Create a build script for the database in a` 
+	`#subdirectory for this version.`
+	`$SaveDatabaseModelIfNecessary, #Build a JSON model of the database that we can`
+	`#later use for comparing versions to create a chronicle of changes.`
+	`$CreateVersionNarrativeIfNecessary,`
+    `#save the information from the history table about when all the changes were made and by whom
+    `$SaveFlywaySchemaHistoryIfNecessary`
+`)`
+`Process-FlywayTasks $DBDetails $PostMigrationTasks`
+	`}`
+`}`
+
+here is one scriptblock being done
+
+`Process-FlywayTasks $DBDetails $GetCurrentServerVersion`

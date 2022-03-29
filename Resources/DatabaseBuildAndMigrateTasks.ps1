@@ -84,6 +84,33 @@ This reads the flyway history table, and uses the information to annotate the di
 
 **$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
+
+## examples of usage
+
+Tasks can be executed one at a time or stacked up and executed one after another. 
+
+Here are several being done together 
+
+`$PostMigrationTasks = @(`
+	`$GetCurrentVersion, #checks the database and gets the current version number`
+	`#it does this by reading the Flyway schema history table.` 
+    `$GetCurrentServerVersion, #get the current version of the database server`
+	`$CreateBuildScriptIfNecessary, #Create a build script for the database in a` 
+	`#subdirectory for this version.`
+	`$SaveDatabaseModelIfNecessary, #Build a JSON model of the database that we can`
+	`#later use for comparing versions to create a chronicle of changes.`
+	`$CreateVersionNarrativeIfNecessary,`
+    `#save the information from the history table about when all the changes were made and by whom
+​    `$SaveFlywaySchemaHistoryIfNecessary`
+`)`
+`Process-FlywayTasks $DBDetails $PostMigrationTasks`
+​	`}`
+`}`
+
+here is one scriptblock being done
+
+`Process-FlywayTasks $DBDetails $GetCurrentServerVersion`
+
 #>
 
 
@@ -1709,7 +1736,8 @@ $GetdataFromSQLCMD.Invoke($dbDetails,$query,$null,$true)
 
 <#This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
-flyway project between versions. */#>
+flyway project between versions. 
+$param1=$dbDetails*/#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
 	$problems = @() #none yet!
@@ -1719,24 +1747,28 @@ $SaveDatabaseModelIfNecessary = {
 		{ $Problems += "no value for '$($_)'" }
 	}
 	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
-	$MyDatabasePath =
 	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
 	{
-		"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
-		$MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\Reports";
+		$MyDatabasePath ="$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
+		$MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current";
+        $MySourcePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$($param1.sourcePath)";
 	}
 	else
 	{
-		"$($param1.reportLocation)\$($param1.Version)\Reports";
-		$MyCurrentPath = "$($param1.reportLocation)\current\Reports";
+		$MyDatabasePath ="$($param1.reportLocation)\$($param1.Version)\Reports";
+		$MyCurrentPath = "$($param1.reportLocation)\current";
+        $MySourcePath = "$($param1.reportLocation)\$($param1.Version)\$($param1.sourcePath)";
 	} #else the simple version
 	$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
-	$MyCurrentReport = "$MyCurrentPath\DatabaseModel.JSON"
+	$MyCurrentReport = "$MyCurrentPath\Reports\DatabaseModel.JSON"
+    #handy stuff for where clauses
+    $ListOfSchemas=($param1.schemas -split ','|foreach{"'$_'"}) -join ',';
+    $FlywayTableName=($param1.flywayTable -split '\.')[1]
 	if (!(Test-Path -PathType Leaf $MyOutputReport)) #only do it once
 	{
 		try
 		{
-		@($MyDatabasePath, $MyCurrentPath) | foreach {
+		@($MyDatabasePath, "$MyCurrentPath\Reports") | foreach {
 			if (Test-Path -PathType Leaf $_)
 			{
 				# does the path to the reports directory exist as a file for some reason?
@@ -1980,7 +2012,6 @@ possible on information schema #>
 possible on information schema #>
 'mysql|mariaDB' {
         #create a delimited list for SQL's IN command
-        $ListOfSchemas=($param1.schemas -split ','|foreach{"'$_'"}) -join ','
  				#fetch all the relations (anything that produces columns)
 				$query = @"
         SELECT c.TABLE_SCHEMA as "schema", c.TABLE_NAME as "object", 
@@ -1993,15 +2024,16 @@ possible on information schema #>
 			' ',
 			Extra,
 			' ',
-			case COLUMN_KEY when 'PRI' then ' PRIMARY KEY' ELSE '' end
+			case COLUMN_KEY when 'PRI' then ' PRIMARY KEY' ELSE '' end,
+			case when column_comment <> '' then CONCAT('- ',column_comment) ELSE '' end
 		 ) AS coltype  
         FROM information_schema.columns c 
         LEFT OUTER JOIN information_schema.views v 
         ON c.TABLE_NAME=v.Table_Name
         AND v.table_Schema=c.table_Schema
         WHERE c.table_schema in ($ListOfSchemas)
+        and c.TABLE_NAME <> '$FlywayTableName';
 "@
-                $error[0]
 				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 				#now get the details of the routines
 				$query = @"
@@ -2022,7 +2054,8 @@ possible on information schema #>
               ON tc.constraint_name = kcu.constraint_name 
               AND tc.table_name=kcu.table_name
               AND tc.table_schema=kcu.table_schema
-            WHERE tc.table_schema IN ($ListOfSchemas); 
+            WHERE tc.table_schema IN ($ListOfSchemas)
+            and tc.TABLE_NAME <> '$FlywayTableName'; 
 "@
 				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
@@ -2030,7 +2063,8 @@ possible on information schema #>
             SELECT Table_Schema as "schema",TABLE_NAME, Index_name, COLUMN_NAME, Seq_in_Index AS "sequence" 
             FROM information_schema.statistics
             WHERE table_Schema IN ($ListOfSchemas) 
-              AND index_name NOT IN ('PRIMARY','UNIQUE');    
+              AND index_name NOT IN ('PRIMARY','UNIQUE')
+              and TABLE_NAME <> '$FlywayTableName';    
 "@ | ConvertFrom-Json
 				
 				#now get all the triggers
@@ -2065,7 +2099,7 @@ possible on information schema #>
 					$TheColumnList = $TheRelationMetadata |
 					where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
                     Sort-Object -Property ordinal_position|
-					foreach{ $_.column }
+					foreach{ "$($_.column) $($_.coltype)" }
 					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
 				}
 				#$schemaTree |convertto-JSON -depth 10
@@ -2109,7 +2143,7 @@ possible on information schema #>
 possible on information schema #>
 			'sqlserver'  {
 				#fetch all the relations (anything that produces columns)
-				$query = @'
+				$query = @"
 SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Replace(Replace(TheObjects.type_desc,'user_',''),'sql_','')), '_', ' ') AS type, Object_Name(TheObjects.object_id) Name, 
             colsandparams.name + ' ' +
 -- SQL Prompt formatting off
@@ -2189,8 +2223,9 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
            LEFT OUTER JOIN sys.schemas AS Schemae
              ON SchemaCollection.schema_id = Schemae.schema_id
 			INNER JOIN sys.objects TheObjects ON TheObjects.object_id = colsandparams.object_id
+            WHERE Object_Name(TheObjects.object_id)<>'$FlywayTableName'
 			ORDER BY "schema","type",name,TheOrder FOR JSON auto
-'@
+"@
 				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 				#now get the details of the routines
 				$query = @'
@@ -2206,7 +2241,7 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
 				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
 				
 #now do the constraints
-				$query = @'
+				$query = @"
    SELECT f.constraintSchema, f.constrainedTable, f.constraintType,
         f.constraintName, f.details FROM
 	(
@@ -2246,9 +2281,10 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
         left outer join sys.all_columns col
             on con.parent_column_id = col.column_id
             and con.parent_object_id = col.object_id)f
+    where f.constrainedTable <>'$FlywayTableName'
 order by constraintSchema,constrainedTable, constrainttype, constraintname
 FOR JSON auto
-'@
+"@
 				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
 				$indexes = Execute-SQL $param1 @"
@@ -2269,6 +2305,7 @@ FOR JSON auto
                on ic.object_id = col.object_id
                and ic.column_id = col.column_id
        where is_unique = 1
+       AND t.name <> '$FlywayTableName'
        AND t.is_ms_shipped <> 1
        for json path
 "@ | ConvertFrom-Json
@@ -2361,7 +2398,23 @@ FOR JSON auto
             {
             $Param1.Problems.'SavedDatabaseModelIfNecessary'+="The $_ database isn't supported yet. Sorry about that."
             }
-		}
+        }
+		#Final things to do 
+        if (Test-Path "$MyOutputReport" -PathType leaf)
+            {
+            $Model = [IO.File]::ReadAllText("$MyOutputReport")|ConvertFrom-JSON
+            $model.psobject.Properties|
+            foreach{$schema=$_.Name;$_.Value.psobject.Properties}|
+              Foreach{$Type=$_.Name;$_.Value.psobject.Properties} |
+                foreach{
+                  $objectName=$_.Name;
+                  $WhereToStoreIt="$MySourcePath\$type"
+                  if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
+                    {$null=New-Item -ItemType directory -Path "$WhereToStoreIt" -Force}
+                $_.Value |convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
+             Copy-Item -Path "$MySourcePath" -Destination "$MyCurrentPath" -Recurse -Force
+             }
+        }
 	}
 	catch { $Param1.Problems.'SavedDatabaseModelIfNecessary' += "$($PSItem.Exception.Message)"}
 }
@@ -3247,4 +3300,4 @@ function Execute-SQL
 
 
 
-'scriptblocks and cmdlet loaded. V1.2.92'
+'scriptblocks and cmdlet loaded. V1.2.100'
