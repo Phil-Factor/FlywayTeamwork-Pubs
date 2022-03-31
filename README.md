@@ -1,7 +1,9 @@
 # FlywayTeamwork
-###  Database Development with Branches Using Git and Flyway Teams together 
+###  Powershell-based Database Development with Branches using Flyway
 
-This is a sample  Flyway database project. If you clone it, you will have a playground for trying Flyway out. This is a revision of another more general project that uses the old Pubs database to demonstrate and explore the features of Flyway. In this version, we’ve rearranged the directory structure to a hierarchical one to accommodate the practice of branching.
+This is a sample  Flyway framework for supporting  database development with Flyway. It currently supports  PostgreSQL, SQL Server, MySQL, MariaDB and SQLite. If you clone it, you will have a playground for trying Flyway out. 
+
+This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses the old Pubs database, originally a demo database from Sybase. The whole purpose is  to demonstrate and explore the features of Flyway. However, it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get started. In this version called FlywayTeamwork, we’ve expanded the system to make it suitable for enterprise-scale developments,  diversified its support for a range of relational databases and rearranged the directory structure to a hierarchical one to accommodate the practice of branching. Although designed with GIT in mind, and currently used with GIT, it is designed to be able to work with any reasonable source control system. It does not rely on the source control system to accomodate branching- it can do it intrinsically. 
 
 We’re using the following model of branching. 
 
@@ -17,5 +19,5 @@ All this requires that every PowerShell script that does a flyway action has to 
 
 All the examples of scripts, migration scripts (used in the course of a migration), and callback scripts have been altered accordingly. By using an initialisation, it has been possible to standardise these. 
 
-
+The current catalog of supported tasks is here in [The Flyway Teamworks Scriptblocks.](https://github.com/Phil-Factor/FlywayTeamwork-Pubs/blob/main/ScriptBlocks.md)
 
