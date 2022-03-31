@@ -94,13 +94,10 @@ Tasks can be executed one at a time or stacked up and executed one after another
 Here are several being done together 
 
 `$PostMigrationTasks = @(`
-
 	`$GetCurrentVersion, #checks the database and gets the current version number`
-	
 	`#it does this by reading the Flyway schema history table.` 
-	
     `$GetCurrentServerVersion, #get the current version of the database server`
-    
+ 
 	`$CreateBuildScriptIfNecessary, #Create a build script for the database in a` 
 	
 	`#subdirectory for this version.`
@@ -113,7 +110,7 @@ Here are several being done together
 	
     `#save the information from the history table about when all the changes were made and by whom
     `$SaveFlywaySchemaHistoryIfNecessary`
-    
+  
 `)`
 
 `Process-FlywayTasks $DBDetails $PostMigrationTasks`
