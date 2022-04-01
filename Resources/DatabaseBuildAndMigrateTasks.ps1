@@ -19,11 +19,11 @@ As well as being run in a series, they can be used individually. If one of them 
 The reason for using this design was to make it easy to choose what gets run and in what order. 
 
 **$CheckCodeInDatabase** *(SQL Server only)*
-This scriptblock checks the code in the database for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard  and saves the report in a subdirectory the version directory of your project artefacts. It also reports back in the **$DBDetails** Hashtable. It checks the current database, not the scripts
+This scriptblock checks the code in the database for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard  and saves the report in a subdirectory the version directory of your project artefacts. It also reports back in the **$param1** Hashtable. It checks the current database, not the scripts
 
 **$CheckCodeInMigrationFiles** *(SQL Server only)*
 This scriptblock checks the code in the migration files for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard and saves the report in a subdirectory the version directory of your 
-project artefacts. It also reports back in the **$DBDetails** Hashtable. It checks the scripts not the current database.
+project artefacts. It also reports back in the **$param1** Hashtable. It checks the scripts not the current database.
 
 **$CreateScriptFoldersIfNecessary**: *(SQL Server only)*
 this task checks to see if a Source folder already exists for this version of the database and, if not, it will create one and fill it with subdirectories for each type of object. A tables folder will, for example, have a file for every table each containing a build script to create that object. When this exists, it allows SQL Compare
@@ -103,13 +103,13 @@ Here are several being done together
     `#save the information from the history table about when all the changes were made and by whom
 ​    `$SaveFlywaySchemaHistoryIfNecessary`
 `)`
-`Process-FlywayTasks $DBDetails $PostMigrationTasks`
+`Process-FlywayTasks $param1 $PostMigrationTasks`
 ​	`}`
 `}`
 
 here is one scriptblock being done
 
-`Process-FlywayTasks $DBDetails $GetCurrentServerVersion`
+`Process-FlywayTasks $param1 $GetCurrentServerVersion`
 
 #>
 
@@ -922,7 +922,7 @@ $GetCurrentServerVersion = {
 	switch -Regex ($param1.RDBMS)
 	{
 		'sqlserver'   {
-			$Version = Execute-SQL $dbdetails @'
+			$Version = Execute-SQL $param1 @'
 SELECT 'SQL20'+ CASE Left(Cast(ServerProperty ('productversion') AS VARCHAR(80)), 
 				CharIndex ('.', Cast(ServerProperty ('productversion') AS VARCHAR(80))))
 		 WHEN '8.'  THEN '00'
@@ -943,7 +943,7 @@ FOR JSON PATH
 		'postgresql'
 		{
 			# Do it the PostgreSQL way
-			$Version = Execute-SQL $dbdetails @'
+			$Version = Execute-SQL $param1 @'
 SELECT json_agg(e) FROM (SELECT Version() as "DatabaseVersion")e;
 '@ | Convertfrom-json
 			$Param1.ServerVersion = $Version.DatabaseVersion
@@ -951,7 +951,7 @@ SELECT json_agg(e) FROM (SELECT Version() as "DatabaseVersion")e;
 		'sqlite'
 		{
 			## OK, lets do it the SQLite way.
-			$Version = Execute-SQL $dbdetails @'
+			$Version = Execute-SQL $param1 @'
 select sqlite_version() as version;
 '@ | Convertfrom-json
 			$Param1.ServerVersion = $Version.version
@@ -959,7 +959,7 @@ select sqlite_version() as version;
 		'mysql|mariadb'
 		{
 			#get MariaDB version
-			$Version = Execute-SQL $dbdetails @'
+			$Version = Execute-SQL $param1 @'
 SHOW VARIABLES LIKE "version"; ;
 '@ | Convertfrom-json
 			$Param1.ServerVersion = $Version.value
@@ -1003,11 +1003,12 @@ $IsDatabaseIdenticalToSource = {
 	if (-not ($goodVersion))
 	{ $problems += "Bad version number '$($param1.Version)'" }
 	#the alias must be set to the path of your installed version of SQL Compare
-    if ($SQLCompareAlias-ne $null)
-        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
-    else
-        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
-    $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
+    $command = Try { get-command SQLCompare} Catch {
+    	if ($SQLCompareAlias-ne $null)
+            {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+        else
+            {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
+    }    $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	if ($problems.Count -eq 0)
 	{
 		
@@ -1089,90 +1090,124 @@ of the database and, if not, it will create one and fill it with subdirectories
 for each type of object. A tables folder will, for example, have a file for every table
 each containing a  build script to create that object.
 When this exists, it allows SQL Compare to do comparisons and check that a version has not
-drifted.#>
-
+drifted.
+$param1=$dbdetails  #>
 $CreateScriptFoldersIfNecessary = {
 	Param ($param1) # $CreateScriptFoldersIfNecessary 
-	$Problem = @(); #We check that it contains the keys for the values that we need 
-	@('version', 'server', 'database', 'project') |
+	$Problems = @(); #We check that it contains the keys for the values that we need 
+	$freedback = @();
+	@('version', 'server', 'rdbms', 'database', 'project') |
 	foreach{ if ($param1.$_ -eq $null) { $problems += "no key for the '$($_)'" } }
-	<#if ($param1.Escapedserver -eq $null) #check that escapedValues are in place
-	{
-		$EscapedValues = $param1.GetEnumerator() |
-		where { $_.Name -in ('server', 'Database', 'Project') } | foreach{
-			@{ "Escaped$($_.Name)" = ($_.Value.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') }
-		}
-		$EscapedValues | foreach{ $param1 += $_ }
-	}#>
-	#the alias must be set to the path of your installed version of SQL Compare
-	if ($SQLCompareAlias-ne $null)
-        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
-    else
-        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
-	#the database scripts path would be up to you to define, of course
-    $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$SourcePath= if ([string]::IsNullOrEmpty($param1.SourcePath)) {'Source'} else {"$($param1.SourcePath)"}
-    $MyDatabasePath = 
-        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
-        else {"$($param1.reportLocation)\$($param1.Version)\$sourcePath"} #else the simple version
-    $MyCurrentPath = 
-        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$sourcePath"} 
-        else {"$($param1.reportLocation)\current\$sourcePath"} #else the simple version
-	$CLIArgs = @(
-		"/server1:$($param1.server)",
-		"/database1:$($param1.database)",
-		"/Makescripts:$($MyDatabasePath)", #special command to make a scripts directory
-		"/force",
-		"/LogLevel:Warning"
-	)
 	
-	if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
+	#the database scripts path would be up to you to define, of course
+	$EscapedProject = ($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	$SourcePath = if ([string]::IsNullOrEmpty($param1.SourcePath)) { 'Source' }
+	else { "$($param1.SourcePath)" }
+	$MyDatabasePath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath" }
+	else { "$($param1.reportLocation)\$($param1.Version)\$sourcePath" } #else the simple version
+	$MyCurrentPath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$sourcePath" }
+	else { "$($param1.reportLocation)\current\$sourcePath" } #else the simple version
+	if (!(Test-Path -PathType Container $MyDatabasePath))
 	{
-		$CLIArgs += @(
-			"/username1:$($param1.uid)",
-			"/Password1:$($param1.pwd)"
-		)
-	}    
-        if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		if ($param1.rdbms -eq 'sqlserver')
 		{
-			$CLIArgs += @(
-				"/filter:$($param1.filterpath)"
+			$command = Try { get-command SQLCompare }
+			Catch
+			{
+				if ($SQLCompareAlias -ne $null)
+				{ Set-Alias SQLCompare $SQLCompareAlias -Scope Script }
+				else
+				{ $problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder' }
+			}
+			$CLIArgs = @(
+				"/server1:$($param1.server)",
+				"/database1:$($param1.database)",
+				"/Makescripts:$($MyDatabasePath)", #special command to make a scripts directory
+				"/force",
+				"/LogLevel:Warning"
 			)
-         }
-        else
-            {
-            $CLIArgs += @(
-              "/exclude:table:$($param1.flywayTable)",
-			   '/exclude:ExtendedProperty') #trivial}
-		} 
-
-	if ($problems.Count -eq 0 -and (!(Test-Path -PathType Container $MyDatabasePath))) #if it doesn't already erxist
-	{
-		Sqlcompare @CLIArgs #write an object-level  script folder that represents the vesion of the database
-		if ($?) { "Written script folder for $($param1.Project) $($param1.Version) to $MyDatabasePath" }
+			
+			if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
+			{
+				$CLIArgs += @(
+					"/username1:$($param1.uid)",
+					"/Password1:$($param1.pwd)"
+				)
+			}
+			if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+			{
+				$CLIArgs += @(
+					"/filter:$($param1.filterpath)"
+				)
+			}
+			else
+			{
+				$CLIArgs += @(
+					"/exclude:table:$($param1.flywayTable)",
+					'/exclude:ExtendedProperty') #trivial}
+			}
+			
+			if ($problems.Count -eq 0) #if it doesn't already erxist
+			{
+				Sqlcompare @CLIArgs #write an object-level  script folder that represents the vesion of the database
+				if (!($?))
+				{
+					#report a problem and send back the args for diagnosis (hint, only for script development)
+					$problems += "SQL Compare responded with error code $LASTEXITCODE "
+				}
+			}
+		}
+		elseif ($param1.RDBMS -in @('mariadb', 'mysql'))
+		{
+			$ObjectList = Execute-SQL $param1 @'
+        SELECT t.Table_Schema AS "Schema", t.TABLE_NAME AS "Name", 
+          case when r.Routine_NAME IS NOT NULL 
+            then LOWER(r.routine_type) 
+            ELSE lower(replace(t.Table_type,'BASE','')) END AS "Type" 
+        FROM information_schema.tables t
+        LEFT OUTER JOIN information_schema.routines r
+        oN r.routine_Schema=t.table_schema
+        AND r.routine_Name=t.table_Name
+        WHERE table_schema='dbo' AND TABLE_NAME <>'flyway_schema_history'
+'@
+			$object = $ObjectList | Convertfrom-json
+			$object | foreach{
+				$WhereToStoreIt = "$MyDatabasePath\$($_.Schema)\$($_.Type)"
+				if ($problems.Count -eq 0)
+				{
+					if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
+					{ $Null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
+					mysqldump "--host=$($param1.server)" "--password=$($param1.pwd)" "--user=$($param1.uid)" --triggers --skip-set-charset --skip-add-drop-table --skip-set-charset --compact --no-data  "$($_.Schema)" "$($_.Name)" > "$WhereToStoreIt\$($_.Name).sql"
+					if (!($?))
+					{
+						#report a problem and send back the args for diagnosis (hint, only for script development)
+						$problems += "mysqldump responded with error code $LASTEXITCODE "
+					}
+				}
+			}
+		}
+		else
+		{ $problems += "Sorry but a script folder isn''t supported from your RDBMS $($param1.RDBMS)" }
+		if ($feedback.count -gt 0)
+		{ $Param1.feedback.'CreateScriptFoldersIfNecessary' = $feedback }
+		if ($problems.count -gt 0)
+		{ $Param1.problems.'CreateScriptFoldersIfNecessary' = $problems }
 		else
 		{
-			#report a problem and send back the args for diagnosis (hint, only for script development)
-			$Arguments = '';
-			$Arguments += $CLIArgs | foreach{ $_ }
-			$problems += "SQL Compare responded with error code $LASTEXITCODE when used with paramaters $Arguments."
+			$Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
+			copy-item -path "$MyDatabasePath\*" -recurse -destination $MyCurrentPath # copy over the current model
+			@{ 'version' = $Param1.version; 'Author' = $Param1.InstalledBy; 'Branch' = $param1.branch } |
+			convertTo-json >"$(split-path -path $MyCurrentPath -parent)\Version.json"
 		}
-		if ($problems.count -gt 0)
-		{ $param1.Problems += @{ 'Name' = 'CreateScriptFoldersIfNecessary'; Issues = $problems } }
-    	else
-	    {
-	    $Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
-        copy-item -path "$MyDatabasePath\*"  -recurse -destination $MyCurrentPath # copy over the current model
-        @{'version'=$Param1.version;'Author'=$Param1.InstalledBy;'Branch'=$param1.branch}|
-            convertTo-json >"$(split-path -path $MyCurrentPath -parent)\Version.json"
-	    }
 	}
-	else { "This version is already scripted in $MyDatabasePath " }
+	else { $Param1.feedback.'CreateScriptFoldersIfNecessary'="This version ($($param1.Version)) is already scripted in $MyDatabasePath " }
 }
 
-<# $param1=$dbDetails
+<# 
 a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever. #>
 
 $CreateBuildScriptIfNecessary = {
@@ -1210,10 +1245,12 @@ $CreateBuildScriptIfNecessary = {
 			'sqlserver' #using SQL Server
 			{
             	#the alias must be set to the path of your installed version of SQL Compare
-			    if ($SQLCompareAlias-ne $null)
-                    {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
-                else
-                    {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
+			    $command = Try { get-command SQLCompare} Catch {
+    	            if ($SQLCompareAlias-ne $null)
+                        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+                    else
+                        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
+                }
 				$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 					# can use a hash-table 
 					"/server1:$($param1.server)",
@@ -1720,7 +1757,7 @@ EXECUTE sp_EXECUTESQL @TheSQExpression,N'@TheJSON nvarchar(max) output',@TheJSON
 SELECT @JSON
 
 '@
-$GetdataFromSQLCMD.Invoke($dbDetails,$query,$null,$true)
+$GetdataFromSQLCMD.Invoke($param1,$query,$null,$true)
     
 	if ($problems.Count -gt 0)
 	{
@@ -1737,10 +1774,11 @@ $GetdataFromSQLCMD.Invoke($dbDetails,$query,$null,$true)
 <#This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
 flyway project between versions. 
-$param1=$dbDetails*/#>
+$param1=$param1*/#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
 	$problems = @() #none yet!
+    $feedback = @();
 	#check that you have the  entries that we need in the parameter table.
 	@('server', 'database', 'version', 'project', 'ProjectFolder') | foreach{
 		if ([string]::IsNullOrEmpty($param1.$_))
@@ -1751,13 +1789,13 @@ $SaveDatabaseModelIfNecessary = {
 	{
 		$MyDatabasePath ="$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
 		$MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current";
-        $MySourcePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$($param1.sourcePath)";
+        $MyModelPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\model";
 	}
 	else
 	{
 		$MyDatabasePath ="$($param1.reportLocation)\$($param1.Version)\Reports";
 		$MyCurrentPath = "$($param1.reportLocation)\current";
-        $MySourcePath = "$($param1.reportLocation)\$($param1.Version)\$($param1.sourcePath)";
+        $MyModelPath = "$($param1.reportLocation)\$($param1.Version)\model";
 	} #else the simple version
 	$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
 	$MyCurrentReport = "$MyCurrentPath\Reports\DatabaseModel.JSON"
@@ -2399,7 +2437,7 @@ FOR JSON auto
             $Param1.Problems.'SavedDatabaseModelIfNecessary'+="The $_ database isn't supported yet. Sorry about that."
             }
         }
-		#Final things to do 
+		#Final things to do: Break up the model into individual objects, in different folders depending on type
         if (Test-Path "$MyOutputReport" -PathType leaf)
             {
             $Model = [IO.File]::ReadAllText("$MyOutputReport")|ConvertFrom-JSON
@@ -2408,15 +2446,16 @@ FOR JSON auto
               Foreach{$Type=$_.Name;$_.Value.psobject.Properties} |
                 foreach{
                   $objectName=$_.Name;
-                  $WhereToStoreIt="$MySourcePath\$type"
+                  $WhereToStoreIt="$MyModelPath\$type"
                   if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
                     {$null=New-Item -ItemType directory -Path "$WhereToStoreIt" -Force}
                 $_.Value |convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
-             Copy-Item -Path "$MySourcePath" -Destination "$MyCurrentPath" -Recurse -Force
-             }
+             Copy-Item -Path "$MyModelPath" -Destination "$MyCurrentPath" -Recurse -Force
+            }
+        $feedback+="written object-level model to $MyModelPath"
         }
 	}
-	catch { $Param1.Problems.'SavedDatabaseModelIfNecessary' += "$($PSItem.Exception.Message)"}
+	catch { $problems += "$($PSItem.Exception.Message)"}
 }
 else
 {
@@ -2434,6 +2473,8 @@ if ($problems.Count -gt 0)
 		}
 		else
 		{
+			if ($feedback.count -gt 0)
+                {$Param1.Feedback.'SaveDatabaseModelIfNecessary' = "$MyOutputReport already exists"}
 			$Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport;
 		}
 	}
@@ -2453,12 +2494,12 @@ $CreateUndoScriptIfNecessary = {
     #check that we have values for the necessary details
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
-	# the alias must be set to the path of your installed version of SQL Compare
-	if ($SQLCompareAlias-ne $null)
-        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
-    else
-        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
-	#the database scripts path would be up to you to define, of course
+    $command = Try { get-command SQLCompare} Catch {
+    	if ($SQLCompareAlias-ne $null)
+            {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+        else
+            {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
+    }	#the database scripts path would be up to you to define, of course
     $scriptsPath= if ([string]::IsNullOrEmpty($param1.scriptsPath)) {'scripts'} else {"$($param1.scriptsPath)"}
     $sourcePath= if ([string]::IsNullOrEmpty($param1.sourcePath)) {'Source'} else {"$($param1.SourcePath)"}
     $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
@@ -2561,11 +2602,12 @@ $CreatePossibleMigrationScript = {
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
 	# the alias must be set to the path of your installed version of SQL Compare
-	if ($SQLCompareAlias-ne $null)
-        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
-    else
-        {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
-	#the database scripts path would be up to you to define, of course
+    $command = Try { get-command SQLCompare} Catch {
+    	if ($SQLCompareAlias-ne $null)
+            {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+        else
+            {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
+    }	#the database scripts path would be up to you to define, of course
     $scriptsPath= if ([string]::IsNullOrEmpty($param1.scriptsPath)) {'scripts'} else {"$($param1.scriptsPath)"}
     $sourcePath= if ([string]::IsNullOrEmpty($param1.sourcePath)) {'Source'} else {"$($param1.SourcePath)"}
     $EscapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
@@ -2913,7 +2955,7 @@ if ($problems.count -gt 0)
 
 }
 <# create a markdown report of what happened in the last migration  
-$param1=$dbDetails
+$param1=$param1
 #>
 
 $CreateVersionNarrativeIfNecessary = {
@@ -3087,8 +3129,8 @@ $SaveFlywaySchemaHistoryIfNecessary = {
 	else
 	{
 		$InfoObject = $info | convertFrom-json #convert it to something Powershell can read
-		$SaveAsFile = "$($dbDetails.Reportlocation)\current\Migrationinfo.json"
-		#where we store the reports. We get this from the framework from dbDetails
+		$SaveAsFile = "$($param1.Reportlocation)\current\Migrationinfo.json"
+		#where we store the reports. We get this from the framework from $param1
 		$Report = $InfoObject.psobject.Properties | where { $_.name -ne 'migrations' } |
 		foreach{ @{ $_.name = $_.value } } #Get all the base info 
 		#add to this, the extra info that we collect from the framework
@@ -3102,7 +3144,7 @@ $SaveFlywaySchemaHistoryIfNecessary = {
 			if ($_.version -eq '') # it is the initial state before a migration is applied
 			{
 				# Write this to the base of the report location just once
-				$SaveAsFile = "$($dbDetails.Reportlocation)\Creationinfo.json"
+				$SaveAsFile = "$($param1.Reportlocation)\Creationinfo.json"
 				if (!(Test-Path $SaveAsFile -PathType leaf))
 				{
 					convertTo-json $_ > $SaveAsFile;
@@ -3114,11 +3156,11 @@ $SaveFlywaySchemaHistoryIfNecessary = {
 			else #it must be a valid migration version
 			{
 				#write it to the current version report folder just once
-                if (!(Test-Path "$($dbDetails.Reportlocation)\$($_.Version)" -PathType Container))
-                    {New-Item -ItemType directory -Path "$($dbDetails.Reportlocation)\$($_.Version)"}
-                if (!(Test-Path "$($dbDetails.Reportlocation)\$($_.Version)\reports" -PathType Container))
-                    {New-Item -ItemType directory -Path "$($dbDetails.Reportlocation)\$($_.Version)\reports"}
-				$SaveAsFile = "$($dbDetails.Reportlocation)\$($_.Version)\reports\ApplyInfo.json"
+                if (!(Test-Path "$($param1.Reportlocation)\$($_.Version)" -PathType Container))
+                    {New-Item -ItemType directory -Path "$($param1.Reportlocation)\$($_.Version)"}
+                if (!(Test-Path "$($param1.Reportlocation)\$($_.Version)\reports" -PathType Container))
+                    {New-Item -ItemType directory -Path "$($param1.Reportlocation)\$($_.Version)\reports"}
+				$SaveAsFile = "$($param1.Reportlocation)\$($_.Version)\reports\ApplyInfo.json"
 				if (!(Test-Path $SaveAsFile -PathType leaf))
 				{
 					convertTo-json $_ > $SaveAsFile;
