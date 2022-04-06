@@ -11,9 +11,10 @@
 		The name of the file that you want synchronized across the location
 	
 	.EXAMPLE
-		Distribute-LatestVersionOfFile '<pathTo>\github' 'DatabaseBuildAndMigrateTasks.ps1'
-		Distribute-LatestVersionOfFile 'S:\work\Github\PubsAndFlyway' 'preliminary.ps1'
-	
+		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'DatabaseBuildAndMigrateTasks.ps1'
+		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'preliminary.ps1'
+	    Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1'
+	    Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
 	.NOTES
 		Additional information about the function.
 #>
@@ -23,18 +24,21 @@ function Distribute-LatestVersionOfFile
 	param
 	(
 		[Parameter(Mandatory = $true)]
-		$BaseDirectory,
+		$BaseDirectories,
 		[Parameter(Mandatory = $true)]
 		$Filename
 	)
-	
-
-	$canonicalVersion = dir "$BaseDirectory\$Filename" -recurse |
-	Sort-Object -Property lastWriteTime -Descending |
-	select-object -first 1
-	$VersionDate = $canonicalVersion.LastWriteTime
-	dir "$BaseDirectory\$Filename" -Recurse |
+	$SortedList=@()# the complete list of the locations of the file specified
+    $TheListOfDirectories=$BaseDirectories|foreach{"$($_)\$Filename"}
+    #add the filename to each of the directories you specify
+	$canonicalVersion = dir $TheListOfDirectories -recurse -OutVariable +SortedList |
+	Sort-Object -Property lastWriteTime -Descending  |
+	select-object -first 1 #we get one of the collection with the latest date
+	$VersionDate = $canonicalVersion.LastWriteTime #get the date of the file
+	#now update every file of the same name with an earlier date
+    $SortedList |
 	where { $_.LastWriteTime -lt $VersionDate } |
-	foreach{ Copy-Item -path $canonicalVersion -destination $_ -force }
+	   foreach{
+        Write-Verbose "Updating $($_.FullName) to the version in $($canonicalVersion.FullName)"; 
+        Copy-Item -path $canonicalVersion -destination $_ -force  }
 }
-
