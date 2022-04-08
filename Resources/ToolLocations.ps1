@@ -11,3 +11,7 @@
     $psqlAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\psql.exe"
     #we always use sqlite.exe to access SQLite and get build scripts from it
     $sqliteAlias='C:\ProgramData\chocolatey\lib\SQLite\tools\sqlite-tools-win32-x86-3360000\sqlite3.exe'
+    #we use MySQLDump for doing MySQL and MariaDB build scripts
+    $MySQLDumpAlias=$null;
+    #we use MySQL.exe for doing queries to MySQL databases.
+    $MySQLAlias=$null;

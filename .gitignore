@@ -1,8 +1,15 @@
 # Ignore reports
 reports/
+# Ignore plastic
+plastic/
 # Ignore copies/
 copies/
-# Ignore versions/
+# Ignore versions/  but not versions current
 Versions/
-# Ignore 
+ !Versions/Current 
+# Ignore working files
 working*.*
+ # Ignore flyway.conf
+flyway.conf
+directorynames.json
+	
