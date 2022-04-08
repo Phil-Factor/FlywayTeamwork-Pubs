@@ -280,7 +280,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		if ($MySQLAlias -ne $null)
 		{ Set-Alias MySQL $MySQLAlias -Scope local }
 		else
-		{ $problems += 'You must have provided a path to MySQL in the ToolLocations.ps1 file in the resources folder' }
+		{ $problems += 'You must have provided a path to MySQL for $MySQLAlias in the ToolLocations.ps1 file in the resources folder' }
 	}
 	@('server', 'database', 'port', 'user', 'pwd') |
 	foreach{ if ($TheArgs.$_ -in @($null, '')) { $problems += "Can't do this: no value for '$($_)'" } }
@@ -1452,12 +1452,13 @@ $CreateBuildScriptIfNecessary = {
 			}
             'mysql|mariadb'
             {
-            $command = Try { get-command mysqldump} Catch { $null };
-	        if ($command -eq $null)
-	        {
-		        $problems += 'You must have installed mysqldump to run on your computer' 
-	        }
-            else
+            $command = Try { get-command mysqldump } Catch { $null };
+	            if ($command -eq $null)
+	                {if ($MySQLDumpAlias -ne $null)
+                        {Set-Alias sqlite $MySQLDumpAlias -Scope local}
+                    else
+                        {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
+                    }            else
                 {
                 cmd /c "mysqldump --host=$($param1.server) --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ') > $MyDatabasePath\V$($param1.Version)__Build.sql"
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
@@ -3470,4 +3471,4 @@ function Execute-SQL
 
 
 
-'scriptblocks and cmdlet loaded. V1.2.100'
+'scriptblocks and cmdlet loaded. V1.2.105'
