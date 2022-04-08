@@ -129,7 +129,7 @@ without having to explicitly open a connection. it will take either SQL files or
 	if ($command -eq $null)
 	  {  
          if ($sqliteAlias -ne $null)
-        {Set-Alias sqlite $sqliteAlias -Scope local}
+        {Set-Alias sqlite $sqliteAlias}
     else
         {$problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder'}
     }
@@ -189,7 +189,7 @@ set 'simpleText' to true #>
 		if ($command -eq $null)
 		{
 			if ($SQLCmdAlias -ne $null)
-			{ Set-Alias SQLCmd   $SQLCmdAlias -Scope local }
+			{ Set-Alias SQLCmd   $SQLCmdAlias }
 			else
 			{ $problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder' }
 		}
@@ -260,7 +260,7 @@ set 'simpleText' to true #>
 	}
 }
 
-$GetdataFromMySQL = {<# a Scriptblock way of accessing PosgreSQL via a CLI to get JSON-based  results without having to 
+$GetdataFromMySQL = {<# a Scriptblock way of accessing MySQL via a CLI to get JSON-based  results without having to 
 explicitly open a connection. it will take either SQL files or queries.  #>
 	Param (
 		$Theargs,
@@ -278,7 +278,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 	if ($command -eq $null)
 	{
 		if ($MySQLAlias -ne $null)
-		{ Set-Alias MySQL $MySQLAlias -Scope local }
+		{ Set-Alias MySQL $MySQLAlias }
 		else
 		{ $problems += 'You must have provided a path to MySQL for $MySQLAlias in the ToolLocations.ps1 file in the resources folder' }
 	}
@@ -348,7 +348,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 	Catch { $null }
 	if ($command -eq $null)
         {    if ($psqlAlias -ne $null)
-        {Set-Alias psql $psqlAlias -Scope local}
+        {Set-Alias psql $psqlAlias}
     else
         {$problems += 'You must have provided a path to psql in the ToolLocations.ps1 file in the resources folder'}
         }
@@ -589,7 +589,7 @@ $CheckCodeInDatabase = {
 	Catch { $null }
 	if ($command -eq $null)
 	{    if ($CodeGuardAlias -ne $null)
-        {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
+        {Set-Alias CodeGuard   $CodeGuardAlias }
     else
         {$problems += 'You must have provided a path to CodeGuard.exe in the ToolLocations.ps1 file in the resources folder'}
         }
@@ -693,7 +693,7 @@ $CheckCodeInMigrationFiles = {
 	Catch { $null }
 	if ($command -eq $null)
 	{    if ($CodeGuardAlias -ne $null)
-        {Set-Alias CodeGuard   $CodeGuardAlias  -Scope local}
+        {Set-Alias CodeGuard   $CodeGuardAlias }
     else
         {$problems += 'You must have provided a path to CodeGuard.exe in the ToolLocations.ps1 file in the resources folder'}
         }
@@ -1007,7 +1007,7 @@ $IsDatabaseIdenticalToSource = {
 	#the alias must be set to the path of your installed version of SQL Compare
     $command = Try { get-command SQLCompare} Catch {
     	if ($SQLCompareAlias-ne $null)
-            {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+            {Set-Alias SQLCompare $SQLCompareAlias;}
         else
             {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
     }    $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
@@ -1124,7 +1124,7 @@ $CreateScriptFoldersIfNecessary = {
 				Catch
 				{
 					if ($SQLCompareAlias -ne $null)
-					{ Set-Alias SQLCompare $SQLCompareAlias -Scope Script }
+					{ Set-Alias SQLCompare $SQLCompareAlias }
 					else
 					{ $problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder' }
 				}
@@ -1168,6 +1168,15 @@ $CreateScriptFoldersIfNecessary = {
 			}
 			'mariadb|mysql' #--do it with MySQL or MariaDB
 			{
+				$command = Try { get-command mysqldump }
+				Catch
+				{
+					if ($SQLCompareAlias -ne $null)
+					{ Set-Alias mysqldump $mysqldumpAlias  }
+					else
+					{ $problems += 'You must have provided a path to mysqldump in the $mysqldumpAlias ToolLocations.ps1 file in the resources folder' }
+				}
+
 				$ObjectList = Execute-SQL $param1 @'
         SELECT t.Table_Schema AS "Schema", t.TABLE_NAME AS "Name", 
           case when r.Routine_NAME IS NOT NULL 
@@ -1202,7 +1211,7 @@ $CreateScriptFoldersIfNecessary = {
 				if ($command -eq $null)
 				{
 					if ($PGDumpAlias -ne $null)
-					{ Set-Alias pg_dump   $PGDumpAlias -Scope Script; }
+					{ Set-Alias pg_dump   $PGDumpAlias; }
 					else
 					{
 						$problems += 'You must have provided a path to pg_dump.exe in the ToolLocations.ps1 file in the resources folder'
@@ -1277,7 +1286,7 @@ $CreateScriptFoldersIfNecessary = {
 				if ($command -eq $null)
 				{
 					if ($sqliteAlias -ne $null)
-					{ Set-Alias sqlite $sqliteAlias -Scope local }
+					{ Set-Alias sqlite $sqliteAlias  }
 					else
 					{ $problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder' }
 				}
@@ -1371,7 +1380,7 @@ $CreateBuildScriptIfNecessary = {
             	#the alias must be set to the path of your installed version of SQL Compare
 			    $command = Try { get-command SQLCompare} Catch {
     	            if ($SQLCompareAlias-ne $null)
-                        {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+                        {Set-Alias SQLCompare $SQLCompareAlias}
                     else
                         {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
                 }
@@ -1425,7 +1434,7 @@ $CreateBuildScriptIfNecessary = {
              $command = Try { get-command pg_dump} Catch { $null };
 	         if ($command -eq $null)               
                 {if ($PGDumpAlias -ne $null)
-                    {Set-Alias pg_dump   $PGDumpAlias -Scope Script;}
+                    {Set-Alias pg_dump   $PGDumpAlias;}
                 else
                     {$problems += 'You must have provided a path to pg_dump.exe in the ToolLocations.ps1 file in the resources folder'
                     }
@@ -1455,7 +1464,7 @@ $CreateBuildScriptIfNecessary = {
             $command = Try { get-command mysqldump } Catch { $null };
 	            if ($command -eq $null)
 	                {if ($MySQLDumpAlias -ne $null)
-                        {Set-Alias sqlite $MySQLDumpAlias -Scope local}
+                        {Set-Alias sqlite $MySQLDumpAlias }
                     else
                         {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
                     }            else
@@ -1469,7 +1478,7 @@ $CreateBuildScriptIfNecessary = {
                 $command = Try { get-command sqlite } Catch { $null };
 	            if ($command -eq $null)
 	                {if ($sqliteAlias -ne $null)
-                        {Set-Alias sqlite $sqliteAlias -Scope local}
+                        {Set-Alias sqlite $sqliteAlias }
                     else
                         {$problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder'}
                     }
@@ -1544,7 +1553,7 @@ $ExecuteTableSmellReport = {
 	Catch { $null }
 	if ($command -eq $null)
 	{  if ($SQLCmdAlias -ne $null)
-        {Set-Alias SQLCmd   $SQLCmdAlias  -Scope local}
+        {Set-Alias SQLCmd   $SQLCmdAlias  }
     else
         {$problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder'}
         }
@@ -2623,7 +2632,7 @@ $CreateUndoScriptIfNecessary = {
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
     $command = Try { get-command SQLCompare} Catch {
     	if ($SQLCompareAlias-ne $null)
-            {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
+            {Set-Alias SQLCompare $SQLCompareAlias}
         else
             {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
     }	#the database scripts path would be up to you to define, of course
@@ -3471,4 +3480,4 @@ function Execute-SQL
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.105'
+'FlywayTeamwork framework  loaded. V1.2.110'
