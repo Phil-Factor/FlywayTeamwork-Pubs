@@ -1171,7 +1171,7 @@ $CreateScriptFoldersIfNecessary = {
 				$command = Try { get-command mysqldump }
 				Catch
 				{
-					if ($SQLCompareAlias -ne $null)
+					if ($mysqldumpAlias -ne $null)
 					{ Set-Alias mysqldump $mysqldumpAlias  }
 					else
 					{ $problems += 'You must have provided a path to mysqldump in the $mysqldumpAlias ToolLocations.ps1 file in the resources folder' }
@@ -1464,7 +1464,7 @@ $CreateBuildScriptIfNecessary = {
             $command = Try { get-command mysqldump } Catch { $null };
 	            if ($command -eq $null)
 	                {if ($MySQLDumpAlias -ne $null)
-                        {Set-Alias sqlite $MySQLDumpAlias }
+                        {Set-Alias mysqldump $MySQLDumpAlias }
                     else
                         {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
                     }            else
@@ -3480,4 +3480,4 @@ function Execute-SQL
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.110'
+'FlywayTeamwork framework  loaded. V1.2.112'
