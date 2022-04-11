@@ -1198,7 +1198,7 @@ $CreateScriptFoldersIfNecessary = {
 						mysqldump "--host=$($param1.server)" "--password=$($param1.pwd)" "--user=$($param1.uid)" --triggers --skip-set-charset --skip-add-drop-table --skip-set-charset --compact --no-data  "$($_.Schema)" "$($_.Name)" > "$WhereToStoreIt\$($_.Schema).$($_.Name).sql"
 						if (!($?))
 						{
-							#report a problem and send back the args for diagnosis (hint, only for script development)
+							#report a problem and send back the args for diagnosis
 							$problems += "mysqldump responded with error code $LASTEXITCODE "
 						}
 					}
@@ -1331,7 +1331,10 @@ $CreateScriptFoldersIfNecessary = {
 		else
 		{
 			$Param1.WriteLocations.'CreateScriptFoldersIfNecessary' = "$MyDatabasePath";
-			copy-item -path "$MyDatabasePath\*" -recurse -destination $MyCurrentPath # copy over the current model
+            if (-not (Test-Path "$MyCurrentPath" -PathType Container))
+                { $null=New-Item -ItemType directory -Path "$MyCurrentPath" -Force}
+            Remove-Item "$MyCurrentPath\*" -Recurse 
+			copy-item -path  "$MyDatabasePath\*" -recurse -destination "$MyCurrentPath" -Container # copy over the current model
 			@{ 'version' = $Param1.version; 'Author' = $Param1.InstalledBy; 'Branch' = $param1.branch } |
 			convertTo-json >"$(split-path -path $MyCurrentPath -parent)\Version.json"
 		}
@@ -1340,7 +1343,8 @@ $CreateScriptFoldersIfNecessary = {
 }
 
 <# 
-a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever. #>
+a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever.
+$param1=$dbDetails #>
 
 $CreateBuildScriptIfNecessary = {
 	Param ($param1) # $CreateBuildScriptIfNecessary (Don't delete this) 
@@ -1354,10 +1358,10 @@ $CreateBuildScriptIfNecessary = {
 	$scriptsPath = if ([string]::IsNullOrEmpty($param1.scriptsPath)) { 'scripts' }
 	else { "$($param1.scriptsPath)" }
 	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
-	    {$MyDatabasePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Scripts";
-         $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\Scripts";}
-	else {$MyDatabasePath = "$($param1.reportLocation)\$($param1.Version)\Scripts";
-          $MyCurrentPath = "$($param1.reportLocation)\current\Script"; } #else the simple version
+	    {$MyDatabasePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath";
+         $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$scriptsPath";}
+	else {$MyDatabasePath = "$($param1.reportLocation)\$($param1.Version)\$scriptsPath";
+          $MyCurrentPath = "$($param1.reportLocation)\current\$scriptsPath"; } #else the simple version
 	
 	if (-not (Test-Path -PathType Leaf "$MyDatabasePath\V$($param1.Version)__Build.sql"))
 	{
@@ -1365,13 +1369,13 @@ $CreateBuildScriptIfNecessary = {
 		{
 			# is the path to the scripts directory
 			# not there, so we create the directory 
-			$null = New-Item -ItemType Directory -Force $MyDatabasePath;
+			$null = New-Item -ItemType Directory -pa $MyDatabasePath -Force;
 		}
 		if (-not (Test-Path -PathType Container $MyCurrentPath))
 		{
 			# is the path to the current directory
 			# not there, so we create the directory 
-			$null = New-Item -ItemType Directory -Force $MyCurrentPath;
+			$null = New-Item -Path $MyCurrentPath -ItemType "directory" -Force;
 		}
 		switch -Regex ($param1.RDBMS)
 		{
@@ -1469,7 +1473,7 @@ $CreateBuildScriptIfNecessary = {
                         {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
                     }            else
                 {
-                cmd /c "mysqldump --host=$($param1.server) --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ') > $MyDatabasePath\V$($param1.Version)__Build.sql"
+                powershell.exe "mysqldump --host=$($param1.server) --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ')" > "$MyDatabasePath\V$($param1.Version)__Build.sql"
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                } 
             }
@@ -3480,4 +3484,4 @@ function Execute-SQL
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.112'
+'FlywayTeamwork framework  loaded. V1.2.113'

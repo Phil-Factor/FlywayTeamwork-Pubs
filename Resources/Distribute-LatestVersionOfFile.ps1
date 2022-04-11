@@ -42,3 +42,4 @@ function Distribute-LatestVersionOfFile
         Write-Verbose "Updating $($_.FullName) to the version in $($canonicalVersion.FullName)"; 
         Copy-Item -path $canonicalVersion -destination $_ -force  }
 }
+
