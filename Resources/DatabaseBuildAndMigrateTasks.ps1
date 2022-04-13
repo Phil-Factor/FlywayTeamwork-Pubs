@@ -2201,8 +2201,8 @@ possible on information schema #>
 			' ',
 			Extra,
 			' ',
-			case COLUMN_KEY when 'PRI' then ' PRIMARY KEY' ELSE '' end,
-			case when column_comment <> '' then CONCAT('- ',column_comment) ELSE '' end
+			-- case COLUMN_KEY when 'PRI' then ' PRIMARY KEY' ELSE '' end,
+			case when column_comment <> '' then CONCAT('-- ',column_comment) ELSE '' end
 		 ) AS coltype  
         FROM information_schema.columns c 
         LEFT OUTER JOIN information_schema.views v 
