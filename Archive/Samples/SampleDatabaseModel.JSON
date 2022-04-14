@@ -1,0 +1,405 @@
+﻿{
+    "dbo":  {
+                "Table":  {
+                              "tagname":  {
+                                              "columns":  [
+                                                              "TagName_ID int(11) NOT NULL auto_increment ",
+                                                              "Tag varchar(80) NOT NULL  "
+                                                          ],
+                                              "primary key":  {
+                                                                  "PRIMARY":  "TagName_ID"
+                                                              },
+                                              "unique":  {
+                                                             "Tag":  "Tag"
+                                                         },
+                                              "index":  {
+                                                            "Tag":  {
+                                                                        "def":  "",
+                                                                        "Indexing":  "Tag"
+                                                                    }
+                                                        }
+                                          },
+                              "jobs":  {
+                                           "columns":  [
+                                                           "job_id smallint(6) NOT NULL auto_increment ",
+                                                           "job_desc varchar(50) NOT NULL DEFAULT (\u0027New Position - title not formalized yet\u0027)  ",
+                                                           "min_lvl smallint(6) NOT NULL  ",
+                                                           "max_lvl smallint(6) NOT NULL  "
+                                                       ],
+                                           "primary key":  {
+                                                               "PRIMARY":  "job_id"
+                                                           }
+                                       },
+                              "pub_info":  {
+                                               "columns":  [
+                                                               "pub_id char(8) NOT NULL  ",
+                                                               "logo longblob NULL DEFAULT (NULL)  ",
+                                                               "pr_info longtext NULL DEFAULT (NULL)  "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "fk_Pubinfo_publishers_pub_id":  {
+                                                                                                        "Cols":  "pub_id",
+                                                                                                        "Foreign Table":  "dbo.publishers",
+                                                                                                        "Referencing":  "pub_id"
+                                                                                                    }
+                                                               },
+                                               "primary key":  {
+                                                                   "PRIMARY":  "pub_id"
+                                                               }
+                                           },
+                              "publishers":  {
+                                                 "columns":  [
+                                                                 "pub_id char(8) NOT NULL  ",
+                                                                 "pub_name varchar(100) NOT NULL  ",
+                                                                 "city varchar(20) NULL DEFAULT (NULL)  ",
+                                                                 "state char(2) NULL DEFAULT (NULL)  ",
+                                                                 "country varchar(30) NULL DEFAULT (\u0027USA\u0027)  "
+                                                             ],
+                                                 "primary key":  {
+                                                                     "PRIMARY":  "pub_id"
+                                                                 }
+                                             },
+                              "employee":  {
+                                               "columns":  [
+                                                               "emp_id char(9) NOT NULL  ",
+                                                               "fname varchar(20) NOT NULL  ",
+                                                               "minit char(1) NULL DEFAULT (NULL)  ",
+                                                               "lname varchar(30) NOT NULL  ",
+                                                               "job_id smallint(6) NOT NULL DEFAULT (1)  ",
+                                                               "job_lvl smallint(6) NULL DEFAULT (10)  ",
+                                                               "pub_id char(8) NOT NULL  ",
+                                                               "hire_date datetime NOT NULL DEFAULT (curdate())  "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "fk_Employee_Pubs_JobID":  {
+                                                                                                  "Cols":  "job_id",
+                                                                                                  "Foreign Table":  "dbo.jobs",
+                                                                                                  "Referencing":  "job_id"
+                                                                                              },
+                                                                   "fk_Employee_JobID":  {
+                                                                                             "Cols":  "job_id",
+                                                                                             "Foreign Table":  "dbo.jobs",
+                                                                                             "Referencing":  "job_id"
+                                                                                         },
+                                                                   "fk_Employee_publishers_pub_id":  {
+                                                                                                         "Cols":  "pub_id",
+                                                                                                         "Foreign Table":  "dbo.publishers",
+                                                                                                         "Referencing":  "pub_id"
+                                                                                                     }
+                                                               },
+                                               "primary key":  {
+                                                                   "PRIMARY":  "emp_id"
+                                                               },
+                                               "index":  {
+                                                             "Jobid_index":  {
+                                                                                 "def":  "",
+                                                                                 "Indexing":  "job_id"
+                                                                             },
+                                                             "pub_id_index":  {
+                                                                                  "def":  "",
+                                                                                  "Indexing":  "pub_id"
+                                                                              }
+                                                         }
+                                           },
+                              "stores":  {
+                                             "columns":  [
+                                                             "stor_id char(4) NOT NULL  ",
+                                                             "stor_name varchar(40) NULL DEFAULT (NULL)  ",
+                                                             "stor_address varchar(40) NULL DEFAULT (NULL)  ",
+                                                             "city varchar(20) NULL DEFAULT (NULL)  ",
+                                                             "state char(2) NULL DEFAULT (NULL)  ",
+                                                             "zip char(5) NULL DEFAULT (NULL)  "
+                                                         ],
+                                             "primary key":  {
+                                                                 "PRIMARY":  "stor_id"
+                                                             }
+                                         },
+                              "publications":  {
+                                                   "columns":  [
+                                                                   "Publication_id varchar(6) NOT NULL  ",
+                                                                   "title varchar(255) NOT NULL  ",
+                                                                   "pub_id char(8) NULL DEFAULT (NULL)  ",
+                                                                   "notes varchar(4000) NULL DEFAULT (NULL)  ",
+                                                                   "pubdate datetime NOT NULL DEFAULT (curdate())  "
+                                                               ],
+                                                   "primary key":  {
+                                                                       "PRIMARY":  "Publication_id"
+                                                                   },
+                                                   "index":  {
+                                                                 "pubid_index":  {
+                                                                                     "def":  "",
+                                                                                     "Indexing":  "pub_id"
+                                                                                 }
+                                                             }
+                                               },
+                              "roysched":  {
+                                               "foreign key":  {
+                                                                   "roysched_ibfk_1":  {
+                                                                                           "Cols":  "title_id",
+                                                                                           "Foreign Table":  "dbo.publications",
+                                                                                           "Referencing":  "Publication_id"
+                                                                                       }
+                                                               },
+                                               "columns":  [
+                                                               "title_id varchar(6) NOT NULL  ",
+                                                               "lorange int(11) NULL DEFAULT (NULL)  ",
+                                                               "hirange int(11) NULL DEFAULT (NULL)  ",
+                                                               "royalty int(11) NULL DEFAULT (NULL)  "
+                                                           ],
+                                               "index":  {
+                                                             "title_id":  {
+                                                                              "def":  "",
+                                                                              "Indexing":  "title_id"
+                                                                          }
+                                                         }
+                                           },
+                              "discounts":  {
+                                                "columns":  [
+                                                                "discounttype varchar(40) NOT NULL  ",
+                                                                "stor_id char(4) NULL DEFAULT (NULL)  ",
+                                                                "lowqty smallint(6) NULL DEFAULT (NULL)  ",
+                                                                "highqty smallint(6) NULL DEFAULT (NULL)  ",
+                                                                "discount decimal(4,2) NOT NULL  ",
+                                                                "discount_id int(11) NOT NULL auto_increment "
+                                                            ],
+                                                "foreign key":  {
+                                                                    "fk_Discounts_Stores_Stor_id":  {
+                                                                                                        "Cols":  "stor_id",
+                                                                                                        "Foreign Table":  "dbo.stores",
+                                                                                                        "Referencing":  "stor_id"
+                                                                                                    }
+                                                                },
+                                                "primary key":  {
+                                                                    "PRIMARY":  "discount_id"
+                                                                },
+                                                "index":  {
+                                                              "Storid_index":  {
+                                                                                   "def":  "",
+                                                                                   "Indexing":  "stor_id"
+                                                                               }
+                                                          }
+                                            },
+                              "sales":  {
+                                            "columns":  [
+                                                            "stor_id char(4) NOT NULL  ",
+                                                            "ord_num varchar(20) NOT NULL  ",
+                                                            "ord_date varchar(50) NOT NULL  ",
+                                                            "qty int(11) NOT NULL  ",
+                                                            "payterms varchar(12) NOT NULL  ",
+                                                            "title_id varchar(6) NOT NULL  "
+                                                        ],
+                                            "foreign key":  {
+                                                                "sales_ibfk_2":  {
+                                                                                     "Cols":  "title_id",
+                                                                                     "Foreign Table":  "dbo.publications",
+                                                                                     "Referencing":  "Publication_id"
+                                                                                 },
+                                                                "sales_ibfk_1":  {
+                                                                                     "Cols":  "stor_id",
+                                                                                     "Foreign Table":  "dbo.stores",
+                                                                                     "Referencing":  "stor_id"
+                                                                                 }
+                                                            },
+                                            "primary key":  {
+                                                                "PRIMARY":  "ord_num"
+                                                            },
+                                            "index":  {
+                                                          "stor_id":  {
+                                                                          "def":  "",
+                                                                          "Indexing":  "stor_id"
+                                                                      },
+                                                          "title_id":  {
+                                                                           "def":  "",
+                                                                           "Indexing":  "title_id"
+                                                                       }
+                                                      }
+                                        },
+                              "prices":  {
+                                             "columns":  [
+                                                             "Price_id int(11) NOT NULL auto_increment ",
+                                                             "Edition_id int(11) NULL DEFAULT (NULL)  ",
+                                                             "price decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                             "advance decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                             "royalty int(11) NULL DEFAULT (NULL)  ",
+                                                             "ytd_sales int(11) NULL DEFAULT (NULL)  ",
+                                                             "PriceStartDate datetime NOT NULL DEFAULT (curdate())  ",
+                                                             "PriceEndDate date NULL DEFAULT (NULL)  "
+                                                         ],
+                                             "primary key":  {
+                                                                 "PRIMARY":  "Price_id"
+                                                             },
+                                             "index":  {
+                                                           "Editionid_index":  {
+                                                                                   "def":  "",
+                                                                                   "Indexing":  "Edition_id"
+                                                                               }
+                                                       }
+                                         },
+                              "tagtitle":  {
+                                               "columns":  [
+                                                               "title_id varchar(6) NOT NULL  ",
+                                                               "Is_Primary bit(1) NOT NULL DEFAULT (b\u00270\u0027)  ",
+                                                               "TagName_ID int(11) NOT NULL  "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "tagtitle_ibfk_2":  {
+                                                                                           "Cols":  "title_id",
+                                                                                           "Foreign Table":  "dbo.publications",
+                                                                                           "Referencing":  "Publication_id"
+                                                                                       },
+                                                                   "tagtitle_ibfk_1":  {
+                                                                                           "Cols":  "TagName_ID",
+                                                                                           "Foreign Table":  "dbo.tagname",
+                                                                                           "Referencing":  "TagName_ID"
+                                                                                       }
+                                                               },
+                                               "primary key":  {
+                                                                   "PRIMARY":  "title_id"
+                                                               },
+                                               "index":  {
+                                                             "TagName_index":  {
+                                                                                   "def":  "",
+                                                                                   "Indexing":  "TagName_ID"
+                                                                               },
+                                                             "Titleid_index":  {
+                                                                                   "def":  "",
+                                                                                   "Indexing":  "title_id"
+                                                                               }
+                                                         }
+                                           },
+                              "authors":  {
+                                              "columns":  [
+                                                              "au_id varchar(11) NOT NULL  ",
+                                                              "au_lname varchar(80) NOT NULL  ",
+                                                              "au_fname varchar(80) NOT NULL  ",
+                                                              "phone varchar(40) NOT NULL DEFAULT (\u0027UNKNOWN\u0027)  ",
+                                                              "address varchar(80) NULL DEFAULT (NULL)  ",
+                                                              "city varchar(40) NULL DEFAULT (NULL)  ",
+                                                              "state char(2) NULL DEFAULT (NULL)  ",
+                                                              "zip char(5) NULL DEFAULT (NULL)  ",
+                                                              "contract smallint(6) NOT NULL  "
+                                                          ],
+                                              "primary key":  {
+                                                                  "PRIMARY":  "au_id"
+                                                              },
+                                              "index":  {
+                                                            "aunmind":  {
+                                                                            "def":  "",
+                                                                            "Indexing":  [
+                                                                                             "au_lname",
+                                                                                             "au_fname"
+                                                                                         ]
+                                                                        }
+                                                        }
+                                          },
+                              "editions":  {
+                                               "columns":  [
+                                                               "Edition_id int(11) NOT NULL auto_increment ",
+                                                               "publication_id varchar(6) NOT NULL  ",
+                                                               "Publication_type varchar(20) NOT NULL DEFAULT (\u0027book\u0027)  ",
+                                                               "EditionDate datetime NOT NULL DEFAULT (curdate())  "
+                                                           ],
+                                               "primary key":  {
+                                                                   "PRIMARY":  "Edition_id"
+                                                               },
+                                               "index":  {
+                                                             "Publicationid_index":  {
+                                                                                         "def":  "",
+                                                                                         "Indexing":  "publication_id"
+                                                                                     }
+                                                         }
+                                           },
+                              "titleauthor":  {
+                                                  "columns":  [
+                                                                  "au_id varchar(11) NOT NULL  ",
+                                                                  "title_id varchar(6) NOT NULL  ",
+                                                                  "au_ord int(11) NULL DEFAULT (NULL)  ",
+                                                                  "royaltyper int(11) NULL DEFAULT (NULL)  "
+                                                              ],
+                                                  "foreign key":  {
+                                                                      "titleauthor_ibfk_2":  {
+                                                                                                 "Cols":  "title_id",
+                                                                                                 "Foreign Table":  "dbo.publications",
+                                                                                                 "Referencing":  "Publication_id"
+                                                                                             },
+                                                                      "titleauthor_ibfk_1":  {
+                                                                                                 "Cols":  "au_id",
+                                                                                                 "Foreign Table":  "dbo.authors",
+                                                                                                 "Referencing":  "au_id"
+                                                                                             }
+                                                                  },
+                                                  "primary key":  {
+                                                                      "PRIMARY":  "au_id"
+                                                                  },
+                                                  "index":  {
+                                                                "title_id":  {
+                                                                                 "def":  "",
+                                                                                 "Indexing":  "title_id"
+                                                                             }
+                                                            }
+                                              }
+                          },
+                "View":  {
+                             "reptq1":  {
+                                            "columns":  [
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "avg_price decimal(23,8) NULL DEFAULT (NULL)  "
+                                                        ]
+                                        },
+                             "titleview":  {
+                                               "columns":  [
+                                                               "title varchar(255) NOT NULL  ",
+                                                               "au_ord int(11) NULL DEFAULT (NULL)  ",
+                                                               "au_lname varchar(80) NOT NULL  ",
+                                                               "price decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                               "ytd_sales int(11) NULL DEFAULT (NULL)  ",
+                                                               "pub_id char(8) NULL DEFAULT (NULL)  "
+                                                           ]
+                                           },
+                             "publishersbypublicationtype":  {
+                                                                 "columns":  [
+                                                                                 "publisher varchar(100) NOT NULL DEFAULT (\u0027\u0027)  ",
+                                                                                 "AudioBook decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Book decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Calendar decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Ebook decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Hardback decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Map decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "PaperBack decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "total bigint(21) NOT NULL DEFAULT (0)  "
+                                                                             ]
+                                                             },
+                             "byroyalty":  {
+                                               "columns":  "au_id varchar(11) NOT NULL  "
+                                           },
+                             "titles":  {
+                                            "columns":  [
+                                                            "title_id varchar(6) NOT NULL  ",
+                                                            "pubdate datetime NOT NULL DEFAULT (curdate())  ",
+                                                            "title varchar(255) NOT NULL  ",
+                                                            "Type varchar(80) NULL  ",
+                                                            "pub_id char(8) NULL DEFAULT (NULL)  ",
+                                                            "price decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                            "advance decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                            "royalty int(11) NULL DEFAULT (NULL)  ",
+                                                            "ytd_sales int(11) NULL DEFAULT (NULL)  ",
+                                                            "notes varchar(4000) NULL DEFAULT (NULL)  "
+                                                        ]
+                                        },
+                             "reptq2":  {
+                                            "columns":  [
+                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "avg_ytd_sales decimal(14,4) NULL DEFAULT (NULL)  "
+                                                        ]
+                                        },
+                             "reptq3":  {
+                                            "columns":  [
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
+                                                            "cnt bigint(21) NOT NULL DEFAULT (0)  "
+                                                        ]
+                                        }
+                         }
+            }
+}

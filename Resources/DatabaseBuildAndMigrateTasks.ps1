@@ -911,7 +911,7 @@ functionality that can't be supported on that server version. It updates
 the $Param1.ServerVersion 
  #>
 $GetCurrentServerVersion = {
-	Param ($param1) # $GetCurrentVersion parameter is a hashtable 
+	Param ($param1) # $GetCurrentServerVersion parameter is a hashtable 
 	$problems = @();
 	$doit = $true;
 	@('server', 'rdbms') | foreach{
@@ -1499,6 +1499,7 @@ $CreateBuildScriptIfNecessary = {
                 }           
                 if ($?)
                 { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written SQLite build script for $($param1.Project)" 
+
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                 }
                 else
@@ -2186,7 +2187,8 @@ possible on information schema #>
 				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 			}
 <# this is the section that creates a MariaDB or MySQL Database Model based where
-possible on information schema #>
+possible on information schema
+ #>
 'mysql|mariaDB' {
         #create a delimited list for SQL's IN command
  				#fetch all the relations (anything that produces columns)
@@ -2225,7 +2227,8 @@ possible on information schema #>
 				#now do the constraints
 				$query = @"
              SELECT lower(tc.constraint_type) AS "type", tc.table_schema AS "schema", 
-               tc.Table_name, kcu.constraint_name, kcu.column_name, ordinal_position
+               tc.Table_name, kcu.constraint_name, kcu.column_name,ordinal_position,
+			   concat(Referenced_table_Schema,'.',Referenced_table_name) AS "referenced_table",referenced_column_name
             FROM information_schema.table_constraints AS tc 
             JOIN information_schema.key_column_usage AS kcu 
               ON tc.constraint_name = kcu.constraint_name 
@@ -2279,22 +2282,36 @@ possible on information schema #>
 					foreach{ "$($_.column) $($_.coltype)" }
 					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
 				}
-				#$schemaTree |convertto-JSON -depth 10
-            <# now stitch in the constraints with their columns  #>
-				$constraints | Select schema, table_name, Type, constraint_name -Unique | foreach{
-					$constraintSchema = $_.schema;
-					$constrainedTable = $_.table_name;
-					$constraintName = $_.constraint_name;
-					$ConstraintType = $_.type;
-					$columns = $constraints |
-					where{
-						$_.schema -eq $constraintSchema -and
-						$_.table_name -eq $constrainedTable -and
-						$_.constraint_name -eq $constraintName
-					} |
-					Sort-Object -Property ordinal_position | Select -ExpandProperty column_name
-					$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns }
-				}
+				
+            <# now stitch in the constraints with their columns Foreign keys need dealinmg with #>
+				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
+	                $constraintSchema = $_.schema;
+	                $constrainedTable = $_.table_name;
+	                $constraintName = $_.constraint_name;
+	                $ConstraintType = $_.type;
+	                $referenced_table = $_.referenced_table;
+	                # get the original object
+	                $OriginalConstraint = $constraints |
+	                where{
+		                $_.schema -eq $constraintSchema -and
+		                $_.table_name -eq $constrainedTable -and
+                        $_.Type -eq $ConstraintType -and
+		                $_.constraint_name -eq $constraintName
+	                } | Select -first 1
+	                $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+	                    Select -ExpandProperty column_name
+	                if ($ConstraintType -eq 'foreign key')
+	                {
+		                $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+		                Select -ExpandProperty referenced_column_name
+		                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+			                $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+		                }
+	                }
+	                else
+	                { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+	
+                }
 				
             <# now stitch in the indexes with their columns  #>
 				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
