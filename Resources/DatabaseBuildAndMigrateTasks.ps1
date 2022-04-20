@@ -1913,7 +1913,7 @@ $GetdataFromSQLCMD.Invoke($param1,$query,$null,$true)
 <#This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
 flyway project between versions. 
-$param1=$param1*/#>
+$param1=$DBDetails*/#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
     $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
@@ -2031,7 +2031,7 @@ $SaveDatabaseModelIfNecessary = {
 possible on information schema #>			
 			'postgresql' {
 				#fetch all the relations (anything that produces columns)
-				$query = @'
+				$query = @"
             SELECT json_agg(e) 
             FROM (
             Select columns.table_schema as schema, columns.TABLE_NAME as object, COLUMN_NAME||' '||data_type||
@@ -2048,14 +2048,14 @@ possible on information schema #>
 		              column_default || ')' ELSE '' END
 	            END AS COLUMN,
 	            CASE WHEN views.table_name IS NULL THEN 'table' else 'view' END AS type
-            --SELECT * 
             FROM information_schema."columns" 
             left outer JOIN (SELECT  table_schema,table_name FROM information_schema."views")as views
             ON columns.table_schema=views.table_schema AND  columns.TABLE_NAME=views.table_name
             WHERE columns.table_catalog=current_database() AND columns.table_schema NOT IN ('pg_catalog','information_schema')
+            and columns.TABLE_NAME <> '$FlywayTableName'
             ORDER BY columns.table_schema, columns.TABLE_NAME, ordinal_position
                 ) e;
-'@
+"@
 				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 				#now get the details of the routines
 				$query = @'
@@ -2071,19 +2071,29 @@ possible on information schema #>
 '@
 				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
 				#now do the constraints
-				$query = @'
+				$query = @"
             SELECT json_agg(e) 
             FROM (SELECT lower(tc.constraint_type) as type, tc.table_schema as schema, 
-               tc.Table_name, kcu.constraint_name, kcu.column_name, ordinal_position
+               tc.Table_name, kcu.constraint_name, kcu.column_name, 
+					ordinal_position,
+					rel_tco.table_schema || '.' || rel_tco.table_name AS "referenced_table",
+					kcu.column_name AS "Referenced_column_name"
             FROM information_schema.table_constraints AS tc 
             JOIN information_schema.key_column_usage AS kcu 
               ON tc.constraint_name = kcu.constraint_name 
               AND tc.table_name=kcu.table_name
               AND tc.table_schema=kcu.table_schema
-            WHERE tc.table_catalog=current_database() 
+left outer join information_schema.referential_constraints rco
+          on tc.constraint_schema = rco.constraint_schema
+          and tc.constraint_name = rco.constraint_name
+left outer join information_schema.table_constraints rel_tco
+          on rco.unique_constraint_schema = rel_tco.constraint_schema
+          and rco.unique_constraint_name = rel_tco.constraint_name
+           WHERE tc.table_catalog=current_database() 
+              and tc.Table_name <> '$FlywayTableName' 
               AND tc.table_schema NOT IN ('pg_catalog','information_schema')
                 ) e;
-'@
+"@
 				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
 				$indexes = Execute-SQL $param1 @"
@@ -2152,21 +2162,34 @@ possible on information schema #>
 				}
 				#display-object $schemaTree
             <# now stitch in the constraints with their columns  #>
-				$constraints | Select schema, table_name, Type, constraint_name -Unique | foreach{
-					$constraintSchema = $_.schema;
-					$constrainedTable = $_.table_name;
-					$constraintName = $_.constraint_name;
-					$ConstraintType = $_.type;
-					$columns = $constraints |
-					where{
-						$_.schema -eq $constraintSchema -and
-						$_.table_name -eq $constrainedTable -and
-						$_.constraint_name -eq $constraintName
-					} |
-					Sort-Object -Property ordinal_position | Select -ExpandProperty column_name
-					$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns }
-				}
-				
+				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
+	                $constraintSchema = $_.schema;
+	                $constrainedTable = $_.table_name;
+	                $constraintName = $_.constraint_name;
+	                $ConstraintType = $_.type;
+	                $referenced_table = $_.referenced_table;
+	                # get the original object
+	                $OriginalConstraint = $constraints |
+	                where{
+		                $_.schema -eq $constraintSchema -and
+		                $_.table_name -eq $constrainedTable -and
+                        $_.Type -eq $ConstraintType -and
+		                $_.constraint_name -eq $constraintName
+	                } | Select -first 1
+	                $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+	                    Select -ExpandProperty column_name
+	                if ($ConstraintType -eq 'foreign key')
+	                {
+		                $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+		                Select -ExpandProperty referenced_column_name
+		                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+			                $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+		                }
+	                }
+	                else
+	                { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+	
+                }
             <# now stitch in the indexes with their columns  #>
 				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
 					$indexSchema = $_.schema;
@@ -3501,4 +3524,4 @@ function Execute-SQL
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.113'
+'FlywayTeamwork framework  loaded. V1.2.115'
