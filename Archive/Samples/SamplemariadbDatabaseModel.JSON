@@ -1,11 +1,106 @@
 ﻿{
     "dbo":  {
-                "Table":  {
+                "procedure":  {
+                                  "byroyalty":  {
+                                                    "hash":  "896a29ca1a4eadd58d230709e111b12b",
+                                                    "definition":  "Begin  select au_id from titleauthor  where titleauthor.royaltyper = percentage;  end"
+                                                },
+                                  "reptq1":  {
+                                                 "hash":  "09b17f942ceeab55cd67f0436228c005",
+                                                 "definition":  "Begin  (select   \tpub_id,   \tavg(price) as avg_price  from titles  where price is NOT NULL  group by pub_id)  union all  (select   \t\u0027ALL\u0027 as pub_id, avg(price)  avg_price  from titles  where price is NOT NULL);  end"
+                                             },
+                                  "reptq3":  {
+                                                 "hash":  "be194b5c49a48eb765fef92c00945a19",
+                                                 "definition":  "Begin  (select   \tpub_id,   \tavg(price) as avg_price  from titles  where price \u0026gt;lolimit AND price \u0026lt;hilimit AND type = type OR type LIKE \u0027%cook%\u0027  group by pub_id)  union all  (select   \t\u0027ALL\u0027 as pub_id, avg(price)  avg_price  from titles  where price \u0026gt;lolimit AND price \u0026lt;hilimit AND type = type OR type LIKE \u0027%cook%\u0027  group by pub_id, type);  end"
+                                             },
+                                  "reptq2":  {
+                                                 "hash":  "cd26f314c036ca27129b29e1e3a3b02f",
+                                                 "definition":  "Begin  (select   \ttype,   \tpub_id,   \tavg(ytd_sales) as avg_ytd_sales  from titles  where pub_id is NOT NULL  group by pub_id, TYPE)  union all  (select   \ttype, \u0027ALL\u0027 as pub_id, avg(price)  avg_price  from titles  where price is NOT NULL  GROUP BY type)  union all  (select   \t\u0027ALL\u0027 as TYPE , pub_id, avg(price)  avg_price  from titles  where price is NOT NULL  GROUP BY pub_id);  end"
+                                             }
+                              },
+                "view":  {
+                             "reptq1":  {
+                                            "columns":  [
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "avg_price decimal(23,8) NULL DEFAULT (NULL)  "
+                                                        ],
+                                            "hash":  "589bcc3a39d8e3cf287332da8cdb9f7d",
+                                            "definition":  "select coalesce(`dbo`.`publications`.`pub_id`,\u0027ALL\u0027) AS `pub_id`,avg(`dbo`.`prices`.`price`) AS `avg_price` from (((`dbo`.`publishers` join `dbo`.`publications` on(`dbo`.`publications`.`pub_id` = `dbo`.`publishers`.`pub_id`)) join `dbo`.`editions` on(`dbo`.`editions`.`publication_id` = `dbo`.`publications`.`Publication_id`)) join `dbo`.`prices` on(`dbo`.`prices`.`Edition_id` = `dbo`.`editions`.`Edition_id`)) where `dbo`.`prices`.`PriceEndDate` is null group by `dbo`.`publications`.`pub_id` with rollup"
+                                        },
+                             "titleview":  {
+                                               "columns":  [
+                                                               "title varchar(255) NOT NULL  ",
+                                                               "au_ord int(11) NULL DEFAULT (NULL)  ",
+                                                               "au_lname varchar(80) NOT NULL  ",
+                                                               "price decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                               "ytd_sales int(11) NULL DEFAULT (NULL)  ",
+                                                               "pub_id char(8) NULL DEFAULT (NULL)  "
+                                                           ],
+                                               "hash":  "5c5542ffa2485dd9d262b63a1121d76f",
+                                               "definition":  "select `dbo`.`titles`.`title` AS `title`,`dbo`.`titleauthor`.`au_ord` AS `au_ord`,`dbo`.`authors`.`au_lname` AS `au_lname`,`dbo`.`titles`.`price` AS `price`,`dbo`.`titles`.`ytd_sales` AS `ytd_sales`,`dbo`.`titles`.`pub_id` AS `pub_id` from ((`dbo`.`titleauthor` join `dbo`.`titles` on(`dbo`.`titles`.`title_id` = `dbo`.`titleauthor`.`title_id`)) join `dbo`.`authors` on(`dbo`.`authors`.`au_id` = `dbo`.`titleauthor`.`au_id`))"
+                                           },
+                             "publishersbypublicationtype":  {
+                                                                 "columns":  [
+                                                                                 "publisher varchar(100) NOT NULL DEFAULT (\u0027\u0027)  ",
+                                                                                 "AudioBook decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Book decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Calendar decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Ebook decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Hardback decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "Map decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "PaperBack decimal(22,0) NULL DEFAULT (NULL)  ",
+                                                                                 "total bigint(21) NOT NULL DEFAULT (0)  "
+                                                                             ],
+                                                                 "hash":  "f08aa64447b0c549753373f777f6bbb0",
+                                                                 "definition":  "select coalesce(`dbo`.`publishers`.`pub_name`,\u0027---All types\u0027) AS `publisher`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027AudioBook\u0027 then 1 else 0 end) AS `AudioBook`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Book\u0027 then 1 else 0 end) AS `Book`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Calendar\u0027 then 1 else 0 end) AS `Calendar`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Ebook\u0027 then 1 else 0 end) AS `Ebook`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Hardback\u0027 then 1 else 0 end) AS `Hardback`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Map\u0027 then 1 else 0 end) AS `Map`,sum(case when `dbo`.`editions`.`Publication_type` = \u0027Paperback\u0027 then 1 else 0 end) AS `PaperBack`,count(0) AS `total` from (((`dbo`.`publishers` join `dbo`.`publications` on(`dbo`.`publications`.`pub_id` = `dbo`.`publishers`.`pub_id`)) join `dbo`.`editions` on(`dbo`.`editions`.`publication_id` = `dbo`.`publications`.`Publication_id`)) join `dbo`.`prices` on(`dbo`.`prices`.`Edition_id` = `dbo`.`editions`.`Edition_id`)) where `dbo`.`prices`.`PriceEndDate` is null group by `dbo`.`publishers`.`pub_name`"
+                                                             },
+                             "byroyalty":  {
+                                               "columns":  "au_id varchar(11) NOT NULL  ",
+                                               "hash":  "8258195b16b0317054b33998e198055d",
+                                               "definition":  "select `dbo`.`titleauthor`.`au_id` AS `au_id` from `dbo`.`titleauthor` where `dbo`.`titleauthor`.`royaltyper` = 50"
+                                           },
+                             "titles":  {
+                                            "columns":  [
+                                                            "title_id varchar(6) NOT NULL  ",
+                                                            "pubdate datetime NOT NULL DEFAULT (curdate())  ",
+                                                            "title varchar(255) NOT NULL  ",
+                                                            "Type varchar(80) NULL  ",
+                                                            "pub_id char(8) NULL DEFAULT (NULL)  ",
+                                                            "price decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                            "advance decimal(19,4) NULL DEFAULT (NULL)  ",
+                                                            "royalty int(11) NULL DEFAULT (NULL)  ",
+                                                            "ytd_sales int(11) NULL DEFAULT (NULL)  ",
+                                                            "notes varchar(4000) NULL DEFAULT (NULL)  "
+                                                        ],
+                                            "hash":  "46d9cf7e2c32f361215c11d11ad9222f",
+                                            "definition":  "select `dbo`.`publications`.`Publication_id` AS `title_id`,`dbo`.`publications`.`title` AS `title`,`dbo`.`tagname`.`Tag` AS `Type`,`dbo`.`publications`.`pub_id` AS `pub_id`,`dbo`.`prices`.`price` AS `price`,`dbo`.`prices`.`advance` AS `advance`,`dbo`.`prices`.`royalty` AS `royalty`,`dbo`.`prices`.`ytd_sales` AS `ytd_sales`,`dbo`.`publications`.`notes` AS `notes`,`dbo`.`publications`.`pubdate` AS `pubdate` from ((((`dbo`.`publications` join `dbo`.`editions` on(`dbo`.`editions`.`publication_id` = `dbo`.`publications`.`Publication_id` and `dbo`.`editions`.`Publication_type` = \u0027book\u0027)) join `dbo`.`prices` on(`dbo`.`prices`.`Edition_id` = `dbo`.`editions`.`Edition_id`)) left join `dbo`.`tagtitle` on(`dbo`.`tagtitle`.`title_id` = `dbo`.`publications`.`Publication_id` and `dbo`.`tagtitle`.`Is_Primary` = 1)) left join `dbo`.`tagname` on(`dbo`.`tagtitle`.`TagName_ID` = `dbo`.`tagname`.`TagName_ID`)) where `dbo`.`prices`.`PriceEndDate` is null"
+                                        },
+                             "reptq2":  {
+                                            "columns":  [
+                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "avg_ytd_sales decimal(14,4) NULL DEFAULT (NULL)  "
+                                                        ],
+                                            "hash":  "31b9f5fe1f207d54cb701d7193158eee",
+                                            "definition":  "select coalesce(`Tag`,\u0027ALL\u0027) AS `type`,coalesce(`titles`.`pub_id`,\u0027SUM\u0027) AS `pub_id`,avg(`titles`.`ytd_sales`) AS `avg_ytd_sales` from ((`dbo`.`titles` join `dbo`.`tagtitle` on(`dbo`.`tagtitle`.`title_id` = `titles`.`title_id`)) join `dbo`.`tagname` `tn` on(`tn`.`TagName_ID` = `dbo`.`tagtitle`.`TagName_ID`)) where `titles`.`pub_id` is not null and `dbo`.`tagtitle`.`Is_Primary` = 1 group by `titles`.`pub_id`,`tn`.`Tag` with rollup"
+                                        },
+                             "reptq3":  {
+                                            "columns":  [
+                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
+                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
+                                                            "cnt bigint(21) NOT NULL DEFAULT (0)  "
+                                                        ],
+                                            "hash":  "2c75c4039ad0b5697bdc2c1c81fbad4d",
+                                            "definition":  "select coalesce(`titles`.`pub_id`,\u0027ALL\u0027) AS `pub_id`,coalesce(`Tag`,\u0027ALL\u0027) AS `type`,count(`titles`.`title_id`) AS `cnt` from ((`dbo`.`titles` join `dbo`.`tagtitle` on(`dbo`.`tagtitle`.`title_id` = `titles`.`title_id`)) join `dbo`.`tagname` `tn` on(`tn`.`TagName_ID` = `dbo`.`tagtitle`.`TagName_ID`)) where `titles`.`price` \u0026gt; 10 and `dbo`.`tagtitle`.`Is_Primary` = 1 and `titles`.`price` \u0026lt; 100 and `tn`.`Tag` = \u0027science\u0027 or `tn`.`Tag` like \u0027%cook%\u0027 group by `titles`.`pub_id`,`tn`.`Tag` with rollup"
+                                        }
+                         },
+                "table":  {
                               "tagname":  {
                                               "columns":  [
                                                               "TagName_ID int(11) NOT NULL auto_increment ",
                                                               "Tag varchar(80) NOT NULL  "
                                                           ],
+                                              "comment":  "All the categories of publications",
                                               "primary key":  {
                                                                   "PRIMARY":  "TagName_ID"
                                                               },
@@ -26,16 +121,16 @@
                                                            "min_lvl smallint(6) NOT NULL  ",
                                                            "max_lvl smallint(6) NOT NULL  "
                                                        ],
+                                           "comment":  "These are the job descriptions and min/max salary level",
                                            "primary key":  {
                                                                "PRIMARY":  "job_id"
                                                            }
                                        },
                               "pub_info":  {
-                                               "columns":  [
-                                                               "pub_id char(8) NOT NULL  ",
-                                                               "logo longblob NULL DEFAULT (NULL)  ",
-                                                               "pr_info longtext NULL DEFAULT (NULL)  "
-                                                           ],
+                                               "comment":  "this holds the special information about every publisher",
+                                               "primary key":  {
+                                                                   "PRIMARY":  "pub_id"
+                                                               },
                                                "foreign key":  {
                                                                    "fk_Pubinfo_publishers_pub_id":  {
                                                                                                         "Cols":  "pub_id",
@@ -43,9 +138,11 @@
                                                                                                         "Referencing":  "pub_id"
                                                                                                     }
                                                                },
-                                               "primary key":  {
-                                                                   "PRIMARY":  "pub_id"
-                                                               }
+                                               "columns":  [
+                                                               "pub_id char(8) NOT NULL  ",
+                                                               "logo longblob NULL DEFAULT (NULL)  ",
+                                                               "pr_info longtext NULL DEFAULT (NULL)  "
+                                                           ]
                                            },
                               "publishers":  {
                                                  "columns":  [
@@ -55,21 +152,16 @@
                                                                  "state char(2) NULL DEFAULT (NULL)  ",
                                                                  "country varchar(30) NULL DEFAULT (\u0027USA\u0027)  "
                                                              ],
+                                                 "comment":  "this is a table of publishers who we distribute books for",
                                                  "primary key":  {
                                                                      "PRIMARY":  "pub_id"
                                                                  }
                                              },
                               "employee":  {
-                                               "columns":  [
-                                                               "emp_id char(9) NOT NULL  ",
-                                                               "fname varchar(20) NOT NULL  ",
-                                                               "minit char(1) NULL DEFAULT (NULL)  ",
-                                                               "lname varchar(30) NOT NULL  ",
-                                                               "job_id smallint(6) NOT NULL DEFAULT (1)  ",
-                                                               "job_lvl smallint(6) NULL DEFAULT (10)  ",
-                                                               "pub_id char(8) NOT NULL  ",
-                                                               "hire_date datetime NOT NULL DEFAULT (curdate())  "
-                                                           ],
+                                               "comment":  "An employee of any of the publishers",
+                                               "primary key":  {
+                                                                   "PRIMARY":  "emp_id"
+                                                               },
                                                "foreign key":  {
                                                                    "fk_Employee_Pubs_JobID":  {
                                                                                                   "Cols":  "job_id",
@@ -87,9 +179,16 @@
                                                                                                          "Referencing":  "pub_id"
                                                                                                      }
                                                                },
-                                               "primary key":  {
-                                                                   "PRIMARY":  "emp_id"
-                                                               },
+                                               "columns":  [
+                                                               "emp_id char(9) NOT NULL  ",
+                                                               "fname varchar(20) NOT NULL  ",
+                                                               "minit char(1) NULL DEFAULT (NULL)  ",
+                                                               "lname varchar(30) NOT NULL  ",
+                                                               "job_id smallint(6) NOT NULL DEFAULT (1)  ",
+                                                               "job_lvl smallint(6) NULL DEFAULT (10)  ",
+                                                               "pub_id char(8) NOT NULL  ",
+                                                               "hire_date datetime NOT NULL DEFAULT (curdate())  "
+                                                           ],
                                                "index":  {
                                                              "Jobid_index":  {
                                                                                  "def":  "",
@@ -110,6 +209,7 @@
                                                              "state char(2) NULL DEFAULT (NULL)  ",
                                                              "zip char(5) NULL DEFAULT (NULL)  "
                                                          ],
+                                             "comment":  "these are all the stores who are our customers",
                                              "primary key":  {
                                                                  "PRIMARY":  "stor_id"
                                                              }
@@ -122,6 +222,7 @@
                                                                    "notes varchar(4000) NULL DEFAULT (NULL)  ",
                                                                    "pubdate datetime NOT NULL DEFAULT (curdate())  "
                                                                ],
+                                                   "comment":  "This lists every publication marketed by the distributor",
                                                    "primary key":  {
                                                                        "PRIMARY":  "Publication_id"
                                                                    },
@@ -133,6 +234,7 @@
                                                              }
                                                },
                               "roysched":  {
+                                               "comment":  "this is a table of the authors royalty scheduleable",
                                                "foreign key":  {
                                                                    "roysched_ibfk_1":  {
                                                                                            "Cols":  "title_id",
@@ -154,6 +256,17 @@
                                                          }
                                            },
                               "discounts":  {
+                                                "comment":  "These are the discounts offered by the sales people for bulk orders",
+                                                "primary key":  {
+                                                                    "PRIMARY":  "discount_id"
+                                                                },
+                                                "foreign key":  {
+                                                                    "fk_Discounts_Stores_Stor_id":  {
+                                                                                                        "Cols":  "stor_id",
+                                                                                                        "Foreign Table":  "dbo.stores",
+                                                                                                        "Referencing":  "stor_id"
+                                                                                                    }
+                                                                },
                                                 "columns":  [
                                                                 "discounttype varchar(40) NOT NULL  ",
                                                                 "stor_id char(4) NULL DEFAULT (NULL)  ",
@@ -162,16 +275,6 @@
                                                                 "discount decimal(4,2) NOT NULL  ",
                                                                 "discount_id int(11) NOT NULL auto_increment "
                                                             ],
-                                                "foreign key":  {
-                                                                    "fk_Discounts_Stores_Stor_id":  {
-                                                                                                        "Cols":  "stor_id",
-                                                                                                        "Foreign Table":  "dbo.stores",
-                                                                                                        "Referencing":  "stor_id"
-                                                                                                    }
-                                                                },
-                                                "primary key":  {
-                                                                    "PRIMARY":  "discount_id"
-                                                                },
                                                 "index":  {
                                                               "Storid_index":  {
                                                                                    "def":  "",
@@ -180,14 +283,10 @@
                                                           }
                                             },
                               "sales":  {
-                                            "columns":  [
-                                                            "stor_id char(4) NOT NULL  ",
-                                                            "ord_num varchar(20) NOT NULL  ",
-                                                            "ord_date varchar(50) NOT NULL  ",
-                                                            "qty int(11) NOT NULL  ",
-                                                            "payterms varchar(12) NOT NULL  ",
-                                                            "title_id varchar(6) NOT NULL  "
-                                                        ],
+                                            "comment":  "these are the sales of every edition of every publication",
+                                            "primary key":  {
+                                                                "PRIMARY":  "ord_num"
+                                                            },
                                             "foreign key":  {
                                                                 "sales_ibfk_2":  {
                                                                                      "Cols":  "title_id",
@@ -200,9 +299,14 @@
                                                                                      "Referencing":  "stor_id"
                                                                                  }
                                                             },
-                                            "primary key":  {
-                                                                "PRIMARY":  "ord_num"
-                                                            },
+                                            "columns":  [
+                                                            "stor_id char(4) NOT NULL  ",
+                                                            "ord_num varchar(20) NOT NULL  ",
+                                                            "ord_date varchar(50) NOT NULL  ",
+                                                            "qty int(11) NOT NULL  ",
+                                                            "payterms varchar(12) NOT NULL  ",
+                                                            "title_id varchar(6) NOT NULL  "
+                                                        ],
                                             "index":  {
                                                           "stor_id":  {
                                                                           "def":  "",
@@ -225,6 +329,7 @@
                                                              "PriceStartDate datetime NOT NULL DEFAULT (curdate())  ",
                                                              "PriceEndDate date NULL DEFAULT (NULL)  "
                                                          ],
+                                             "comment":  "these are the current prices of every edition of every publication",
                                              "primary key":  {
                                                                  "PRIMARY":  "Price_id"
                                                              },
@@ -236,11 +341,10 @@
                                                        }
                                          },
                               "tagtitle":  {
-                                               "columns":  [
-                                                               "title_id varchar(6) NOT NULL  ",
-                                                               "Is_Primary bit(1) NOT NULL DEFAULT (b\u00270\u0027)  ",
-                                                               "TagName_ID int(11) NOT NULL  "
-                                                           ],
+                                               "comment":  "This relates tags to publications so that publications can have more than one",
+                                               "primary key":  {
+                                                                   "PRIMARY":  "title_id"
+                                                               },
                                                "foreign key":  {
                                                                    "tagtitle_ibfk_2":  {
                                                                                            "Cols":  "title_id",
@@ -253,9 +357,11 @@
                                                                                            "Referencing":  "TagName_ID"
                                                                                        }
                                                                },
-                                               "primary key":  {
-                                                                   "PRIMARY":  "title_id"
-                                                               },
+                                               "columns":  [
+                                                               "title_id varchar(6) NOT NULL  ",
+                                                               "Is_Primary bit(1) NOT NULL DEFAULT (b\u00270\u0027)  ",
+                                                               "TagName_ID int(11) NOT NULL  "
+                                                           ],
                                                "index":  {
                                                              "TagName_index":  {
                                                                                    "def":  "",
@@ -279,6 +385,7 @@
                                                               "zip char(5) NULL DEFAULT (NULL)  ",
                                                               "contract smallint(6) NOT NULL  "
                                                           ],
+                                              "comment":  "The authors of the publications. a publication can have one or more author",
                                               "primary key":  {
                                                                   "PRIMARY":  "au_id"
                                                               },
@@ -299,6 +406,7 @@
                                                                "Publication_type varchar(20) NOT NULL DEFAULT (\u0027book\u0027)  ",
                                                                "EditionDate datetime NOT NULL DEFAULT (curdate())  "
                                                            ],
+                                               "comment":  "A publication can come out in several different editions, of maybe a different type",
                                                "primary key":  {
                                                                    "PRIMARY":  "Edition_id"
                                                                },
@@ -310,12 +418,10 @@
                                                          }
                                            },
                               "titleauthor":  {
-                                                  "columns":  [
-                                                                  "au_id varchar(11) NOT NULL  ",
-                                                                  "title_id varchar(6) NOT NULL  ",
-                                                                  "au_ord int(11) NULL DEFAULT (NULL)  ",
-                                                                  "royaltyper int(11) NULL DEFAULT (NULL)  "
-                                                              ],
+                                                  "comment":  "this is a table that relates authors to publications, and gives their order of listing and royalty%",
+                                                  "primary key":  {
+                                                                      "PRIMARY":  "au_id"
+                                                                  },
                                                   "foreign key":  {
                                                                       "titleauthor_ibfk_2":  {
                                                                                                  "Cols":  "title_id",
@@ -328,9 +434,12 @@
                                                                                                  "Referencing":  "au_id"
                                                                                              }
                                                                   },
-                                                  "primary key":  {
-                                                                      "PRIMARY":  "au_id"
-                                                                  },
+                                                  "columns":  [
+                                                                  "au_id varchar(11) NOT NULL  ",
+                                                                  "title_id varchar(6) NOT NULL  ",
+                                                                  "au_ord int(11) NULL DEFAULT (NULL)  ",
+                                                                  "royaltyper int(11) NULL DEFAULT (NULL)  "
+                                                              ],
                                                   "index":  {
                                                                 "title_id":  {
                                                                                  "def":  "",
@@ -338,68 +447,6 @@
                                                                              }
                                                             }
                                               }
-                          },
-                "View":  {
-                             "reptq1":  {
-                                            "columns":  [
-                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
-                                                            "avg_price decimal(23,8) NULL DEFAULT (NULL)  "
-                                                        ]
-                                        },
-                             "titleview":  {
-                                               "columns":  [
-                                                               "title varchar(255) NOT NULL  ",
-                                                               "au_ord int(11) NULL DEFAULT (NULL)  ",
-                                                               "au_lname varchar(80) NOT NULL  ",
-                                                               "price decimal(19,4) NULL DEFAULT (NULL)  ",
-                                                               "ytd_sales int(11) NULL DEFAULT (NULL)  ",
-                                                               "pub_id char(8) NULL DEFAULT (NULL)  "
-                                                           ]
-                                           },
-                             "publishersbypublicationtype":  {
-                                                                 "columns":  [
-                                                                                 "publisher varchar(100) NOT NULL DEFAULT (\u0027\u0027)  ",
-                                                                                 "AudioBook decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "Book decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "Calendar decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "Ebook decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "Hardback decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "Map decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "PaperBack decimal(22,0) NULL DEFAULT (NULL)  ",
-                                                                                 "total bigint(21) NOT NULL DEFAULT (0)  "
-                                                                             ]
-                                                             },
-                             "byroyalty":  {
-                                               "columns":  "au_id varchar(11) NOT NULL  "
-                                           },
-                             "titles":  {
-                                            "columns":  [
-                                                            "title_id varchar(6) NOT NULL  ",
-                                                            "pubdate datetime NOT NULL DEFAULT (curdate())  ",
-                                                            "title varchar(255) NOT NULL  ",
-                                                            "Type varchar(80) NULL  ",
-                                                            "pub_id char(8) NULL DEFAULT (NULL)  ",
-                                                            "price decimal(19,4) NULL DEFAULT (NULL)  ",
-                                                            "advance decimal(19,4) NULL DEFAULT (NULL)  ",
-                                                            "royalty int(11) NULL DEFAULT (NULL)  ",
-                                                            "ytd_sales int(11) NULL DEFAULT (NULL)  ",
-                                                            "notes varchar(4000) NULL DEFAULT (NULL)  "
-                                                        ]
-                                        },
-                             "reptq2":  {
-                                            "columns":  [
-                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
-                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
-                                                            "avg_ytd_sales decimal(14,4) NULL DEFAULT (NULL)  "
-                                                        ]
-                                        },
-                             "reptq3":  {
-                                            "columns":  [
-                                                            "pub_id varchar(8) NULL DEFAULT (NULL)  ",
-                                                            "type varchar(80) NULL DEFAULT (NULL)  ",
-                                                            "cnt bigint(21) NOT NULL DEFAULT (0)  "
-                                                        ]
-                                        }
-                         }
+                          }
             }
 }

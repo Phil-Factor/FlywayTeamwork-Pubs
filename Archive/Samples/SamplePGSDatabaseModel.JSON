@@ -1,0 +1,350 @@
+﻿{
+    "dbo":  {
+                "procedure":  {
+                                  "byroyalty":  {
+                                                    "hash":  "38f183c14a18c64a965844f2bba5af8b",
+                                                    "definition":  "\r\nselect au_id from titleauthor\r\nwhere titleauthor.royaltyper = percentage\r\n"
+                                                },
+                                  "reptq2":  {
+                                                 "hash":  "a94f21978c72ca1b854c2ac1ad59ac68",
+                                                 "definition":  "\r\nSELECT CASE WHEN Grouping(type) = 1 THEN \u0027ALL\u0027 ELSE type END AS type,\r\n  CASE WHEN Grouping(pub_id) = 1 THEN \u0027ALL\u0027 ELSE pub_id END AS pub_id,\r\n  avg(ytd_sales) AS avg_ytd_sales\r\n  FROM titles\r\n  WHERE pub_id IS NOT NULL\r\n  GROUP BY pub_id, type \r\n"
+                                             },
+                                  "reptq1":  {
+                                                 "hash":  "1453e2c5f0322a22bffd47678982627c",
+                                                 "definition":  "\r\nselect \r\n\tcase when grouping(pub_id) = 1 then \u0027ALL\u0027 else pub_id end as pub_id, \r\n\tavg(price) as avg_price\r\nfrom titles\r\nwhere price is NOT NULL\r\ngroup by pub_id \r\norder by pub_id\r\n"
+                                             },
+                                  "reptq3":  {
+                                                 "hash":  "69defdcd9e41ae432b45158bb76e98c6",
+                                                 "definition":  "\r\nselect \r\n\tcase when grouping(pub_id) = 1 then \u0027ALL\u0027 else pub_id end as pub_id, \r\n\tcase when grouping(type) = 1 then \u0027ALL\u0027 else type end as type, \r\n\tcount(title_id) as cnt\r\nfrom titles\r\nwhere price \u003e lolimit AND price \u003c hilimit AND type =  type OR type LIKE \u0027%cook%\u0027\r\n  GROUP BY pub_id, type\r\n"
+                                             }
+                              },
+                "view":  {
+                             "titles":  {
+                                            "hash":  "d41d8cd98f00b204e9800998ecf8427e",
+                                            "columns":  [
+                                                            "title_id character varying (6) NOT NULL ",
+                                                            "title character varying (255) NULL ",
+                                                            "type character varying (80) NULL ",
+                                                            "pub_id character varying (6) NOT NULL ",
+                                                            "price numeric (10,2) NULL ",
+                                                            "advance numeric (10,2) NULL ",
+                                                            "royalty integer  NULL ",
+                                                            "ytd_sales integer  NULL ",
+                                                            "notes character varying (4000) NULL ",
+                                                            "pubdate date NULL "
+                                                        ]
+                                        },
+                             "titleview":  {
+                                               "hash":  "d41d8cd98f00b204e9800998ecf8427e",
+                                               "columns":  [
+                                                               "title character varying (255) NULL ",
+                                                               "au_ord integer  NULL ",
+                                                               "au_lname character varying (80) NULL ",
+                                                               "price numeric (10,2) NULL ",
+                                                               "ytd_sales integer  NULL ",
+                                                               "pub_id character varying (6) NOT NULL "
+                                                           ]
+                                           }
+                         },
+                "table":  {
+                              "tagname":  {
+                                              "columns":  [
+                                                              "tagname_id integer GENERATED ALWAYS AS IDENTITY",
+                                                              "tag character varying (80) NOT NULL "
+                                                          ],
+                                              "primary key":  {
+                                                                  "tagname_pkey":  "tagname_id"
+                                                              },
+                                              "unique":  {
+                                                             "tagname_tag_key":  "tag"
+                                                         }
+                                          },
+                              "jobs":  {
+                                           "columns":  [
+                                                           "job_id smallint GENERATED ALWAYS AS IDENTITY",
+                                                           "job_desc character varying (50) NOT NULL DEFAULT (\u0027New Position - title not formalized yet\u0027::character varying)",
+                                                           "min_lvl smallint  NOT NULL ",
+                                                           "max_lvl smallint  NOT NULL "
+                                                       ],
+                                           "primary key":  {
+                                                               "pk__jobs":  "job_id"
+                                                           },
+                                           "index":  {
+                                                         "pk__idx":  {
+                                                                         "def":  "CREATE INDEX pk__idx ON dbo.jobs USING btree (job_id)",
+                                                                         "Indexing":  "job_id"
+                                                                     }
+                                                     }
+                                       },
+                              "pub_info":  {
+                                               "columns":  [
+                                                               "pub_id character (8) NOT NULL ",
+                                                               "logo bytea NULL ",
+                                                               "pr_info text NULL "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "fk__pub_info__pub_id":  {
+                                                                                                "Cols":  "pub_id",
+                                                                                                "Foreign Table":  "dbo.publishers",
+                                                                                                "Referencing":  "pub_id"
+                                                                                            }
+                                                               },
+                                               "primary key":  {
+                                                                   "upkcl_pubinfo":  "pub_id"
+                                                               },
+                                               "index":  {
+                                                             "pk_pub_info_idx":  {
+                                                                                     "def":  "CREATE INDEX pk_pub_info_idx ON dbo.pub_info USING btree (pub_id)",
+                                                                                     "Indexing":  "pub_id"
+                                                                                 }
+                                                         }
+                                           },
+                              "publishers":  {
+                                                 "columns":  [
+                                                                 "pub_id character (8) NOT NULL ",
+                                                                 "pub_name character varying (100) NULL ",
+                                                                 "city character varying (100) NULL ",
+                                                                 "state character (2) NULL ",
+                                                                 "country character varying (80) NULL DEFAULT (\u0027USA\u0027::character varying)"
+                                                             ],
+                                                 "primary key":  {
+                                                                     "upkcl_pubind":  "pub_id"
+                                                                 },
+                                                 "index":  {
+                                                               "pk_pub_idx":  {
+                                                                                  "def":  "CREATE INDEX pk_pub_idx ON dbo.publishers USING btree (pub_id)",
+                                                                                  "Indexing":  "pub_id"
+                                                                              }
+                                                           }
+                                             },
+                              "employee":  {
+                                               "columns":  [
+                                                               "emp_id character (9) NOT NULL ",
+                                                               "fname character varying (40) NOT NULL ",
+                                                               "minit character (1) NULL ",
+                                                               "lname character varying (60) NOT NULL ",
+                                                               "job_id smallint  NOT NULL DEFAULT (1)",
+                                                               "job_lvl smallint  NULL DEFAULT (10)",
+                                                               "pub_id character (8) NOT NULL DEFAULT (\u00279952\u0027::bpchar)",
+                                                               "hire_date date NOT NULL DEFAULT (CURRENT_DATE)"
+                                                           ],
+                                               "foreign key":  {
+                                                                   "fk__employee__job_id":  {
+                                                                                                "Cols":  "job_id",
+                                                                                                "Foreign Table":  "dbo.jobs",
+                                                                                                "Referencing":  "job_id"
+                                                                                            },
+                                                                   "fk__employee__pub_id":  {
+                                                                                                "Cols":  "pub_id",
+                                                                                                "Foreign Table":  "dbo.publishers",
+                                                                                                "Referencing":  "pub_id"
+                                                                                            }
+                                                               },
+                                               "primary key":  {
+                                                                   "pk_emp_id":  "emp_id"
+                                                               },
+                                               "index":  {
+                                                             "employee_ind":  {
+                                                                                  "def":  "CREATE INDEX employee_ind ON dbo.employee USING btree (lname, fname, minit)",
+                                                                                  "Indexing":  [
+                                                                                                   "fname",
+                                                                                                   "lname",
+                                                                                                   "minit"
+                                                                                               ]
+                                                                              }
+                                                         }
+                                           },
+                              "stores":  {
+                                             "columns":  [
+                                                             "stor_id character (4) NOT NULL ",
+                                                             "stor_name character varying (80) NULL ",
+                                                             "stor_address character varying (80) NULL ",
+                                                             "city character varying (40) NULL ",
+                                                             "state character (2) NULL ",
+                                                             "zip character (5) NULL "
+                                                         ],
+                                             "primary key":  {
+                                                                 "upk_storeid":  "stor_id"
+                                                             }
+                                         },
+                              "publications":  {
+                                                   "columns":  [
+                                                                   "publication_id character varying (6) NOT NULL ",
+                                                                   "title character varying (255) NOT NULL ",
+                                                                   "pub_id character varying (6) NOT NULL ",
+                                                                   "notes character varying (4000) NULL ",
+                                                                   "pubdate date NOT NULL DEFAULT (CURRENT_DATE)"
+                                                               ],
+                                                   "primary key":  {
+                                                                       "publications_pkey":  "publication_id"
+                                                                   }
+                                               },
+                              "roysched":  {
+                                               "columns":  [
+                                                               "title_id character varying (6) NOT NULL ",
+                                                               "lorange integer  NULL ",
+                                                               "hirange integer  NULL ",
+                                                               "royalty integer  NULL "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "newroysched_title_id_fkey":  {
+                                                                                                     "Cols":  "title_id",
+                                                                                                     "Foreign Table":  "dbo.publications",
+                                                                                                     "Referencing":  "title_id"
+                                                                                                 }
+                                                               }
+                                           },
+                              "discounts":  {
+                                                "primary key":  {
+                                                                    "discounts_pkey":  "discount_id"
+                                                                },
+                                                "foreign key":  {
+                                                                    "fk__discounts__stor":  {
+                                                                                                "Cols":  "stor_id",
+                                                                                                "Foreign Table":  "dbo.stores",
+                                                                                                "Referencing":  "stor_id"
+                                                                                            }
+                                                                },
+                                                "columns":  [
+                                                                "discounttype character varying (80) NOT NULL ",
+                                                                "stor_id character (4) NULL ",
+                                                                "lowqty smallint  NULL ",
+                                                                "highqty smallint  NULL ",
+                                                                "discount numeric (10,2) NOT NULL ",
+                                                                "discount_id integer GENERATED ALWAYS AS IDENTITY"
+                                                            ],
+                                                "index":  {
+                                                              "pk_discounts_idx":  {
+                                                                                       "def":  "CREATE INDEX pk_discounts_idx ON dbo.discounts USING btree (discount_id)",
+                                                                                       "Indexing":  "discount_id"
+                                                                                   }
+                                                          }
+                                            },
+                              "sales":  {
+                                            "columns":  [
+                                                            "stor_id character (4) NOT NULL ",
+                                                            "ord_num character varying (20) NOT NULL ",
+                                                            "ord_date character varying (50) NOT NULL ",
+                                                            "qty integer  NOT NULL ",
+                                                            "payterms character varying (12) NOT NULL ",
+                                                            "title_id character varying (6) NOT NULL "
+                                                        ],
+                                            "foreign key":  {
+                                                                "newsales_stor_id_fkey":  {
+                                                                                              "Cols":  "stor_id",
+                                                                                              "Foreign Table":  "dbo.stores",
+                                                                                              "Referencing":  "stor_id"
+                                                                                          },
+                                                                "newsales_title_id_fkey":  {
+                                                                                               "Cols":  "title_id",
+                                                                                               "Foreign Table":  "dbo.publications",
+                                                                                               "Referencing":  "title_id"
+                                                                                           }
+                                                            },
+                                            "primary key":  {
+                                                                "newsales_pkey":  "ord_num"
+                                                            }
+                                        },
+                              "prices":  {
+                                             "columns":  [
+                                                             "price_id integer GENERATED ALWAYS AS IDENTITY",
+                                                             "edition_id integer  NULL ",
+                                                             "price numeric (10,2) NULL ",
+                                                             "advance numeric (10,2) NULL ",
+                                                             "royalty integer  NULL ",
+                                                             "ytd_sales integer  NULL ",
+                                                             "pricestartdate date NOT NULL DEFAULT (CURRENT_DATE)",
+                                                             "priceenddate date NULL "
+                                                         ],
+                                             "primary key":  {
+                                                                 "prices_pkey":  "price_id"
+                                                             }
+                                         },
+                              "tagtitle":  {
+                                               "columns":  [
+                                                               "title_id character varying (6) NOT NULL ",
+                                                               "is_primary integer  NOT NULL DEFAULT (0)",
+                                                               "tagname_id integer  NOT NULL "
+                                                           ],
+                                               "foreign key":  {
+                                                                   "tagtitle_tagname_id_fkey":  {
+                                                                                                    "Cols":  "tagname_id",
+                                                                                                    "Foreign Table":  "dbo.tagname",
+                                                                                                    "Referencing":  "tagname_id"
+                                                                                                },
+                                                                   "tagtitle_title_id_fkey":  {
+                                                                                                  "Cols":  "title_id",
+                                                                                                  "Foreign Table":  "dbo.publications",
+                                                                                                  "Referencing":  "title_id"
+                                                                                              }
+                                                               },
+                                               "primary key":  {
+                                                                   "tagtitle_pkey":  "title_id"
+                                                               }
+                                           },
+                              "authors":  {
+                                              "columns":  [
+                                                              "au_id character varying (11) NOT NULL ",
+                                                              "au_lname character varying (80) NOT NULL ",
+                                                              "au_fname character varying (80) NOT NULL ",
+                                                              "phone character varying (40) NOT NULL DEFAULT (\u0027UNKNOWN\u0027::character varying)",
+                                                              "address character varying (80) NULL ",
+                                                              "city character varying (40) NULL ",
+                                                              "state character (2) NULL ",
+                                                              "zip character (5) NULL ",
+                                                              "contract bit NOT NULL "
+                                                          ],
+                                              "primary key":  {
+                                                                  "upkcl_auidind":  "au_id"
+                                                              },
+                                              "index":  {
+                                                            "aunmind":  {
+                                                                            "def":  "CREATE INDEX aunmind ON dbo.authors USING btree (au_lname, au_fname)",
+                                                                            "Indexing":  [
+                                                                                             "au_fname",
+                                                                                             "au_lname"
+                                                                                         ]
+                                                                        },
+                                                            "pk_authors_idx":  {
+                                                                                   "def":  "CREATE INDEX pk_authors_idx ON dbo.authors USING btree (au_id)",
+                                                                                   "Indexing":  "au_id"
+                                                                               }
+                                                        }
+                                          },
+                              "editions":  {
+                                               "columns":  [
+                                                               "edition_id integer GENERATED ALWAYS AS IDENTITY",
+                                                               "publication_id character varying (6) NOT NULL ",
+                                                               "publication_type character varying (20) NOT NULL DEFAULT (\u0027book\u0027::character varying)",
+                                                               "editiondate date NOT NULL DEFAULT (CURRENT_DATE)"
+                                                           ],
+                                               "primary key":  {
+                                                                   "editions_pkey":  "edition_id"
+                                                               }
+                                           },
+                              "titleauthor":  {
+                                                  "columns":  [
+                                                                  "au_id character varying (11) NOT NULL ",
+                                                                  "title_id character varying (6) NOT NULL ",
+                                                                  "au_ord integer  NULL ",
+                                                                  "royaltyper integer  NULL "
+                                                              ],
+                                                  "foreign key":  {
+                                                                      "newtitleauthor_title_id_fkey":  {
+                                                                                                           "Cols":  "title_id",
+                                                                                                           "Foreign Table":  "dbo.publications",
+                                                                                                           "Referencing":  "title_id"
+                                                                                                       },
+                                                                      "newtitleauthor_au_id_fkey":  {
+                                                                                                        "Cols":  "au_id",
+                                                                                                        "Foreign Table":  "dbo.authors",
+                                                                                                        "Referencing":  "au_id"
+                                                                                                    }
+                                                                  },
+                                                  "primary key":  {
+                                                                      "newtitleauthor_pkey":  "au_id"
+                                                                  }
+                                              }
+                          }
+            }
+}
