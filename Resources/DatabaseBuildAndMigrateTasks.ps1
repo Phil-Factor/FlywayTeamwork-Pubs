@@ -2086,7 +2086,7 @@ SELECT
 	LEFT OUTER JOIN pg_description
 	ON OID= objoid
 	WHERE Table_Schema IN ($listOfSchemas) 
-		AND TABLE_NAME NOT LIKE <> '$FlywayTableName'
+		AND TABLE_NAME NOT LIKE '$FlywayTableName'
                 ) e;
 "@
 				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
@@ -2135,7 +2135,7 @@ left outer join information_schema.table_constraints rel_tco
                 and t.relkind = 'r'
                 AND indisprimary=FALSE AND indisunique=FALSE
                 AND allindexes.schemaname <>'pg_catalog'
-    
+                AND t.relname <> '$FlywayTableName'
             order by
                 t.relname,
                 i.relname
@@ -2225,7 +2225,8 @@ left outer join information_schema.table_constraints rel_tco
                     else
                         {$SchemaTree.$TheSchema.$TheType.$TheName+=$Contents}
 
-                }		
+                }	
+                
 <# now stitch in the indexes with their columns  #>
 				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
 					$indexSchema = $_.schema;
@@ -2239,8 +2240,8 @@ left outer join information_schema.table_constraints rel_tco
 						$_.index_name -eq $indexName
 					} |
 					Select -ExpandProperty column_name
-					$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
-				}
+                    $SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
+				    }
 				
 				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
@@ -3605,4 +3606,4 @@ function Execute-SQL
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.115'
+'FlywayTeamwork framework  loaded. V1.2.118'
