@@ -2058,17 +2058,37 @@ possible on information schema #>
 "@
 				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 				#now get the details of the routines
-				$query = @'
-            SELECT json_agg(e) 
-            FROM (
-            SELECT lower(routine_type) as type, routine_name, ROUTINE_SCHEMA as schema, 
-            left(routine_definition,70)||CASE when LENGTH(routine_definition)>70 THEN '...' ELSE '' END AS definition, 
-            MD5(routine_definition) AS hash 
-            FROM information_schema.routines
-            WHERE routine_catalog=CURRENT_DATABASE() 
-              AND routine_schema NOT IN ('pg_catalog','information_schema')
+				$query = @"
+ SELECT json_agg(e) 
+            FROM (SELECT 
+		Routine_name AS "name", Routine_Schema AS "schema", 
+		CONCAT(Routine_Schema,'.', Routine_name) AS "fullname", 
+		LOWER(routine_type) AS "type",
+		routine_definition AS definition, 
+		MD5(routine_definition) AS "hash",
+		description AS "comment"
+   FROM information_schema.routines
+	INNER JOIN pg_proc ON proname LIKE routine_name
+	LEFT OUTER JOIN pg_description
+	ON OID= objoid
+	WHERE Routine_Schema IN ('dbo','people') 	
+UNION ALL
+SELECT 
+		Table_name AS "name", 
+		Table_Schema AS "schema", 
+		CONCAT(table_Schema,'.', table_name) AS "fullname", 
+		LOWER(replace(table_type,'BASE ','')) AS "type",
+		'' AS definition, 
+		MD5('') AS HASH,
+		description AS COMMENT
+	FROM information_schema.tables
+		INNER JOIN pg_class ON relname LIKE table_name
+	LEFT OUTER JOIN pg_description
+	ON OID= objoid
+	WHERE Table_Schema IN ($listOfSchemas) 
+		AND TABLE_NAME NOT LIKE <> '$FlywayTableName'
                 ) e;
-'@
+"@
 				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
 				#now do the constraints
 				$query = @"
@@ -2077,7 +2097,7 @@ possible on information schema #>
                tc.Table_name, kcu.constraint_name, kcu.column_name, 
 					ordinal_position,
 					rel_tco.table_schema || '.' || rel_tco.table_name AS "referenced_table",
-					kcu.column_name AS "Referenced_column_name"
+					kcu.column_name AS "referenced_column_name"
             FROM information_schema.table_constraints AS tc 
             JOIN information_schema.key_column_usage AS kcu 
               ON tc.constraint_name = kcu.constraint_name 
@@ -2134,9 +2154,7 @@ left outer join information_schema.table_constraints rel_tco
 '@ | ConvertFrom-Json
 				
             <# RDBMS  #>
-				$THeTypes = $TheRelationMetadata | Select schema, type -Unique #|foreach{$_.type}
-                if ( $Routines -ne $null)
-				    {$THeTypes += $Routines | Select schema, type -Unique}
+				$THeTypes = $Routines | Select schema, type -Unique
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
 				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
@@ -2190,7 +2208,25 @@ left outer join information_schema.table_constraints rel_tco
 	                { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
 	
                 }
-            <# now stitch in the indexes with their columns  #>
+              <# now stitch in the constraints with their columns  #>
+              $routines|Foreach {
+                    $TheSchema=$_.schema;
+                    $TheName=$_.name;
+                    $TheType=$_.type;
+                    $TheHash=$_.hash;
+                    $Thecomment=$_.comment;
+                    $TheDefinition=$_.definition;
+                    $Contents=@{}
+                    if (!([string]::IsNullOrEmpty($TheDefinition))) {$Contents.'definition'=$TheDefinition}
+                    if ($TheType -ne 'table') {$Contents.'hash'=$Thehash}
+                    if (!([string]::IsNullOrEmpty($Thecomment))) {$Contents.'comment'=$TheComment}
+                    if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
+                        {$SchemaTree.$TheSchema.$TheType.$TheName=$Contents}
+                    else
+                        {$SchemaTree.$TheSchema.$TheType.$TheName+=$Contents}
+
+                }		
+<# now stitch in the indexes with their columns  #>
 				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
 					$indexSchema = $_.schema;
 					$indexedTable = $_.table_name;
@@ -2210,7 +2246,7 @@ left outer join information_schema.table_constraints rel_tco
 				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 			}
 <# this is the section that creates a MariaDB or MySQL Database Model based where
-possible on information schema
+possible on information schema $param1=$dbdetails
  #>
 'mysql|mariaDB' {
         #create a delimited list for SQL's IN command
@@ -2239,12 +2275,40 @@ possible on information schema
 				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 				#now get the details of the routines
 				$query = @"
-            SELECT routine_name, LOWER(routine_type),
-            concat(left(routine_definition,70),
-	            CASE when LENGTH(routine_definition)>70 THEN '...' ELSE '' END) AS definition, 
-            MD5(routine_definition) AS hash 
-            FROM information_schema.routines
-            WHERE Routine_Schema IN ($ListOfSchemas)
+            SELECT 
+		Routine_name AS "name", Routine_Schema AS "schema", 
+		CONCAT(Routine_Schema,'.', Routine_name) AS "fullname", 
+		LOWER(routine_type) AS "type",
+		CONCAT(LEFT(routine_definition,800), CASE WHEN LENGTH(routine_definition)>800 THEN '...' ELSE '' END) AS definition, 
+		MD5(routine_definition) AS "hash",
+		Routine_Comment AS "comment"
+	FROM information_schema.routines
+	WHERE Routine_Schema IN ('dbo','people') 
+UNION ALL
+SELECT 
+		Table_name AS "name", 
+		Table_Schema AS "schema", 
+		CONCAT(table_Schema,'.', table_name) AS "fullname", 
+		'table' AS "type",
+		'' AS definition, 
+		MD5('') AS HASH,
+		TABLE_Comment AS COMMENT
+	FROM information_schema.tables
+	WHERE Table_type='base table' 
+		AND Table_Schema IN ('dbo','people') 
+		AND TABLE_NAME NOT LIKE 'flyway_schema_history' 
+UNION ALL
+	SELECT 
+		Table_name AS "name", 
+		Table_Schema AS "schema", 
+		CONCAT(Table_Schema,'.', Table_name) AS "fullname", 
+		'view' AS "type",
+		View_definition AS definition, 
+		MD5(View_definition) AS HASH,
+		'' AS COMMENT
+	FROM information_schema.views
+		WHERE Table_Schema IN ($ListOfSchemas) 
+		AND TABLE_NAME NOT LIKE '$FlywayTableName'
 "@
 				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
 				#now do the constraints
@@ -2278,9 +2342,7 @@ possible on information schema
 "@ | ConvertFrom-Json
 				
             <# RDBMS  #>
-				$THeTypes = $TheRelationMetadata | Select schema, type -Unique #|foreach{$_.type}
-                if ( $Routines -ne $null)
-				    {$THeTypes += $Routines | Select schema, type -Unique}
+				$THeTypes = $Routines | Select schema, type -Unique
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
 				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
@@ -2306,7 +2368,7 @@ possible on information schema
 					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
 				}
 				
-            <# now stitch in the constraints with their columns Foreign keys need dealinmg with #>
+            <# now stitch in the constraints with their columns  #>
 				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
 	                $constraintSchema = $_.schema;
 	                $constrainedTable = $_.table_name;
@@ -2351,7 +2413,26 @@ possible on information schema
 					Select -ExpandProperty column_name
 					$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
 				}
-				
+             	$routines|Foreach {
+                    $TheSchema=$_.schema;
+                    $TheName=$_.name;
+                    $TheType=$_.type;
+                    $TheHash=$_.hash;
+                    $Thecomment=$_.comment;
+                    $TheDefinition=$_.definition;
+                    $Contents=@{}
+                    if (!([string]::IsNullOrEmpty($TheDefinition))) {$Contents.'definition'=$TheDefinition}
+                    if ($TheType -ne 'table') {$Contents.'hash'=$Thehash}
+                    if (!([string]::IsNullOrEmpty($Thecomment))) {$Contents.'comment'=$TheComment}
+                    if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
+                        {$SchemaTree.$TheSchema.$TheType.$TheName=$Contents}
+                    else
+                        {$SchemaTree.$TheSchema.$TheType.$TheName+=$Contents}
+
+                }		
+
+
+
 				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 			}
