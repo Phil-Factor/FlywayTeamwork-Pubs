@@ -47,7 +47,7 @@ $dataPath= if ([string]::IsNullOrEmpty($FileLocations.DataPath))
 $VersionsPath= if ([string]::IsNullOrEmpty($FileLocations.VersionsPath)) 
         {'Versions'} else {"$($FileLocations.VersionsPath)"}
 $Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory)) 
-        {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
+        {'reports'} else {"$($FileLocations.Reportdirectory)"}
 #$ReportLocation is used for the branch version
 $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
 

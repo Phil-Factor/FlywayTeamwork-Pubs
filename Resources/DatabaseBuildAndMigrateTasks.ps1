@@ -35,7 +35,7 @@ produces a build script from the database, using SQL Compare. It saves the build
 **$ExecuteTableSmellReport** *(SQL Server only)*
 This scriptblock executes SQL that produces a report in XML or JSON from the database that alerts you to tables that may have issues
 
-**$ExecuteTableDocumentationReport** *(SQL Server only)*
+**$ExecuteTableDocumentationReport** *(SQL Server,MySQL, MariaDB, PosgreSQL)*
  This places in a report a json report of the documentation of every table and its columns. If you add or change tables, this can be subsequently used to update the **AfterMigrate** callback script
 for the documentation. 
 
@@ -75,9 +75,6 @@ This script creates a PUML file for a Gantt chart at the current version of the 
 
 **$CreatePossibleMigrationScript** *(SQL Server only)*
 This creates a forward migration that scripts out all the changes made to the database since the current migration
-
-**$SaveDatabaseModelIfNecessary** *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
-This writes a JSON model of the database to a file that can be used subsequently to check for database version-drift or to create a narrative of changes for the flyway project between versions. 
 
 **$SaveFlywaySchemaHistoryIfNecessary** *(all RDBMSs)*
 This reads the flyway history table, and uses the information to annotate the directories containing the various reports and scripts for that version
@@ -295,7 +292,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		Try
 		{
 			
-			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" '--html')
+			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" '--comments'  '--html')
 			if ($? -eq 0)
 			{
 				$problems += "The MySQL CLI returned an error $($error[0])"
@@ -1804,23 +1801,24 @@ SELECT @Json
 
 <# This places in a report a json report of the documentation of every table and its
 columns. If you add or change tables, this can be subsequently used to update the 
-AfterMigrate callback script
+AfterMigrate callback script $param1=$dbDetails
 for the documentation */#>
 
 $ExecuteTableDocumentationReport = {
 	Param ($param1) # $ExecuteTableDocumentationReport  - parameter is a hashtable
-
-
+	
+	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 	$problems = @()
-	@('server', 'database', 'version', 'project') | foreach{
-		if ($param1.$_ -eq $null)
-		{ $Problems= "no value for '$($_)'" }
+	@('server', 'database', 'version', 'project', 'rdbms') | foreach{
+		$value = "$($param1.$_.Trim())"
+		if ([string]::IsNullOrEmpty($value))
+		{ $Problems = "no value for '$($_)'" }
 	}
-	$escapedProject=($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
-	$MyDatabasePath = 
-        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-        else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
+	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	$MyDatabasePath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
+	else { "$($param1.reportLocation)\$($param1.Version)\Reports" } #else the simple version
 	if (-not (Test-Path -PathType Container $MyDatabasePath))
 	{
 		# does the path to the reports directory exist?
@@ -1828,76 +1826,138 @@ $ExecuteTableDocumentationReport = {
 		$null = New-Item -ItemType Directory -Force $MyDatabasePath;
 	}
 	$MyOutputReport = "$MyDatabasePath\TableDocumentation.JSON"
-#The JSON Query must have 'SET NOCOUNT ON' and assign the result to 'NVARCHAR MAX' which you select from.
-
-$Query= @'
-SET NOCOUNT ON
-SET QUOTED_IDENTIFIER ON
-DECLARE  @Json NVARCHAR(MAX)
-DECLARE @TheSQExpression NVARCHAR(MAX)
-DECLARE @TheErrorNumber INT
-SELECT @TheErrorNumber=0
- BEGIN TRY
-      EXECUTE sp_executesql  @stmt = N'Declare @null nvarchar(100)
-	  SELECT @null=String_Agg(text,'','') FROM (VALUES (''testing''),(''testing''),(''one''),(''Two''),(''three''))f(Text)'
-    END TRY
-    BEGIN CATCH
-       SELECT @TheErrorNumber=Error_Number() 
-    END CATCH;
-/*On Transact SQL language the Msg 195 Level 15 - 'Is not a recognized built-in function name'
- means that the function name is misspelled, not supported  or does not exist. */
-IF @TheErrorNumber = 0 
-SELECT @TheSQExpression=N'Select @TheJson=(SELECT Object_Schema_Name(TABLES.object_id) + ''.'' + TABLES.name AS TableObjectName,
-     Lower(Replace(type_desc,''_'','' '')) AS [Type], --the type of table source
-     Coalesce(Convert(NVARCHAR(3800), ep.value), '''') AS "Description",
-      (SELECT Json_Query(''{''+String_Agg(''"''+String_Escape(TheColumns.name,N''json'')
-            +''":''+''"''+Coalesce(String_Escape(Convert(NVARCHAR(3800),epcolumn.value),N''json''),'''')+''"'', '','')
-            WITHIN GROUP ( ORDER BY TheColumns.column_id ASC )  +''}'') Columns
-        FROM sys.columns AS TheColumns
-         LEFT OUTER JOIN sys.extended_properties epcolumn --get any description
-          ON epcolumn.major_id = TABLES.object_id
-         AND epcolumn.minor_id = TheColumns.column_id
-		 AND epcolumn.class=1
-         AND epcolumn.name = ''MS_Description'' --you may choose a different name
-        WHERE TheColumns.object_id = TABLES.object_id)
-     AS TheColumns
-      FROM sys.objects tables
-        LEFT OUTER JOIN sys.extended_properties ep
-          ON ep.major_id = TABLES.object_id
-         AND ep.minor_id = 0
-         AND ep.name = ''MS_Description''
-      WHERE type IN (''IF'',''FT'',''TF'',''U'',''V'')
-FOR JSON auto)'
-ELSE
-SELECT @TheSQExpression=N'Select @TheJson=(SELECT Object_Schema_Name(TABLES.object_id) + ''.'' + TABLES.name AS TableObjectName,
-     Lower(Replace(type_desc,''_'','' '')) AS [Type], --the type of table source
-     Coalesce(Convert(NVARCHAR(3800), ep.value), '''') AS "Description",	
+	#handy stuff for where clauses
+	$ListOfSchemas = ($param1.schemas -split ',' | foreach{ "'$_'" }) -join ',';
+	$FlywayTableName = ($param1.flywayTable -split '\.')[1]
 	
-	(SELECT	Json_Query(''{''+Stuff((SELECT '', ''+''"''+String_Escape(TheColumns.name,N''json'')
-            +''":''+''"''+Coalesce(String_Escape(Convert(NVARCHAR(3800),epcolumn.value),N''json''),'''')+''"''
-		FROM sys.columns TheColumns
-         LEFT OUTER JOIN sys.extended_properties epcolumn --get any description
-          ON epcolumn.major_id = Tables.object_id
-         AND epcolumn.minor_id = TheColumns.column_id
-		 AND epcolumn.class=1
-         AND epcolumn.name = ''MS_Description'' --you may choose a different name
-        WHERE TheColumns.object_id = Tables.object_id
-		ORDER BY TheColumns.column_id
-		 FOR XML PATH(''''), TYPE).value(''.'', ''nvarchar(max)''),1,2,'''')  +''}'' )) TheColumns
-      FROM sys.objects tables
-        LEFT OUTER JOIN sys.extended_properties ep
-          ON ep.major_id = TABLES.object_id
-         AND ep.minor_id = 0
-         AND ep.name = ''MS_Description''
-      WHERE type IN (''IF'',''FT'',''TF'',''U'',''V'')
-FOR JSON AUTO)'
-
-EXECUTE sp_EXECUTESQL @TheSQExpression,N'@TheJSON nvarchar(max) output',@TheJSON=@Json OUTPUT
-SELECT @JSON
-
-'@
-$GetdataFromSQLCMD.Invoke($param1,$query,$null,$true)
-    
+	switch -Regex ($param1.RDBMS)
+	{
+		'mysql|mariadb'   {
+			$ColumnComments = @"
+SELECT 
+  CONCAT( c.table_schema, '.',c.TABLE_NAME) AS TableObjectName, 
+  case when v.Table_Name IS NULL then 'user table' ELSE 'view' END AS "Type", 
+  COLUMN_NAME AS "The_Column_Name", COLUMN_COMMENT as "Description" 
+FROM information_schema.columns  c
+LEFT OUTER JOIN information_schema.views v 
+ON c.TABLE_NAME=v.Table_Name
+AND v.table_Schema=c.table_Schema
+WHERE c.table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+	and c.TABLE_NAME <> 'flyway_schema_history'
+ORDER BY c.TABLE_NAME, ordinal_Position;
+"@;
+			#Although there is metadata storage for comments in views, it isnt used.
+			$ObjectComments =@"
+SELECT CONCAT( table_schema, '.',TABLE_NAME) AS TableObjectName,
+'user table' as "Type",
+TABLE_COMMENT AS "Description" 
+FROM information_schema.tables
+WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+	AND TABLE_NAME <> '$FlywayTableName'
+	AND TABLE_TYPE = 'BASE TABLE'
+		
+"@
+		}
+		
+		'postgresql' {
+			#fetch all the relations (anything that produces columns)
+			$ColumnComments =  @"
+            SELECT json_agg(e) 
+            FROM (
+            SELECT isc.table_schema||'.'||isc.table_name AS TableObjectName,
+	CASE WHEN views.table_name IS NULL THEN 'table' else 'view' END AS TYPE,
+	COLUMN_NAME AS "The_Column_Name",
+   -- obj_description(format('%s.%s',isc.table_schema,isc.table_name)::regclass::oid, 'pg_class') as table_description,
+    pg_catalog.col_description(format('%s.%s',isc.table_schema,isc.table_name)::regclass::oid,isc.ordinal_position) as Description
+FROM
+   information_schema.columns isc
+ left outer JOIN (SELECT  table_schema,table_name FROM information_schema."views")as views
+            ON isc.table_schema=views.table_schema AND  isc.TABLE_NAME=views.table_name
+            WHERE isc.table_catalog=current_database() AND isc.table_schema NOT IN ('pg_catalog','information_schema')
+            and isc.TABLE_NAME <> '$FlywayTableName'
+            ORDER BY isc.table_schema, isc.TABLE_NAME, isc.ordinal_position        
+                ) e;
+"@
+			$ObjectComments =@"
+SELECT json_agg(e) 
+  FROM (
+    SELECT isc.table_schema||'.'||isc.table_name AS TableObjectName,
+	replace(lower(table_type),'base ','') AS TYPE,
+	obj_description(format('%s.%s',isc.table_schema,isc.table_name)::regclass::oid, 'pg_class') as Description
+     FROM
+      information_schema.tables isc
+      WHERE isc.table_catalog=current_database() AND isc.table_schema NOT IN ('pg_catalog','information_schema')
+      and isc.TABLE_NAME <> '$FlywayTableName'
+     ORDER BY isc.table_schema, isc.TABLE_NAME  
+    ) e;
+"@
+		}
+		'Sqlserver'   {
+			# start of SQL Server comments/description
+			$ColumnComments = @"
+SELECT Object_Schema_Name (objects.object_id) + '.' + objects.name AS "TableObjectName",
+       Lower (Replace (objects.type_desc, '_', ' ')) AS "Type",
+       columns.name AS "The_Column_Name",
+       Convert (VARCHAR(MAX), epcolumn.value) AS "Description"
+  FROM
+  sys.columns
+    INNER JOIN sys.objects
+      ON objects.object_id = COLUMNS.object_id
+    LEFT OUTER JOIN sys.extended_properties epcolumn --get any description
+      ON epcolumn.major_id = objects.object_id
+     AND epcolumn.minor_id = COLUMNS.column_id
+     AND epcolumn.class = 1
+     AND epcolumn.name = 'MS_Description' --you may choose a different name
+  WHERE
+  columns.object_id = objects.object_id AND is_ms_shipped = 0
+  AND Object_Schema_Name (objects.object_id) IN ($ListOfSchemas) 
+  AND objects.name <> '$FlywayTableName'
+  order by objects.object_id, columns.column_id
+  FOR JSON auto, INCLUDE_NULL_VALUES
+"@
+			$ObjectComments = @"
+SELECT Object_Schema_Name (tables.object_id) + '.' + tables.name AS "TableObjectName",
+       Lower (Replace (tables.type_desc, '_', ' ')) AS "Type",
+       Convert (VARCHAR(MAX), ep.value) AS "Description"
+  FROM
+  sys.objects tables
+    LEFT OUTER JOIN sys.extended_properties ep
+      ON ep.major_id = tables.object_id
+     AND ep.minor_id = 0
+     AND ep.name = 'MS_Description'
+  WHERE
+  tables.type IN ('IF', 'FT', 'TF', 'U', 'V')
+  AND Object_Schema_Name (tables.object_id) IN ($ListOfSchemas) 
+  AND Tables.name <> '$FlywayTableName'
+  FOR JSON auto, INCLUDE_NULL_VALUES
+"@
+		}
+	}
+	if ($problems.Count -eq 0)
+	{
+		$Columns = Execute-SQL $param1 $ColumnComments | convertFrom-JSON
+		$Objects = Execute-SQL $param1 $ObjectComments | convertFrom-JSON
+		#Create the JSON documentation file
+		$objects | foreach{
+			$What = $_;
+			$TableObjectName = $_.TableObjectName;
+			$Type = $_.Type;
+			$TheColumns = [ordered]@{ }
+			$Columns | where { $_.TableObjectName -eq $TableObjectName -and $_.Type -eq $Type } | foreach{
+				$TheColumns."$($_.The_Column_Name)" = "$($_.Description)";
+			}
+			[ordered]@{
+				"TableObjectName" = $TableObjectName;
+				"Type" = $Type;
+				"Description" = "$($_.Description)";
+				"TheColumns" = $TheColumns
+				
+			}
+			
+		} | convertTo-json > $MyOutputReport
+		
+	}
+	
 	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'ExecuteTableDocumentationReport' += $problems;
@@ -1907,7 +1967,6 @@ $GetdataFromSQLCMD.Invoke($param1,$query,$null,$true)
 		$Param1.WriteLocations.'ExecuteTableDocumentationReport' = $MyOutputReport;
 	}
 }
-
 
 
 <#This writes a JSON model of the database to a file that can be used subsequently
