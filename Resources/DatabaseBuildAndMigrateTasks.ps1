@@ -121,8 +121,8 @@ without having to explicitly open a connection. it will take either SQL files or
 		#a query. If a file, put the path in the $fileBasedQuery parameter
 		$fileBasedQuery = $null) # $GetdataFromSqlite: (Don't delete this)
 	$problems = @()
-	$command = Try { get-command sqlite }
-	Catch { $null }
+    $command=$null;
+    $command = get-command sqlite -ErrorAction Ignore 
 	if ($command -eq $null)
 	  {  
          if ($sqliteAlias -ne $null)
@@ -181,8 +181,8 @@ set 'simpleText' to true #>
 	else
 	{
 		#the alias must be set to the path of your installed version of SQL Compare
-		$command = Try { get-command sqlcmd }
-		Catch { $null }
+        $command=$null;
+        $command = get-command SQLCmd -ErrorAction Ignore 
 		if ($command -eq $null)
 		{
 			if ($SQLCmdAlias -ne $null)
@@ -270,8 +270,8 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		$simpleText = $false) # $GetdataFromMySQL: (Don't delete this)
 	$problems = @()
 	
-	$command = Try { get-command mysql }
-	Catch { $null }
+    $command=$null;
+    $command = get-command Mysql -ErrorAction Ignore 
 	if ($command -eq $null)
 	{
 		if ($MySQLAlias -ne $null)
@@ -341,8 +341,8 @@ explicitly open a connection. it will take either SQL files or queries.  #>
         $simpleText=$false)  # $GetdataFromPsql: (Don't delete this)
  
     $problems=@()
-	$command = Try { get-command psql }
-	Catch { $null }
+    $command=$null;
+    $command = get-command psql -ErrorAction Ignore 
 	if ($command -eq $null)
         {    if ($psqlAlias -ne $null)
         {Set-Alias psql $psqlAlias}
@@ -582,8 +582,8 @@ $CheckCodeInDatabase = {
 	$Problems = @(); #our local problem counter  
     $Feedback=@(); 
     $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'; 
-	$command = Try { get-command codeguard }
-	Catch { $null }
+    $command=$null;
+    $command = get-command Codeguard -ErrorAction Ignore 
 	if ($command -eq $null)
 	{    if ($CodeGuardAlias -ne $null)
         {Set-Alias CodeGuard   $CodeGuardAlias }
@@ -686,9 +686,9 @@ $CheckCodeInMigrationFiles = {
 	$Problems = @(); #our local problem counter
     $Feedback = @();
     $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8';
-	$command = Try { get-command codeguard }
-	Catch { $null }
-	if ($command -eq $null)
+	$command=$null;
+    $command = get-command Codeguard -ErrorAction Ignore 
+    if ($command -eq $null) 
 	{    if ($CodeGuardAlias -ne $null)
         {Set-Alias CodeGuard   $CodeGuardAlias }
     else
@@ -987,36 +987,33 @@ $IsDatabaseIdenticalToSource = {
 	$problems = @();
 	$warnings = @();
 	@('version', 'server', 'database', 'project') |
-	foreach{ if ($param1.$_ -in @($null,'')) { $problems += "no value for '$($_)'" } }
-	<#if ($param1.Escapedserver -eq $null) #check that escapedValues are in place
-	{
-		$EscapedValues = $param1.GetEnumerator() |
-		where { $_.Name -in ('server', 'Database', 'Project') } | foreach{
-			@{ "Escaped$($_.Name)" = ($_.Value.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') }
-		}
-		$EscapedValues | foreach{ $param1 += $_ }
-	}#>
+	foreach{ if ($param1.$_ -in @($null, '')) { $problems += "no value for '$($_)'" } }
 	if ($param1.Version -eq '0.0.0') { $identical = $null; $warnings += "Cannot compare an empty database" }
 	$GoodVersion = try { $null = [Version]$param1.Version; $true }
 	catch { $false }
 	if (-not ($goodVersion))
 	{ $problems += "Bad version number '$($param1.Version)'" }
 	#the alias must be set to the path of your installed version of SQL Compare
-    $command = Try { get-command SQLCompare} Catch {
-    	if ($SQLCompareAlias-ne $null)
-            {Set-Alias SQLCompare $SQLCompareAlias;}
-        else
-            {$problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder'}
-    }    $escapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
+	$command = $null;
+	$command = get-command SQLCompare -ErrorAction Ignore
+	if ($command -eq $null)
+	{
+		if ($SQLCompareAlias -ne $null)
+		{ Set-Alias SQLCompare $SQLCompareAlias; }
+		else
+		{ $problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder' }
+	}
+	$escapedProject = ($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 	if ($problems.Count -eq 0)
 	{
 		
-        $SourcePath= if ([string]::IsNullOrEmpty($param1.SourcePath)) {'Source'} else {"$($param1.SourcePath)"}
-        #the database scripts path would be up to you to define, of course
+		$SourcePath = if ([string]::IsNullOrEmpty($param1.SourcePath)) { 'Source' }
+		else { "$($param1.SourcePath)" }
+		#the database scripts path would be up to you to define, of course
 		$MyDatabasePath =
-        if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-          {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath"} 
-        else {"$($param1.reportLocation)\$($param1.Version)\$sourcePath"} #else the simple version
+		if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+		{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$sourcePath" }
+		else { "$($param1.reportLocation)\$($param1.Version)\$sourcePath" } #else the simple version
 		$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
 			"/Scripts1:$MyDatabasePath",
@@ -1026,36 +1023,36 @@ $IsDatabaseIdenticalToSource = {
 			"/force",
 			"/LogLevel:Warning"
 		)
-        
-        if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
+		
+		if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
 		{
 			$CLIArgs += @(
 				"/username2:$($param1.uid)",
 				"/Password2:$($param1.pwd)"
 			)
 		}
-         if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
+		if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		{
 			$CLIArgs += @(
 				"/filter:$($param1.filterpath)"
 			)
-         }
-        else
-            {
-            $CLIArgs += @(
-              "/exclude:table:$($param1.flywayTable)",
-			   '/exclude:ExtendedProperty') #trivial}
-		} 
+		}
+		else
+		{
+			$CLIArgs += @(
+				"/exclude:table:$($param1.flywayTable)",
+				'/exclude:ExtendedProperty') #trivial}
+		}
 	}
-    $MyVersionReportPath = 
-              if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
-                {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
-              else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
+	$MyVersionReportPath =
+	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	{ "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports" }
+	else { "$($param1.reportLocation)\$($param1.Version)\Reports" } #else the simple version
 	if ($problems.Count -eq 0)
 	{
 		if (Test-Path -PathType Container $MyDatabasePath) #if it does already exist
 		{
-			Sqlcompare @CLIArgs >"$MyVersionReportPath\VersionComparison.txt"#simply check that the two are identical
+			Sqlcompare @CLIArgs >"$MyVersionReportPath\VersionComparison.txt" #simply check that the two are identical
 			if ($LASTEXITCODE -eq 0) { $identical = $true; "Database Identical to source" }
 			elseif ($LASTEXITCODE -eq 79) { $identical = $False; "Database Different to source" }
 			else
@@ -1117,8 +1114,9 @@ $CreateScriptFoldersIfNecessary = {
 		{
 			'sqlserver' #using SQL Server
 			{
-				$command = Try { get-command SQLCompare }
-				Catch
+				$command=$null;
+                $command = get-command SQLCompare -ErrorAction Ignore 
+                if ($command -eq $null) 
 				{
 					if ($SQLCompareAlias -ne $null)
 					{ Set-Alias SQLCompare $SQLCompareAlias }
@@ -1165,8 +1163,9 @@ $CreateScriptFoldersIfNecessary = {
 			}
 			'mariadb|mysql' #--do it with MySQL or MariaDB
 			{
-				$command = Try { get-command mysqldump }
-				Catch
+				$command=$null;
+                $command = get-command mysqldump -ErrorAction Ignore 
+                if ($command -eq $null)
 				{
 					if ($mysqldumpAlias -ne $null)
 					{ Set-Alias mysqldump $mysqldumpAlias  }
@@ -1203,8 +1202,8 @@ $CreateScriptFoldersIfNecessary = {
 			}
 			'postgresql'
 			{
-				$command = Try { get-command pg_dump }
-				Catch { $null };
+				$command=$null;
+                $command = get-command pg_dump -ErrorAction Ignore 
 				if ($command -eq $null)
 				{
 					if ($PGDumpAlias -ne $null)
@@ -1278,8 +1277,8 @@ $CreateScriptFoldersIfNecessary = {
 			}
 			'sqlite'
 			{
-				$command = Try { get-command sqlite }
-				Catch { $null };
+				$command=$null;
+                $command = get-command sqlite -ErrorAction Ignore 
 				if ($command -eq $null)
 				{
 					if ($sqliteAlias -ne $null)
@@ -1379,7 +1378,9 @@ $CreateBuildScriptIfNecessary = {
 			'sqlserver' #using SQL Server
 			{
             	#the alias must be set to the path of your installed version of SQL Compare
-			    $command = Try { get-command SQLCompare} Catch {
+			    $command = get-command SQLCompare -ErrorAction Ignore 
+                if ($command -eq $null) 
+                    {
     	            if ($SQLCompareAlias-ne $null)
                         {Set-Alias SQLCompare $SQLCompareAlias}
                     else
@@ -1432,7 +1433,8 @@ $CreateBuildScriptIfNecessary = {
 			'postgresql' #using SPostgreSQL
 			{
             	#the alias must be set to the path of your installed version of Spg_dump
-             $command = Try { get-command pg_dump} Catch { $null };
+             $command=$null;
+             $command = get-command pg_dump -ErrorAction Ignore;
 	         if ($command -eq $null)               
                 {if ($PGDumpAlias -ne $null)
                     {Set-Alias pg_dump   $PGDumpAlias;}
@@ -1462,7 +1464,9 @@ $CreateBuildScriptIfNecessary = {
 			}
             'mysql|mariadb'
             {
-            $command = Try { get-command mysqldump } Catch { $null };
+                $command=$null;
+                $command = get-command mysqldump -ErrorAction Ignore 
+                
 	            if ($command -eq $null)
 	                {if ($MySQLDumpAlias -ne $null)
                         {Set-Alias mysqldump $MySQLDumpAlias }
@@ -1476,7 +1480,8 @@ $CreateBuildScriptIfNecessary = {
             }
             'sqlite' #using SQLite
             {
-                $command = Try { get-command sqlite } Catch { $null };
+                $command=$null;
+                $command = get-command sqlite -ErrorAction Ignore 
 	            if ($command -eq $null)
 	                {if ($sqliteAlias -ne $null)
                         {Set-Alias sqlite $sqliteAlias }
@@ -1551,8 +1556,8 @@ $ExecuteTableSmellReport = {
 	}
 	$MyOutputReport = "$MyDatabasePath\TableIssues.JSON"
 	#the alias must be set to the path of your installed version of SQL Compare
-	$command = Try { get-command SQLCmd }
-	Catch { $null }
+	$command=$null;
+    $command = get-command SQLCmd -ErrorAction Ignore 
 	if ($command -eq $null)
 	{  if ($SQLCmdAlias -ne $null)
         {Set-Alias SQLCmd   $SQLCmdAlias  }
@@ -2500,7 +2505,7 @@ UNION ALL
 <# this is the section that creates a SQL Server Database Model based where
 possible on information schema #>
 			'sqlserver'  {
-				#fetch all the relations (anything that produces columns)
+				#fetch all the relations (anything that produces columns) $param1=$dbDetails
 				$query = @"
 SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Replace(Replace(TheObjects.type_desc,'user_',''),'sql_','')), '_', ' ') AS type, Object_Name(TheObjects.object_id) Name, 
             colsandparams.name + ' ' +
@@ -2600,50 +2605,85 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
 				
 #now do the constraints
 				$query = @"
-   SELECT f.constraintSchema, f.constrainedTable, f.constraintType,
-        f.constraintName, f.details FROM
-	(
-	SELECT schema_name(fk_tab.schema_id) AS "constraintSchema",
-	fk_tab.name as constrainedTable,
-        'Foreign key' AS constraintType,
-        fk.name as constraintName,
-        schema_name(pk_tab.schema_id) + '.' + pk_tab.name AS details
-    from sys.foreign_keys fk
-        inner join sys.tables fk_tab
-            on fk_tab.object_id = fk.parent_object_id
-        inner join sys.tables pk_tab
-            on pk_tab.object_id = fk.referenced_object_id
-        inner join sys.foreign_key_columns fk_cols
-            on fk_cols.constraint_object_id = fk.object_id
-    union all
-    select schema_name(t.schema_id) AS "Schema",
-		t.[name],
-        'Check constraint',
-        con.[name] as constraint_name,
-        con.[definition]
-    from sys.check_constraints con
-        left outer join sys.objects t
-            on con.parent_object_id = t.object_id
-        left outer join sys.all_columns col
-            on con.parent_column_id = col.column_id
-            and con.parent_object_id = col.object_id
-    union all
-    select schema_name(t.schema_id) AS "Schema",
-		t.[name],
-        'Default constraint',
-        con.[name],
-        col.[name] + ' = ' + con.[definition]
-    from sys.default_constraints con
-        left outer join sys.objects t
-            on con.parent_object_id = t.object_id
-        left outer join sys.all_columns col
-            on con.parent_column_id = col.column_id
-            and con.parent_object_id = col.object_id)f
-    where f.constrainedTable <>'$FlywayTableName'
-order by constraintSchema,constrainedTable, constrainttype, constraintname
-FOR JSON auto
+SELECT *
+  FROM
+    (SELECT Schema_Name (tab.schema_id) AS "schema",
+            tab.name AS [table_name], 'Foreign Key' AS "type",
+            fk.name AS "constraint_name", '' AS "definition",
+            Schema_Name (pk_tab.schema_id) + '.' + pk_tab.name AS referenced_table,
+            col.name AS column_name,
+            fk_cols.constraint_column_id AS ordinal_position,
+            pk_col.name AS referenced_column,
+            fk_cols.constraint_column_id AS referenced_ordinal_position
+       FROM
+       sys.tables tab
+         INNER JOIN sys.columns col
+           ON col.object_id = tab.object_id
+         INNER JOIN sys.foreign_key_columns fk_cols
+           ON fk_cols.parent_object_id = tab.object_id
+          AND fk_cols.parent_column_id = col.column_id
+         INNER JOIN sys.foreign_keys fk
+           ON fk.object_id = fk_cols.constraint_object_id
+         INNER JOIN sys.tables pk_tab
+           ON pk_tab.object_id = fk_cols.referenced_object_id
+         INNER JOIN sys.columns pk_col
+           ON pk_col.column_id = fk_cols.referenced_column_id
+          AND pk_col.object_id = fk_cols.referenced_object_id
+     UNION ALL
+     SELECT Object_Schema_Name (tab.object_id) AS "Schema", tab.name,
+            CASE WHEN pk.is_primary_key = 1 THEN 'primary key'
+              WHEN pk.is_unique_constraint = 1 THEN 'unique key' ELSE 'index' END AS "Type",
+            pk.name, '' AS "Definition", NULL AS referenced_table,
+            col.name AS fk_column_name, col.column_id AS fk_ordinal_position,
+            NULL AS referenced_column, NULL AS referenced_ordinal_position
+       FROM
+       sys.tables tab
+         LEFT OUTER JOIN sys.indexes pk
+           ON tab.object_id = pk.object_id
+         INNER JOIN sys.index_columns ic
+           ON ic.object_id = tab.object_id AND ic.index_id = pk.index_id
+         INNER JOIN sys.columns col
+           ON ic.object_id = col.object_id AND ic.column_id = col.column_id
+     UNION ALL
+     SELECT Schema_Name (t.schema_id) AS "Schema", t.[name],
+            'Check constraint', con.[name] AS constraint_name,
+            con.[definition], NULL, NULL, NULL, NULL, NULL
+       FROM
+       sys.check_constraints con
+         LEFT OUTER JOIN sys.objects t
+           ON con.parent_object_id = t.object_id
+         LEFT OUTER JOIN sys.all_columns col
+           ON con.parent_column_id = col.column_id
+          AND con.parent_object_id = col.object_id
+     UNION ALL
+     SELECT Schema_Name (t.schema_id) AS "Schema", t.[name],
+            'Check constraint', con.[name] AS constraint_name,
+            con.[definition], NULL, NULL, NULL, NULL, NULL
+       FROM
+       sys.check_constraints con
+         LEFT OUTER JOIN sys.objects t
+           ON con.parent_object_id = t.object_id
+         LEFT OUTER JOIN sys.all_columns col
+           ON con.parent_column_id = col.column_id
+          AND con.parent_object_id = col.object_id
+     UNION ALL
+     SELECT Schema_Name (t.schema_id) AS "Schema", t.[name],
+            'Default constraint', con.[name],
+            col.[name] + ' = ' + con.[definition], NULL, NULL, NULL, NULL,
+            NULL
+       FROM
+       sys.default_constraints con
+         LEFT OUTER JOIN sys.objects t
+           ON con.parent_object_id = t.object_id
+         LEFT OUTER JOIN sys.all_columns col
+           ON con.parent_column_id = col.column_id
+          AND 
+           con.parent_object_id = col.object_id) f
+ where f.table_name <> '$FlywayTableName'
+FOR JSON AUTO
 "@
 				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
+            if (!($constraints.Error -eq $null)) {$Problems+=$constraints.Error}
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
 				$indexes = Execute-SQL $param1 @"
     select schema_name(t.schema_id) AS "schema",
@@ -2697,6 +2737,7 @@ FOR JSON auto
 '@ | ConvertFrom-Json
 				
             <# RDBMS  #>
+                 #$ErrorActionPreference='Stop' 
 				$THeTypes = $TheRelationMetadata | Select schema, type -Unique 
                 if ( $Routines -ne $null)
 				    {$TheTypes= $THeTypes + $Routines | Select schema, type -Unique}
@@ -2724,14 +2765,42 @@ FOR JSON auto
 				}
 				#display-object $schemaTree|convertto-json -depth 10
             <# now stitch in the constraints with their columns  #>
-				$constraints | foreach{
-					$constraintSchema = $_.constraintschema;
-					$constrainedTable = $_.constrainedtable;
-					$constraintName = $_.constraintname;
-					$ConstraintType = $_.constrainttype;
-                    $Details=$_.Details;
-					$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $details }
-				}
+				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
+	                $constraintSchema = $_.schema;
+	                $constrainedTable = $_.table_name;
+	                $constraintName = $_.constraint_name;
+	                $ConstraintType = $_.type;
+	                $referenced_table = $_.referenced_table;
+                    $Details=$_.definition;
+	                # get the original object
+                    if ($ConstraintType -notin @('Unique key','Primary key','foreign key'))
+                        {$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition }}
+ 	                else
+                        {#we have to deal with columns
+                        $OriginalConstraint = $constraints |
+	                    where{
+		                    $_.schema -eq $constraintSchema -and
+		                    $_.table_name -eq $constrainedTable -and
+                            $_.Type -eq $ConstraintType -and
+		                    $_.constraint_name -eq $constraintName
+	                    } | Select -first 1
+	                    $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+	                        Select -ExpandProperty column_name
+	                    if ($ConstraintType -eq 'foreign key')
+	                    {
+		                    $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+		                    Select -ExpandProperty referenced_column
+		                    $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+			                    $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+		                    }
+	                    }
+	                    elseif($ConstraintType -in  @('Unique key','Primary key'))
+	                    { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+                    
+                    }
+	
+                }
+	
 				
             <# now stitch in the indexes with their columns  #>
 				$indexes | Select schema, table_name, Type, index_name -Unique | foreach{
@@ -2815,7 +2884,10 @@ $CreateUndoScriptIfNecessary = {
     #check that we have values for the necessary details
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
-    $command = Try { get-command SQLCompare} Catch {
+    $command=$null;
+    $command = get-command SQLCompare -ErrorAction Ignore
+    f ($command -eq $null) 
+        {
     	if ($SQLCompareAlias-ne $null)
             {Set-Alias SQLCompare $SQLCompareAlias}
         else
@@ -2923,7 +2995,9 @@ $CreatePossibleMigrationScript = {
 	@('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
 	# the alias must be set to the path of your installed version of SQL Compare
-    $command = Try { get-command SQLCompare} Catch {
+    $command=$null;
+    $command = get-command SQLCompare -ErrorAction Ignore 
+    if ($command -eq $null) {
     	if ($SQLCompareAlias-ne $null)
             {Set-Alias SQLCompare $SQLCompareAlias -Scope Script}
         else
