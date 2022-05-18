@@ -1974,128 +1974,159 @@ SELECT Object_Schema_Name (tables.object_id) + '.' + tables.name AS "TableObject
 }
 
 
-<#This writes a JSON model of the database to a file that can be used subsequently
+<#
+
+$SaveDatabaseModelIfNecessary
+
+
+This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
-flyway project between versions. 
+flyway project between versions.
+To run this, you need to provide values for 
+'server', The name of the database server
+'database', The name of the database
+'version', The version directory that is to be ascribed to the file
+'project', The name of the whole project for the output filenames
+'RDBMS', the rdbms being used, e.g. sqlserver, mysql, mariadb, postgresql, sqlite
+'schemas', the schemas to be used to create the model
+'flywayTable' the name and schema of the flyway table 
 $param1=$DBDetails*/#>
 $SaveDatabaseModelIfNecessary = {
-	Param ($param1) # $SaveDatabaseModelIfNecessary - dont delete this
-    $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
+	Param ($param1,
+		$MyOutputReport = $null,
+		$MyCurrentReport = $null,
+		$MyModelPath = $null) # $SaveDatabaseModelIfNecessary - dont delete this
+	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
 	$problems = @() #none yet!
-    $feedback = @();
+	$feedback = @();
+    $AlreadyDone =$false;
 	#check that you have the  entries that we need in the parameter table.
-	@('server', 'database', 'version', 'project', 'ProjectFolder') | foreach{
+	if ($MyOutputReport -eq $null -and $MyCurrentReport -eq $null -and $MyModelPath -eq $null)
+	{
+		$Essentials = @('server', 'database', 'version', 'project', 'RDBMS', 'schemas', 'flywayTable')
+	}
+	else #slightly less required for an ad-hoc model.
+	{
+		$Essentials = @('server', 'database', 'RDBMS', 'schemas', 'flywayTable')
+	}
+	$Essentials | foreach{
 		if ([string]::IsNullOrEmpty($param1.$_))
 		{ $Problems += "no value for '$($_)'" }
 	}
-	$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
-	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	if ($MyOutputReport -eq $null -or $MycurrentReport -eq $null -or $MyModelPath -eq $null)
+	#if all parameters not provided
 	{
-		$MyDatabasePath ="$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports";
-		$MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current";
-        $MyModelPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\model";
+		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+		if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a classic or NULL value
+		{ $where = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)" }
+		else { $where = "$($param1.reportLocation)" }
+		$MyDatabasePath = "$where\$($param1.Version)\Reports";
+		$MyCurrentPath = "$where\current";
+		if ($MyModelPath -eq $null) { $MyModelPath = "$where\$($param1.Version)\model" };
+		#the object-level models
 	}
+	#else the simple version
+	# so if not specified in the parameters, generate the correct location.
+	if ($MyOutputReport -eq $null)
+	{ $MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON" }
+	if ($MyCurrentReport -eq $null)
+	{ $MyCurrentReport = "$MyCurrentPath\Reports\DatabaseModel.JSON" }
+	#handy stuff for where clauses
+	$ListOfSchemas = ($param1.schemas -split ',' | foreach{ "'$_'" }) -join ',';
+	if ($param1.flywayTable -ne $null)
+	{ $FlywayTableName = ($param1.flywayTable -split '\.')[1] }
 	else
-	{
-		$MyDatabasePath ="$($param1.reportLocation)\$($param1.Version)\Reports";
-		$MyCurrentPath = "$($param1.reportLocation)\current";
-        $MyModelPath = "$($param1.reportLocation)\$($param1.Version)\model";
-	} #else the simple version
-	$MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON"
-	$MyCurrentReport = "$MyCurrentPath\Reports\DatabaseModel.JSON"
-    #handy stuff for where clauses
-    $ListOfSchemas=($param1.schemas -split ','|foreach{"'$_'"}) -join ',';
-    $FlywayTableName=($param1.flywayTable -split '\.')[1]
+	{ $FlywayTableName = 'flyway_schema_history' }
 	if (!(Test-Path -PathType Leaf $MyOutputReport)) #only do it once
 	{
 		try
 		{
-		@($MyDatabasePath, "$MyCurrentPath\Reports") | foreach {
-			if (Test-Path -PathType Leaf $_)
-			{
-				# does the path to the reports directory exist as a file for some reason?
-				# there, so we delete it 
-				remove-Item $_;
+			@($MyDatabasePath, "$MyCurrentPath\Reports") | foreach {
+				if (Test-Path -PathType Leaf $_)
+				{
+					# does the path to the reports directory exist as a file for some reason?
+					# there, so we delete it 
+					remove-Item $_;
+				}
+				if (-not (Test-Path -PathType Container $_))
+				{
+					# does the path to the reports directory exist?
+					# not there, so we create the directory 
+					$null = New-Item -ItemType Directory -Force $_;
+				}
 			}
-			if (-not (Test-Path -PathType Container $_))
+			switch -Regex ($param1.RDBMS)
 			{
-				# does the path to the reports directory exist?
-				# not there, so we create the directory 
-				$null = New-Item -ItemType Directory -Force $_;
-			}
-		}
-		switch -Regex ($param1.RDBMS)
-		{
 <# this is the section that creates a SQLite Database Model  #>
-			'sqlite' {
-				$SQLlines = @() #we build the SQL dynamically - SQLite is a bit awkward for metadata!
-				$TablesAndViews = Execute-SQL $param1 "SELECT Name, Type FROM sqlite_schema WHERE TYPE <> 'index';" | convertfrom-json
+				'sqlite' {
+					$SQLlines = @() #we build the SQL dynamically - SQLite is a bit awkward for metadata!
+					$TablesAndViews = Execute-SQL $param1 "SELECT Name, Type FROM sqlite_schema WHERE TYPE <> 'index';" | convertfrom-json
             <# we process tables and views first but not indexes as they are actually child objects of tables  #>
-				$TablesAndViews | foreach{
-					$type = $_.type;
-					$SQLlines += "SELECT '$($_.type)' as type, '$($_.name)' as object, Name||' '||TYPE||CASE `"notnull`" when 1 THEN ' NOT' ELSE '' END
+					$TablesAndViews | foreach{
+						$type = $_.type;
+						$SQLlines += "SELECT '$($_.type)' as type, '$($_.name)' as object, Name||' '||TYPE||CASE `"notnull`" when 1 THEN ' NOT' ELSE '' END
                  ||' NULL '||CASE WHEN dflt_value IS NOT NULL THEN 'DEFAULT ('||`"dflt_value`"||')' ELSE '' end as col, pk
                   FROM pragma_table_info('$($_.name)')"
-				}
+					}
             <# we want to scoop up as much metadata as we can in one query so we do this with a UNION ALL. #>
-				$query = ($SQLlines -join "`r`nUNION ALL`r`n") + ';'
+					$query = ($SQLlines -join "`r`nUNION ALL`r`n") + ';'
             <# The query was created dynamically, now we execute it  #>
-				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
-				
+					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+					
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
-				$indexes = Execute-SQL $param1 @"
+					$indexes = Execute-SQL $param1 @"
             SELECT m.name as index_name, m.tbl_Name as table_name, i.seqno, i.cid, i.name as column_name
               FROM sqlite_schema AS m,
               pragma_index_info(m.name) AS i
                WHERE TYPE='index' AND sql IS NOT NULL;
 "@ | ConvertFrom-Json
-				
+					
             <# we get the list of different base types (obvious in SQLite but it can get tricky with other
             RDBMS  #>
-				$THeTypes = $TablesAndViews | Select type -Unique #|foreach{$_.type}
+					$THeTypes = $TablesAndViews | Select type -Unique #|foreach{$_.type}
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
-				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
-				$TheTypes | foreach{
-					$SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
-				}
-				
-            <# now inject all the objects into the schema tree. First we get all the relations  #>
-				$TheRelationMetadata | Select type, object -Unique | foreach{
-					$type = $_.type;
-					$object = $_.object;
-					$pk = @{ }
-					$TheColumnList = $TheRelationMetadata |
-					where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
-					foreach{ $_.col }
-					$primaryKey = @();
-					$SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
-					$primaryKey = $pk | Where { $_.pk -gt 0 } |
-					Sort-Object -Property pk |
-					Foreach{ [regex]::matches($_.col, '\A\S{1,80}').value }
-					if ($primaryKey.count -gt 0)
-					{
-						$SchemaTree.$type.$object += @{ 'PrimaryKey' = $primaryKey }
+					$TheTypes | foreach{
+						$SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
 					}
-				}
+					
+            <# now inject all the objects into the schema tree. First we get all the relations  #>
+					$TheRelationMetadata | Select type, object -Unique | foreach{
+						$type = $_.type;
+						$object = $_.object;
+						$pk = @{ }
+						$TheColumnList = $TheRelationMetadata |
+						where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+						foreach{ $_.col }
+						$primaryKey = @();
+						$SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+						$primaryKey = $pk | Where { $_.pk -gt 0 } |
+						Sort-Object -Property pk |
+						Foreach{ [regex]::matches($_.col, '\A\S{1,80}').value }
+						if ($primaryKey.count -gt 0)
+						{
+							$SchemaTree.$type.$object += @{ 'PrimaryKey' = $primaryKey }
+						}
+					}
             <# now stitch in the indexes with their columns  #>
-				$indexes | Select table_name, index_name -Unique | foreach{
-					$indexedTable = $_.table_name
-					$indexName = $_.index_name
-					$columns = $indexes |
-					where{ $_.table_name -eq $indexedTable -and $_.index_name -eq $indexName } |
-					Sort-Object -Property seqno | Select -ExpandProperty column_name
-					$SchemaTree.table.$indexedTable.indexes += @{ $indexName = $columns }
-				}
-				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
-				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
-				
-			} #end of SQLite version
+					$indexes | Select table_name, index_name -Unique | foreach{
+						$indexedTable = $_.table_name
+						$indexName = $_.index_name
+						$columns = $indexes |
+						where{ $_.table_name -eq $indexedTable -and $_.index_name -eq $indexName } |
+						Sort-Object -Property seqno | Select -ExpandProperty column_name
+						$SchemaTree.table.$indexedTable.indexes += @{ $indexName = $columns }
+					}
+					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
+					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
+					
+				} #end of SQLite version
 <# this is the section that creates a PostgreSQL Database Model based where
-possible on information schema #>			
-			'postgresql' {
-				#fetch all the relations (anything that produces columns)
-				$query = @"
+possible on information schema #>				
+				'postgresql' {
+					#fetch all the relations (anything that produces columns)
+					$query = @"
             SELECT json_agg(e) 
             FROM (
             Select columns.table_schema as schema, columns.TABLE_NAME as object, COLUMN_NAME||' '||data_type||
@@ -2120,9 +2151,9 @@ possible on information schema #>
             ORDER BY columns.table_schema, columns.TABLE_NAME, ordinal_position
                 ) e;
 "@
-				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
-				#now get the details of the routines
-				$query = @"
+					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+					#now get the details of the routines
+					$query = @"
  SELECT json_agg(e) 
             FROM (SELECT 
 		Routine_name AS "name", Routine_Schema AS "schema", 
@@ -2135,7 +2166,7 @@ possible on information schema #>
 	INNER JOIN pg_proc ON proname LIKE routine_name
 	LEFT OUTER JOIN pg_description
 	ON OID= objoid
-	WHERE Routine_Schema IN ('dbo','people') 	
+	WHERE Routine_Schema IN ($ListOfSchemas) 	
 UNION ALL
 SELECT 
 		Table_name AS "name", 
@@ -2153,9 +2184,9 @@ SELECT
 		AND TABLE_NAME NOT LIKE '$FlywayTableName'
                 ) e;
 "@
-				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
-				#now do the constraints
-				$query = @"
+					$Routines = Execute-SQL $param1 $query | ConvertFrom-json
+					#now do the constraints
+					$query = @"
             SELECT json_agg(e) 
             FROM (SELECT lower(tc.constraint_type) as type, tc.table_schema as schema, 
                tc.Table_name, kcu.constraint_name, kcu.column_name, 
@@ -2178,9 +2209,9 @@ left outer join information_schema.table_constraints rel_tco
               AND tc.table_schema NOT IN ('pg_catalog','information_schema')
                 ) e;
 "@
-				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
+					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
-				$indexes = Execute-SQL $param1 @"
+					$indexes = Execute-SQL $param1 @"
             SELECT json_agg(e) 
             FROM(SELECT distinct
 	             allindexes.schemaname AS schema,
@@ -2205,9 +2236,9 @@ left outer join information_schema.table_constraints rel_tco
                 i.relname
                 ) e;    
 "@ | ConvertFrom-Json
-				
-				#now get all the triggers
-				$triggers = Execute-SQL $param1 @'
+					
+					#now get all the triggers
+					$triggers = Execute-SQL $param1 @'
             SELECT json_agg(e) 
             FROM(
             SELECT TRIGGER_SCHEMA as schema, TRIGGER_NAME, event_object_schema, event_object_table
@@ -2216,107 +2247,107 @@ left outer join information_schema.table_constraints rel_tco
               AND t.trigger_schema NOT IN ('pg_catalog','information_schema')
                 ) e; 
 '@ | ConvertFrom-Json
-				
-            <# RDBMS  #>
-				$THeTypes = $Routines | Select schema, type -Unique
-            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
-				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
-            all the types of relations  #>
-				
-				
-				$TheTypes | Select -ExpandProperty schema -Unique | foreach{
-					$TheSchema = $_;
-					$ourtypes = @{ }
-					$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
-					$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
 					
-				}
-				
+            <# RDBMS  #>
+					$THeTypes = $Routines | Select schema, type -Unique
+            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
+					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+            all the types of relations  #>
+					
+					
+					$TheTypes | Select -ExpandProperty schema -Unique | foreach{
+						$TheSchema = $_;
+						$ourtypes = @{ }
+						$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
+						$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
+						
+					}
+					
             <# now inject all the objects into the schema tree. First we get all the relations  #>
-				$TheRelationMetadata | Select schema, type, object -Unique | foreach{
-					$schema = $_.schema;
-					$type = $_.type;
-					$object = $_.object;
-					$TheColumnList = $TheRelationMetadata |
-					where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
-					foreach{ $_.column }
-					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
-				}
-				#display-object $schemaTree
+					$TheRelationMetadata | Select schema, type, object -Unique | foreach{
+						$schema = $_.schema;
+						$type = $_.type;
+						$object = $_.object;
+						$TheColumnList = $TheRelationMetadata |
+						where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+						foreach{ $_.column }
+						$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+					}
+					#display-object $schemaTree
             <# now stitch in the constraints with their columns  #>
-				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
-	                $constraintSchema = $_.schema;
-	                $constrainedTable = $_.table_name;
-	                $constraintName = $_.constraint_name;
-	                $ConstraintType = $_.type;
-	                $referenced_table = $_.referenced_table;
-	                # get the original object
-	                $OriginalConstraint = $constraints |
-	                where{
-		                $_.schema -eq $constraintSchema -and
-		                $_.table_name -eq $constrainedTable -and
-                        $_.Type -eq $ConstraintType -and
-		                $_.constraint_name -eq $constraintName
-	                } | Select -first 1
-	                $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
-	                    Select -ExpandProperty column_name
-	                if ($ConstraintType -eq 'foreign key')
-	                {
-		                $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
-		                Select -ExpandProperty referenced_column_name
-		                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
-			                $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
-		                }
-	                }
-	                else
-	                { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
-	
-                }
+					$constraints | Select schema, table_name, Type, constraint_name, referenced_table -Unique | foreach{
+						$constraintSchema = $_.schema;
+						$constrainedTable = $_.table_name;
+						$constraintName = $_.constraint_name;
+						$ConstraintType = $_.type;
+						$referenced_table = $_.referenced_table;
+						# get the original object
+						$OriginalConstraint = $constraints |
+						where{
+							$_.schema -eq $constraintSchema -and
+							$_.table_name -eq $constrainedTable -and
+							$_.Type -eq $ConstraintType -and
+							$_.constraint_name -eq $constraintName
+						} | Select -first 1
+						$Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+						Select -ExpandProperty column_name
+						if ($ConstraintType -eq 'foreign key')
+						{
+							$Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+							Select -ExpandProperty referenced_column_name
+							$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+								$constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+							}
+						}
+						else
+						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+						
+					}
               <# now stitch in the constraints with their columns  #>
-              $routines|Foreach {
-                    $TheSchema=$_.schema;
-                    $TheName=$_.name;
-                    $TheType=$_.type;
-                    $TheHash=$_.hash;
-                    $Thecomment=$_.comment;
-                    $TheDefinition=$_.definition;
-                    $Contents=@{}
-                    if (!([string]::IsNullOrEmpty($TheDefinition))) {$Contents.'definition'=$TheDefinition}
-                    if ($TheType -ne 'table') {$Contents.'hash'=$Thehash}
-                    if (!([string]::IsNullOrEmpty($Thecomment))) {$Contents.'comment'=$TheComment}
-                    if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
-                        {$SchemaTree.$TheSchema.$TheType.$TheName=$Contents}
-                    else
-                        {$SchemaTree.$TheSchema.$TheType.$TheName+=$Contents}
-
-                }	
-                
+					$routines | Foreach {
+						$TheSchema = $_.schema;
+						$TheName = $_.name;
+						$TheType = $_.type;
+						$TheHash = $_.hash;
+						$Thecomment = $_.comment;
+						$TheDefinition = $_.definition;
+						$Contents = @{ }
+						if (!([string]::IsNullOrEmpty($TheDefinition))) { $Contents.'definition' = $TheDefinition }
+						if ($TheType -ne 'table') { $Contents.'hash' = $Thehash }
+						if (!([string]::IsNullOrEmpty($Thecomment))) { $Contents.'comment' = $TheComment }
+						if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
+						{ $SchemaTree.$TheSchema.$TheType.$TheName = $Contents }
+						else
+						{ $SchemaTree.$TheSchema.$TheType.$TheName += $Contents }
+						
+					}
+					
 <# now stitch in the indexes with their columns  #>
-				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
-					$indexSchema = $_.schema;
-					$indexedTable = $_.table_name;
-					$indexName = $_.index_name;
-					$definition = $_.definition;
-					$columns = $indexes |
-					where{
-						$_.schema -eq $indexSchema -and
-						$_.table_name -eq $indexedTable -and
-						$_.index_name -eq $indexName
-					} |
-					Select -ExpandProperty column_name
-                    $SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
-				    }
-				
-				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
-				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
-			}
+					$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
+						$indexSchema = $_.schema;
+						$indexedTable = $_.table_name;
+						$indexName = $_.index_name;
+						$definition = $_.definition;
+						$columns = $indexes |
+						where{
+							$_.schema -eq $indexSchema -and
+							$_.table_name -eq $indexedTable -and
+							$_.index_name -eq $indexName
+						} |
+						Select -ExpandProperty column_name
+						$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
+					}
+					
+					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
+					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
+				}
 <# this is the section that creates a MariaDB or MySQL Database Model based where
 possible on information schema $param1=$dbdetails
  #>
-'mysql|mariaDB' {
-        #create a delimited list for SQL's IN command
- 				#fetch all the relations (anything that produces columns)
-				$query = @"
+				'mysql|mariaDB' {
+					#create a delimited list for SQL's IN command
+					#fetch all the relations (anything that produces columns)
+					$query = @"
         SELECT c.TABLE_SCHEMA as "schema", c.TABLE_NAME as "object", 
             case when v.Table_Name IS NULL then 'Table' ELSE 'View' END AS "Type",
             c.COLUMN_NAME as "column", c.ordinal_position,
@@ -2337,9 +2368,9 @@ possible on information schema $param1=$dbdetails
         WHERE c.table_schema in ($ListOfSchemas)
         and c.TABLE_NAME <> '$FlywayTableName';
 "@
-				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
-				#now get the details of the routines
-				$query = @"
+					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+					#now get the details of the routines
+					$query = @"
             SELECT 
 		Routine_name AS "name", Routine_Schema AS "schema", 
 		CONCAT(Routine_Schema,'.', Routine_name) AS "fullname", 
@@ -2348,7 +2379,7 @@ possible on information schema $param1=$dbdetails
 		MD5(routine_definition) AS "hash",
 		Routine_Comment AS "comment"
 	FROM information_schema.routines
-	WHERE Routine_Schema IN ('dbo','people') 
+	WHERE Routine_Schema IN IN ($ListOfSchemas) 
 UNION ALL
 SELECT 
 		Table_name AS "name", 
@@ -2360,7 +2391,7 @@ SELECT
 		TABLE_Comment AS COMMENT
 	FROM information_schema.tables
 	WHERE Table_type='base table' 
-		AND Table_Schema IN ('dbo','people') 
+		AND Table_Schema IN ($ListOfSchemas) 
 		AND TABLE_NAME NOT LIKE 'flyway_schema_history' 
 UNION ALL
 	SELECT 
@@ -2375,9 +2406,9 @@ UNION ALL
 		WHERE Table_Schema IN ($ListOfSchemas) 
 		AND TABLE_NAME NOT LIKE '$FlywayTableName'
 "@
-				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
-				#now do the constraints
-				$query = @"
+					$Routines = Execute-SQL $param1 $query | ConvertFrom-json
+					#now do the constraints
+					$query = @"
              SELECT lower(tc.constraint_type) AS "type", tc.table_schema AS "schema", 
                tc.Table_name, kcu.constraint_name, kcu.column_name,ordinal_position,
 			   concat(Referenced_table_Schema,'.',Referenced_table_name) AS "referenced_table",referenced_column_name
@@ -2389,126 +2420,127 @@ UNION ALL
             WHERE tc.table_schema IN ($ListOfSchemas)
             and tc.TABLE_NAME <> '$FlywayTableName'; 
 "@
-				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
+					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
-				$indexes = Execute-SQL $param1 @"
+					$indexes = Execute-SQL $param1 @"
             SELECT Table_Schema as "schema",TABLE_NAME, Index_name, COLUMN_NAME, Seq_in_Index AS "sequence" 
             FROM information_schema.statistics
             WHERE table_Schema IN ($ListOfSchemas) 
               AND index_name NOT IN ('PRIMARY','UNIQUE')
               and TABLE_NAME <> '$FlywayTableName';    
 "@ | ConvertFrom-Json
-				
-				#now get all the triggers
-				$triggers = Execute-SQL $param1 @"
+					
+					#now get all the triggers
+					$triggers = Execute-SQL $param1 @"
             SELECT TRIGGER_SCHEMA, TRIGGER_NAME, event_object_schema, event_object_table
             FROM information_schema.triggers t
             WHERE t.trigger_catalog IN ($ListOfSchemas); 
 "@ | ConvertFrom-Json
-				
-            <# RDBMS  #>
-				$THeTypes = $Routines | Select schema, type -Unique
-            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
-				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
-            all the types of relations  #>
-				
-				
-				$TheTypes | Select -ExpandProperty schema -Unique | foreach{
-					$TheSchema = $_;
-					$ourtypes = @{ }
-					$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
-					$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
 					
-				}
-				
+            <# RDBMS  #>
+					$THeTypes = $Routines | Select schema, type -Unique
+            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
+					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+            all the types of relations  #>
+					
+					
+					$TheTypes | Select -ExpandProperty schema -Unique | foreach{
+						$TheSchema = $_;
+						$ourtypes = @{ }
+						$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
+						$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
+						
+					}
+					
             <# now inject all the objects into the schema tree. First we get all the relations  #>
-				$TheRelationMetadata | Select schema, type, object -Unique | foreach{
-					$schema = $_.schema;
-					$type = $_.type;
-					$object = $_.object;
-					$TheColumnList = $TheRelationMetadata |
-					where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
-                    Sort-Object -Property ordinal_position|
-					foreach{ "$($_.column) $($_.coltype)" }
-					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
-				}
-				
+					$TheRelationMetadata | Select schema, type, object -Unique | foreach{
+						$schema = $_.schema;
+						$type = $_.type;
+						$object = $_.object;
+						$TheColumnList = $TheRelationMetadata |
+						where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+						Sort-Object -Property ordinal_position |
+						foreach{ "$($_.column) $($_.coltype)" }
+						$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+					}
+					
             <# now stitch in the constraints with their columns  #>
-				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
-	                $constraintSchema = $_.schema;
-	                $constrainedTable = $_.table_name;
-	                $constraintName = $_.constraint_name;
-	                $ConstraintType = $_.type;
-	                $referenced_table = $_.referenced_table;
-	                # get the original object
-	                $OriginalConstraint = $constraints |
-	                where{
-		                $_.schema -eq $constraintSchema -and
-		                $_.table_name -eq $constrainedTable -and
-                        $_.Type -eq $ConstraintType -and
-		                $_.constraint_name -eq $constraintName
-	                } | Select -first 1
-	                $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
-	                    Select -ExpandProperty column_name
-	                if ($ConstraintType -eq 'foreign key')
-	                {
-		                $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
-		                Select -ExpandProperty referenced_column_name
-		                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
-			                $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
-		                }
-	                }
-	                else
-	                { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
-	
-                }
-				
+					$constraints | Select schema, table_name, Type, constraint_name, referenced_table -Unique | foreach{
+						$constraintSchema = $_.schema;
+						$constrainedTable = $_.table_name;
+						$constraintName = $_.constraint_name;
+						$ConstraintType = $_.type;
+						$referenced_table = $_.referenced_table;
+						# get the original object
+						$OriginalConstraint = $constraints |
+						where{
+							$_.schema -eq $constraintSchema -and
+							$_.table_name -eq $constrainedTable -and
+							$_.Type -eq $ConstraintType -and
+							$_.constraint_name -eq $constraintName
+						} | Select -first 1
+						$Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+						Select -ExpandProperty column_name
+						if ($ConstraintType -eq 'foreign key')
+						{
+							$Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+							Select -ExpandProperty referenced_column_name
+							$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+								$constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+							}
+						}
+						else
+						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+						
+					}
+					
             <# now stitch in the indexes with their columns  #>
-				$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
-					$indexSchema = $_.schema;
-					$indexedTable = $_.table_name;
-					$indexName = $_.index_name;
-					$definition = $_.definition;
-					$columns = $indexes |
-					where{
-						$_.schema -eq $indexSchema -and
-						$_.table_name -eq $indexedTable -and
-						$_.index_name -eq $indexName
-					} |
-					Select -ExpandProperty column_name
-					$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
+					$indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
+						$indexSchema = $_.schema;
+						$indexedTable = $_.table_name;
+						$indexName = $_.index_name;
+						$definition = $_.definition;
+						$columns = $indexes |
+						where{
+							$_.schema -eq $indexSchema -and
+							$_.table_name -eq $indexedTable -and
+							$_.index_name -eq $indexName
+						} |
+						Select -ExpandProperty column_name
+						$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
+					}
+					$routines | Foreach {
+						$TheSchema = $_.schema;
+						$TheName = $_.name;
+						$TheType = $_.type;
+						$TheHash = $_.hash;
+						$Thecomment = $_.comment;
+						$TheDefinition = $_.definition;
+						$Contents = @{ }
+						if (!([string]::IsNullOrEmpty($TheDefinition))) { $Contents.'definition' = $TheDefinition }
+						if ($TheType -ne 'table') { $Contents.'hash' = $Thehash }
+						if (!([string]::IsNullOrEmpty($Thecomment))) { $Contents.'comment' = $TheComment }
+						if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
+						{ $SchemaTree.$TheSchema.$TheType.$TheName = $Contents }
+						else
+						{ $SchemaTree.$TheSchema.$TheType.$TheName += $Contents }
+						
+					}
+					
+					
+					
+					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
+					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 				}
-             	$routines|Foreach {
-                    $TheSchema=$_.schema;
-                    $TheName=$_.name;
-                    $TheType=$_.type;
-                    $TheHash=$_.hash;
-                    $Thecomment=$_.comment;
-                    $TheDefinition=$_.definition;
-                    $Contents=@{}
-                    if (!([string]::IsNullOrEmpty($TheDefinition))) {$Contents.'definition'=$TheDefinition}
-                    if ($TheType -ne 'table') {$Contents.'hash'=$Thehash}
-                    if (!([string]::IsNullOrEmpty($Thecomment))) {$Contents.'comment'=$TheComment}
-                    if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
-                        {$SchemaTree.$TheSchema.$TheType.$TheName=$Contents}
-                    else
-                        {$SchemaTree.$TheSchema.$TheType.$TheName+=$Contents}
-
-                }		
-
-
-
-				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
-				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
-			}
-
+				
 <# this is the section that creates a SQL Server Database Model based where
 possible on information schema #>
-			'sqlserver'  {
-				#fetch all the relations (anything that produces columns) $param1=$dbDetails
-				$query = @"
-SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Replace(Replace(TheObjects.type_desc,'user_',''),'sql_','')), '_', ' ') AS type, Object_Name(TheObjects.object_id) Name, 
-            colsandparams.name + ' ' +
+				'sqlserver'  {
+					#fetch all the relations (anything that produces columns) $param1=$dbDetails
+					$query = @"
+SELECT ParentObjects.[Schema] AS "Schema", ParentObjects.type,
+       ParentObjects.Name,
+       colsandparams.name + ' ' +
 -- SQL Prompt formatting off
 			t.[name]+ CASE --do the basic datatype
 			WHEN t.[name] IN ('char', 'varchar', 'nchar', 'nvarchar')
@@ -2536,62 +2568,73 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
 			END+Coalesce(' -- '+Description,'')	AS "Column",
 			TheOrder
 -- SQL Prompt formatting on
-         FROM--columns, parameters, return values ColsAndParams.
-		 --first get all the parameters
-           (SELECT cols.object_id, cols.name, 'Columns' AS "Type",
-                   Convert (NVARCHAR(2000), value) AS "Description",
-                   column_id AS TheOrder, cols.xml_collection_id,
-                   cols.max_length AS ValueTypemaxlength,
-                   cols.precision AS ValueTypePrecision,
-                   cols.scale AS ValueTypeScale,
-                   cols.xml_collection_id AS XMLcollectionID,
-                   cols.is_xml_document AS isXMLDocument, cols.user_type_id
-              FROM
-              sys.objects AS object
-                INNER JOIN sys.columns AS cols
-                  ON cols.object_id = object.object_id
-                LEFT OUTER JOIN sys.extended_properties AS EP
-                  ON cols.object_id = EP.major_id
-                 AND class = 1
-                 AND minor_id = cols.column_id
-                 AND EP.name = 'MS_Description'
-              WHERE is_ms_shipped = 0
-            UNION ALL
-            --get in all the parameters
-            SELECT params.object_id, params.name AS "Name",
-                   CASE WHEN parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
-                   --'Parameters' AS "Type",
-                   Convert (NVARCHAR(2000), value) AS "Description",
-                   parameter_id AS TheOrder, params.xml_collection_id,
-                   params.max_length AS ValueTypemaxlength,
-                   params.precision AS ValueTypePrecision,
-                   params.scale AS ValueTypeScale,
-                   params.xml_collection_id AS XMLcollectionID,
-                   params.is_xml_document AS isXMLDocument,
-                   params.user_type_id
-              FROM
-              sys.objects AS object
-                INNER JOIN sys.parameters AS params
-                  ON params.object_id = object.object_id
-                LEFT OUTER JOIN sys.extended_properties AS EP
-                  ON params.object_id = EP.major_id
-                 AND class = 2
-                 AND minor_id = params.parameter_id
-                 AND EP.name = 'MS_Description'
-              WHERE is_ms_shipped = 0) AS colsandparams
-           INNER JOIN sys.types AS t
-             ON colsandparams.user_type_id = t.user_type_id
-           LEFT OUTER JOIN sys.xml_schema_collections AS SchemaCollection
-             ON SchemaCollection.xml_collection_id = colsandparams.xml_collection_id
-           LEFT OUTER JOIN sys.schemas AS Schemae
-             ON SchemaCollection.schema_id = Schemae.schema_id
-			INNER JOIN sys.objects TheObjects ON TheObjects.object_id = colsandparams.object_id
-            WHERE Object_Name(TheObjects.object_id)<>'$FlywayTableName'
-			ORDER BY "schema","type",name,TheOrder FOR JSON auto
+  FROM --columns, parameters, return values ColsAndParams.
+    --first get all the parameters
+    (SELECT cols.object_id, cols.name, 'Columns' AS "Type",
+            Convert (NVARCHAR(2000), value) AS "Description",
+            column_id AS TheOrder, cols.xml_collection_id,
+            cols.max_length AS ValueTypemaxlength,
+            cols.precision AS ValueTypePrecision,
+            cols.scale AS ValueTypeScale,
+            cols.xml_collection_id AS XMLcollectionID,
+            cols.is_xml_document AS isXMLDocument, cols.user_type_id
+       FROM
+       sys.objects AS object
+         INNER JOIN sys.columns AS cols
+           ON cols.object_id = object.object_id
+         LEFT OUTER JOIN sys.extended_properties AS EP
+           ON cols.object_id = EP.major_id
+          AND class = 1
+          AND minor_id = cols.column_id
+          AND EP.name = 'MS_Description'
+       WHERE is_ms_shipped = 0
+     UNION ALL
+     --get in all the parameters
+     SELECT params.object_id, params.name AS "Name",
+            CASE WHEN parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
+            --'Parameters' AS "Type",
+            Convert (NVARCHAR(2000), value) AS "Description",
+            parameter_id AS TheOrder, params.xml_collection_id,
+            params.max_length AS ValueTypemaxlength,
+            params.precision AS ValueTypePrecision,
+            params.scale AS ValueTypeScale,
+            params.xml_collection_id AS XMLcollectionID,
+            params.is_xml_document AS isXMLDocument, params.user_type_id
+       FROM
+       sys.objects AS object
+         INNER JOIN sys.parameters AS params
+           ON params.object_id = object.object_id
+         LEFT OUTER JOIN sys.extended_properties AS EP
+           ON params.object_id = EP.major_id
+          AND class = 2
+          AND minor_id = params.parameter_id
+          AND EP.name = 'MS_Description'
+       WHERE is_ms_shipped = 0) AS colsandparams
+    INNER JOIN sys.types AS t
+      ON colsandparams.user_type_id = t.user_type_id
+    LEFT OUTER JOIN sys.xml_schema_collections AS SchemaCollection
+      ON SchemaCollection.xml_collection_id = colsandparams.xml_collection_id
+    LEFT OUTER JOIN sys.schemas AS Schemae
+      ON SchemaCollection.schema_id = Schemae.schema_id
+    RIGHT OUTER JOIN --catch parent objects without columns
+      (SELECT TheObjects.object_id,
+              Object_Schema_Name (TheObjects.object_id) AS "Schema",
+              Replace (Lower (Replace (Replace (TheObjects.type_desc, 'user_', ''), 'sql_', '')), '_',' ') AS type, 
+			  Object_Name (TheObjects.object_id) Name
+         FROM sys.objects TheObjects
+         WHERE
+         Object_Schema_Name (TheObjects.object_id) IN ($ListOfSchemas)
+     AND TheObjects.parent_object_id = 0
+     AND type <> 'SQ') ParentObjects
+      ON ParentObjects.object_id = colsandparams.object_id
+  WHERE Object_Name (ParentObjects.object_id) <> '$FlywayTableName'
+  ORDER BY
+  "Schema", "type", Name, TheOrder
+FOR JSON AUTO;
 "@
-				$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
-				#now get the details of the routines
-				$query = @'
+					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+					#now get the details of the routines
+					$query = @'
     SELECT Replace (Lower (Replace(Replace(so.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
         so.name, Object_Schema_Name(so.object_id) AS "schema", 
         left(definition,70)+CASE when LEN(definition)>70 THEN '...' ELSE '' END AS definition, 
@@ -2601,10 +2644,10 @@ SELECT Object_Schema_Name(TheObjects.Object_id) AS "Schema", Replace (Lower (Rep
         ON so.OBJECT_ID=ssm.object_id
         FOR JSON auto               
 '@
-				$Routines = Execute-SQL $param1 $query | ConvertFrom-json
-				
-#now do the constraints
-				$query = @"
+					$Routines = Execute-SQL $param1 $query | ConvertFrom-json
+					
+					#now do the constraints
+					$query = @"
 SELECT *
   FROM
     (SELECT Schema_Name (tab.schema_id) AS "schema",
@@ -2682,10 +2725,10 @@ SELECT *
  where f.table_name <> '$FlywayTableName'
 FOR JSON AUTO
 "@
-				$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
-            if (!($constraints.Error -eq $null)) {$Problems+=$constraints.Error}
+					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
+					if (!($constraints.Error -eq $null)) { $Problems += $constraints.Error }
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
-				$indexes = Execute-SQL $param1 @"
+					$indexes = Execute-SQL $param1 @"
     select schema_name(t.schema_id) AS "schema",
 	t.name AS table_name,
 	Replace (Lower (Replace(Replace(t.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
@@ -2707,9 +2750,9 @@ FOR JSON AUTO
        AND t.is_ms_shipped <> 1
        for json path
 "@ | ConvertFrom-Json
-				
-				#now get all the triggers
-				$triggers = Execute-SQL $param1 @'
+					
+					#now get all the triggers
+					$triggers = Execute-SQL $param1 @'
  select schema_name(tab.schema_id) AS "schema",
  tab.name as [table],
     trig.name as trigger_name,
@@ -2735,123 +2778,125 @@ from sys.triggers trig
 order by schema_name(tab.schema_id) + '.' + tab.name, trig.name
 FOR JSON auto
 '@ | ConvertFrom-Json
-				
+					
             <# RDBMS  #>
-                 #$ErrorActionPreference='Stop' 
-				$THeTypes = $TheRelationMetadata | Select schema, type -Unique 
-                if ( $Routines -ne $null)
-				    {$TheTypes= $THeTypes + $Routines | Select schema, type -Unique}
+					#$ErrorActionPreference='Stop' 
+					$THeTypes = $TheRelationMetadata | Select schema, type -Unique
+					if ($Routines -ne $null)
+					{ $TheTypes = $THeTypes + $Routines | Select schema, type -Unique }
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
-				$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
-				
-				
-				$TheTypes | Select -ExpandProperty schema -Unique | foreach{
-					$TheSchema = $_;
-					$ourtypes = @{ }
-					$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
-					$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
-				}
-				
+					
+					
+					$TheTypes | Select -ExpandProperty schema -Unique | foreach{
+						$TheSchema = $_;
+						$ourtypes = @{ }
+						$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
+						$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
+					}
+					
             <# now inject all the objects into the schema tree. First we get all the relations  #>
-				$TheRelationMetadata | Select schema, type, name -Unique | foreach{
-					$schema = $_.schema;
-					$type = $_.type;
-					$object = $_.name;
-					$TheColumnList = $TheRelationMetadata |
-					where { $_.schema -eq $schema -and $_.type -eq $type -and $_.name -eq $object } -OutVariable pk |
-					foreach{ $_.column }
-					$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
-				}
-				#display-object $schemaTree|convertto-json -depth 10
+					$TheRelationMetadata | Select schema, type, name -Unique | foreach{
+						$schema = $_.schema;
+						$type = $_.type;
+						$object = $_.name;
+						$TheColumnList = $TheRelationMetadata |
+						where { $_.schema -eq $schema -and $_.type -eq $type -and $_.name -eq $object } -OutVariable pk |
+						foreach{ $_.column }
+						$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+					}
+					#display-object $schemaTree|convertto-json -depth 10
             <# now stitch in the constraints with their columns  #>
-				$constraints | Select schema, table_name, Type, constraint_name,referenced_table -Unique | foreach{
-	                $constraintSchema = $_.schema;
-	                $constrainedTable = $_.table_name;
-	                $constraintName = $_.constraint_name;
-	                $ConstraintType = $_.type;
-	                $referenced_table = $_.referenced_table;
-                    $Details=$_.definition;
-	                # get the original object
-                    if ($ConstraintType -notin @('Unique key','Primary key','foreign key'))
-                        {$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition }}
- 	                else
-                        {#we have to deal with columns
-                        $OriginalConstraint = $constraints |
-	                    where{
-		                    $_.schema -eq $constraintSchema -and
-		                    $_.table_name -eq $constrainedTable -and
-                            $_.Type -eq $ConstraintType -and
-		                    $_.constraint_name -eq $constraintName
-	                    } | Select -first 1
-	                    $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
-	                        Select -ExpandProperty column_name
-	                    if ($ConstraintType -eq 'foreign key')
-	                    {
-		                    $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
-		                    Select -ExpandProperty referenced_column
-		                    $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
-			                    $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
-		                    }
-	                    }
-	                    elseif($ConstraintType -in  @('Unique key','Primary key'))
-	                    { $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
-                    
-                    }
-	
-                }
-	
-				
+					$constraints | Select schema, table_name, Type, constraint_name, referenced_table -Unique | foreach{
+						$constraintSchema = $_.schema;
+						$constrainedTable = $_.table_name;
+						$constraintName = $_.constraint_name;
+						$ConstraintType = $_.type;
+						$referenced_table = $_.referenced_table;
+						$Details = $_.definition;
+						# get the original object
+						if ($ConstraintType -notin @('Unique key', 'Primary key', 'foreign key'))
+						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition } }
+						else
+						{
+							#we have to deal with columns
+							$OriginalConstraint = $constraints |
+							where{
+								$_.schema -eq $constraintSchema -and
+								$_.table_name -eq $constrainedTable -and
+								$_.Type -eq $ConstraintType -and
+								$_.constraint_name -eq $constraintName
+							} | Select -first 1
+							$Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+							Select -ExpandProperty column_name
+							if ($ConstraintType -eq 'foreign key')
+							{
+								$Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+								Select -ExpandProperty referenced_column
+								$SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+									$constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+								}
+							}
+							elseif ($ConstraintType -in @('Unique key', 'Primary key'))
+							{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
+							
+						}
+						
+					}
+					
+					
             <# now stitch in the indexes with their columns  #>
-				$indexes | Select schema, table_name, Type, index_name -Unique | foreach{
-					$indexSchema = $_.schema;
-					$indexedTable = $_.table_name;
-					$indexName = $_.index_name;
-					$columns = $indexes |
-					where{
-						$_.schema -eq $indexSchema -and
-						$_.table_name -eq $indexedTable -and
-						$_.index_name -eq $indexName
-					} |	Sort-Object -Property key_ordinal|Select -ExpandProperty name
-					$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns } }
+					$indexes | Select schema, table_name, Type, index_name -Unique | foreach{
+						$indexSchema = $_.schema;
+						$indexedTable = $_.table_name;
+						$indexName = $_.index_name;
+						$columns = $indexes |
+						where{
+							$_.schema -eq $indexSchema -and
+							$_.table_name -eq $indexedTable -and
+							$_.index_name -eq $indexName
+						} | Sort-Object -Property key_ordinal | Select -ExpandProperty name
+						$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns } }
+					}
+					$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
+					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
+					
+					
+				} #end SQL Server
+				default
+				{
+					$Param1.Problems.'SavedDatabaseModelIfNecessary' += "The $_ database isn't supported yet. Sorry about that."
 				}
-				$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
-				$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
-				$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"			
-
-				
-			} #end SQL Server
-        default
-            {
-            $Param1.Problems.'SavedDatabaseModelIfNecessary'+="The $_ database isn't supported yet. Sorry about that."
-            }
-        }
-		#Final things to do: Break up the model into individual objects, in different folders depending on type
-        if (Test-Path "$MyOutputReport" -PathType leaf)
-            {
-            $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll need it
-            $Model = [IO.File]::ReadAllText("$MyOutputReport")|ConvertFrom-JSON
-            $model.psobject.Properties|
-            foreach{$schema=$_.Name;$_.Value.psobject.Properties}|
-              Foreach{$Type=$_.Name.ToLower();$_.Value.psobject.Properties} | 
-                foreach{
-                  $objectName=$_.Name;
-                  $WhereToStoreIt="$MyModelPath\$type"
-                  if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
-                    {$null=New-Item -ItemType directory -Path "$WhereToStoreIt" -Force}
-                $_.Value |convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
-             Copy-Item -Path "$MyModelPath" -Destination "$MyCurrentPath" -Recurse -Force
-            }
-        $feedback+="written object-level model to $MyModelPath"
-        }
+			}
+			#Final things to do: Break up the model into individual objects, in different folders depending on type
+			if (Test-Path "$MyOutputReport" -PathType leaf)
+			{
+				$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll need it
+				$Model = [IO.File]::ReadAllText("$MyOutputReport") | ConvertFrom-JSON
+				$model.psobject.Properties |
+				foreach{ $schema = $_.Name; $_.Value.psobject.Properties } |
+				Foreach{ $Type = $_.Name.ToLower(); $_.Value.psobject.Properties } |
+				foreach{
+					$objectName = $_.Name;
+					$WhereToStoreIt = "$MyModelPath\$type"
+					if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
+					{ $null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
+					$_.Value | convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
+					Copy-Item -Path "$MyModelPath" -Destination "$MyCurrentPath" -Recurse -Force
+				}
+				$feedback += "written object-level model to $MyModelPath"
+			}
+		}
+		catch { $problems += "$($PSItem.Exception.Message)" }
 	}
-	catch { $problems += "$($PSItem.Exception.Message)"}
-}
-else
-{
-	$AlreadyDone = $true;
-}
-if ($problems.Count -gt 0)
+	else
+	{
+		$AlreadyDone = $true;
+		$feedback += "Nothing to do. The model is already there in '$MyOutputReport'"
+	}
+	if ($problems.Count -gt 0)
 	{
 		$Param1.Problems.'SaveDatabaseModelIfNecessary' += $problems;
 	}
@@ -2864,7 +2909,7 @@ if ($problems.Count -gt 0)
 		else
 		{
 			if ($feedback.count -gt 0)
-                {$Param1.Feedback.'SaveDatabaseModelIfNecessary' = $feedback}
+			{ $Param1.Feedback.'SaveDatabaseModelIfNecessary' = $feedback }
 			$Param1.WriteLocations.'SaveDatabaseModelIfNecessary' = $MyOutputReport;
 		}
 	}
@@ -3620,6 +3665,21 @@ Function GetorSetPassword{
 }
 
 
+<#
+	.SYNOPSIS
+		executes a list of scriptblock tasks
+	
+	.PARAMETER DatabaseDetails
+		a hashtable with the Flyway database details
+	
+	.PARAMETER Invocations
+		the list of scriptblocks to execute
+	
+	.PARAMETER AddedParameters
+		Any Additional parameters to the scriptblock(s) other than the hashtable
+	
+
+#>
 function Process-FlywayTasks
 {
 	[CmdletBinding()]
@@ -3630,20 +3690,26 @@ function Process-FlywayTasks
 		[System.Collections.Hashtable]$DatabaseDetails,
 		[Parameter(Mandatory = $true,
 				   Position = 2)]
-		[array]$Invocations
+		[array]$Invocations,
+		[Parameter(Position = 3)]
+		[array]$AddedParameters = $null
 	)
-	
+	$parameters = @()
+	$parameters += $DatabaseDetails;
+	if ($AddedParameters -ne $null) { $parameters += $AddedParameters }
 	$Invocations | foreach{
-        if ($_ -eq $null) {
-            Write-error "the scriptblock wasn't recognised"
-                }
+		if ($_ -eq $null)
+		{
+			Write-error "the scriptblock wasn't recognised"
+		}
 		elseif ($DatabaseDetails.Problems.Count -eq 0)
-		{#try to get the name of the task
+		{
+			#try to get the name of the task
 			if ($_.Ast.Extent.Text -imatch '(?<=# ?\$)([\w]{5,80})')
 			{ $TaskName = $matches[0] }
 			else { $TaskName = 'unknown' }
 			try # try executing the script block
-			{ $returnedArray = $_.Invoke($DatabaseDetails) }
+			{ $returnedArray = $_.Invoke($parameters) }
 			catch #if it hit an exception
 			{
 				# handle the exception
@@ -3652,55 +3718,56 @@ function Process-FlywayTasks
 				$FailedItem = $_.Exception.ItemName
 				$DatabaseDetails.Problems.exceptions += "$Taskname failed with $FailedItem : $ErrorMessage at `n $where."
 			}
-           	 "Executed $TaskName"
-        }
+			"Executed $TaskName"
+		}
 		
 	}
 	#print out any errors and warnings. 
 	if ($DatabaseDetails.Problems.Count -gt 0) #list out every problem and which task failed
 	{
 		$DatabaseDetails.Problems.GetEnumerator() |
-		   Foreach{ Write-warning "Problem! $($_.Key)---------"; $_.Value } |
-		      foreach { write-warning "`t$_" }
-	$DatabaseDetails.Errors=@{}        
-
+		Foreach{ Write-warning "Problem! $($_.Key)---------"; $_.Value } |
+		foreach { write-warning "`t$_" }
+		$DatabaseDetails.Problems = @{ }
+		
 	}
 	if ($DatabaseDetails.Warnings.Count -gt 0) #list out exery warning and which task failed
 	{
 		$DatabaseDetails.Warnings.GetEnumerator() |
 		Foreach{ Write-warning "$($_.Key)---------"; $_.Value } |
 		foreach { write-warning  "`t$_" }
-	$DatabaseDetails.Warnings=@{}    
-    }
-
+		$DatabaseDetails.Warnings = @{ }
+	}
+	
 	$DatabaseDetails.WriteLocations.GetEnumerator() |
-		Foreach{ Write-Output "For the $($_.Key), we saved the report in $($_.Value)"
-    $DatabaseDetails.WriteLocations=@{}   
- } 
-
+	Foreach{
+		Write-Output "For the $($_.Key), we saved the report in $($_.Value)"
+		$DatabaseDetails.WriteLocations = @{ }
+	}
+	
 	$DatabaseDetails.feedback.GetEnumerator() |
-		Foreach{ Write-Output "in $($_.Key), $($_.Value)"
-    $DatabaseDetails.feedback=@{}  
-     } 
-
-    #$Reports=$DatabaseDetails.WriteLocations.GetEnumerator() |
+	Foreach{
+		Write-Output "in $($_.Key), $($_.Value)"
+		$DatabaseDetails.feedback = @{ }
+	}
+	
+	#$Reports=$DatabaseDetails.WriteLocations.GetEnumerator() |
 	#	Foreach{ @{"Source"= $($_.Key); "Report"=$($_.Value)} 
-    #if ($Reports.Count -gt 0) {write-warning "$($Reports| ConvertTo-Json)"}
-    
-   }
+	#if ($Reports.Count -gt 0) {write-warning "$($Reports| ConvertTo-Json)"}
+}
 
 <#
 	.SYNOPSIS
-		Executes SQL according to the RDBMS you have
+		Executes SQL queries that return results according to the RDBMS you have
 	
 	.DESCRIPTION
 		This is a simple front-end for all the scritblocks that can be used to execute SQL for its corresponding RDBMS. This isn't the quickest way of doing it because a connection isn't maintained but, hell, we are scripting.
 	
 	.PARAMETER DatabaseDetails
-		A description of the DatabaseDetails parameter.
+		the hashtable with the project parmeters .
 	
 	.PARAMETER query
-		A description of the query parameter.
+		the sql query
 	
 	.PARAMETER fileBasedQuery
 		a query. If a file, put the path in the $fileBasedQuery parameter
@@ -3737,6 +3804,54 @@ function Execute-SQL
 	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
 }
 
+<#
+	.SYNOPSIS
+		Executes SQL queries that return results according to the RDBMS you have
+	
+	.DESCRIPTION
+		This is a simple front-end for all the scritblocks that can be used to execute SQL for its corresponding RDBMS. This isn't the quickest way of doing it because a connection isn't maintained but, hell, we are scripting.
+	
+	.PARAMETER DatabaseDetails
+		the hashtable with the project parmeters .
+	
+	.PARAMETER query
+		the sql query
+	
+	.PARAMETER fileBasedQuery
+		a query. If a file, put the path in the $fileBasedQuery parameter
+	
+	.NOTES
+		Additional information about the function.
+#>
+function Execute-SQLStatement
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true,
+				   Position = 1)]
+		[System.Collections.Hashtable]$DatabaseDetails,
+		[Parameter(Mandatory = $true,
+				   Position = 2)]
+		[String]$Statement
+	)
+	
+	$Scriptblock = switch ($DatabaseDetails.RDBMS)
+	{
+		'postgresql'   { $GetdataFromPsql }
+		'sqlserver'  { $GetdataFromSQLCMD }
+		'sqlite' { $GetdataFromSqlite }
+        'mariadb' { $GetdataFromMySQL }
+        'Mysql' { $GetdataFromMySQL }
+        	}
+	$ErrorsSoFar = $Error.count
+	$Scriptblock.invoke($DatabaseDetails,$Statement,$null,$true) ;
+	if ($Error.Count -gt $ErrorsSoFar)
+	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
+}
 
 
-'FlywayTeamwork framework  loaded. V1.2.118'
+
+'FlywayTeamwork framework  loaded. V1.2.122'
+
+
