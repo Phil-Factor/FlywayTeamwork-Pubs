@@ -2814,7 +2814,7 @@ FOR JSON auto
 						$constraintName = $_.constraint_name;
 						$ConstraintType = $_.type;
 						$referenced_table = $_.referenced_table;
-						$Details = $_.definition;
+						$definition = $_.definition;
 						# get the original object
 						if ($ConstraintType -notin @('Unique key', 'Primary key', 'foreign key'))
 						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition } }
