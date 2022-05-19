@@ -25,7 +25,8 @@
 		The  Date for the diagram.
 	
 	.EXAMPLE
-				Create-PUMLEntityDiagram 'dbo' 'sales' $model 
+                Create-PUMLEntityDiagram '*' '*' $model 
+                Create-PUMLEntityDiagram 'dbo' 'tagtitle' $model 
 	            Create-PUMLEntityDiagram 'dbo' 'sales' $model 'Publications from PubsMySQL 1.1.7' 'phil Factor Enterprises'
 
 #>
@@ -85,6 +86,12 @@ function Create-PUMLEntityDiagram
 	}
 	
 	
+    if ($schemaToDo -eq '*' -or $FirstTableToDo -eq '*')
+    {
+    $TotalLinks=$TablesToDo;
+    }
+    else 
+    {
 	$WeGottaIterate = $true; #we will always need the first iteration
 	$TheLastPassTotal = 0; #because we haven't done it yet
 	while ($WeGottaIterate)
@@ -110,6 +117,7 @@ function Create-PUMLEntityDiagram
 		#update the count in case we have
 		#otherwise, our task is done
 	}
+    }
 	
 	
 <# we boil this down to a list of all the participating tables and for each 
