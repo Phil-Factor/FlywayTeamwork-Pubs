@@ -87,38 +87,87 @@ This reads the flyway history table, and uses the information to annotate the di
 **$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
 
-## Examples of usage
+
+**$WriteOutERDiagramCode** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
+
+
+$WriteOutERDiagramCode
+
+## examples of usage
 
 Tasks can be executed one at a time or stacked up and executed one after another. 
 
 Here are several being done together 
 
+```
 `$PostMigrationTasks = @(`
 	`$GetCurrentVersion, #checks the database and gets the current version number`
 	`#it does this by reading the Flyway schema history table.` 
     `$GetCurrentServerVersion, #get the current version of the database server`
- 
 	`$CreateBuildScriptIfNecessary, #Create a build script for the database in a` 
-	
 	`#subdirectory for this version.`
-	
 	`$SaveDatabaseModelIfNecessary, #Build a JSON model of the database that we can`
-	
 	`#later use for comparing versions to create a chronicle of changes.`
-	
 	`$CreateVersionNarrativeIfNecessary,`
-	
     `#save the information from the history table about when all the changes were made and by whom
-    `$SaveFlywaySchemaHistoryIfNecessary`
-  
+​    `$SaveFlywaySchemaHistoryIfNecessary`
 `)`
-
-`Process-FlywayTasks $DBDetails $PostMigrationTasks`
-
-	`}`
-	
+`Process-FlywayTasks $param1 $PostMigrationTasks`
+​	`}`
 `}`
+```
 
 here is one scriptblock being done
 
-`Process-FlywayTasks $DBDetails $GetCurrentServerVersion`
+`Process-FlywayTasks $param1 $GetCurrentServerVersion`
+
+Some scriptblocks have extra parameters that allow them to be used more freely. 
+
+here is an ERD diagram being done for a different version of the current project
+
+`Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @('1.1.6')`
+
+In this case, there are other parameters that can be changed but they are ignored if set to NULL
+
+```
+Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @(
+		'1.1.7', #version - the flyway version of the database. Leave null if using framework
+		  $null, #Title - the flyway project. Leave null if using framework
+          $null, #FileLocations - where to store all files
+		  $null, #MetadatachangeFile - Specify if not using the default location
+		  $null, #modelFile - Specify if not using the default location
+		  $null  #MyPUMLFile - The path to the PUML file
+)
+```
+
+Here we change the title and the location of the files
+
+```
+Process-FlywayTasks @{
+problems=@{};warnings=@{};feedback=@{};writeLocations=@{}
+} $WriteOutERDiagramCode @(
+		'1.1.7', #version - the flyway version of the database. Leave null if using framework
+		'MyTitle', #Title - the flyway project. Leave null if using framework
+        'MyFileLocation', #FileLocations - where to store all files
+		$null, #MetadatachangeFile - Specify if not using the default location
+		$null, #modelFile - Specify if not using the default location
+		$null  #MyPUMLFile - The path to the PUML file
+);Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @('1.1.6')
+```
+
+You might not want all the project array because you're just generating diagrams from the two model files. Why not? So you just do the bare minimum hashtable
+
+```
+`Process-FlywayTasks @{`
+`problems=@{};warnings=@{};feedback=@{};writeLocations=@{}`
+`} $WriteOutERDiagramCode @(`
+		`'1.1.7', #version - the flyway version of the database. Leave null if using framework`
+		`'MyTitle', #Title - the flyway project. Leave null if using framework`
+        `'MyFileLocation', #FileLocations - where to store all files`
+		`$null, #MetadatachangeFile - Specify if not using the default location`
+		`$null, #modelFile - Specify if not using the default location`
+		`$null  #MyPUMLFile - The path to the PUML file`
+`);`
+```
+

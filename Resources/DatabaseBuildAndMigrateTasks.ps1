@@ -82,6 +82,12 @@ This reads the flyway history table, and uses the information to annotate the di
 **$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
 
+**$WriteOutERDiagramCode** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
+
+
+$WriteOutERDiagramCode
+
 ## examples of usage
 
 Tasks can be executed one at a time or stacked up and executed one after another. 
@@ -108,8 +114,49 @@ here is one scriptblock being done
 
 `Process-FlywayTasks $param1 $GetCurrentServerVersion`
 
-#>
+Some scriptblocks have extra parameters that allow them to be used more freely. 
 
+here is an ERD diagram being done for a different version of the current project
+
+`Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @('1.1.6')`
+
+In this case, there are other parameters that can be changed but they are ignored if set to NULL
+
+`Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @(
+		`'1.1.7', #version - the flyway version of the database. Leave null if using framework`
+		`  $null, #Title - the flyway project. Leave null if using framework`
+        `  $null, #FileLocations - where to store all files`
+		`  $null, #MetadatachangeFile - Specify if not using the default location`
+		`  $null, #modelFile - Specify if not using the default location`
+		`  $null  #MyPUMLFile - The path to the PUML file`
+`)`
+
+Here we change the title and the location of the files
+
+`Process-FlywayTasks @{`
+`problems=@{};warnings=@{};feedback=@{};writeLocations=@{}`
+`} $WriteOutERDiagramCode @(`
+		`'1.1.7', #version - the flyway version of the database. Leave null if using framework`
+		`'MyTitle', #Title - the flyway project. Leave null if using framework`
+        `'MyFileLocation', #FileLocations - where to store all files`
+		`$null, #MetadatachangeFile - Specify if not using the default location`
+		`$null, #modelFile - Specify if not using the default location`
+		`$null  #MyPUMLFile - The path to the PUML file`
+`);Process-FlywayTasks $dbDetails $WriteOutERDiagramCode @('1.1.6')`
+
+You might not want all the project array because you're just generating diagrams from the two model files. Why not? So you just do the bare minimum hashtable
+
+`Process-FlywayTasks @{`
+`problems=@{};warnings=@{};feedback=@{};writeLocations=@{}`
+`} $WriteOutERDiagramCode @(`
+		`'1.1.7', #version - the flyway version of the database. Leave null if using framework`
+		`'MyTitle', #Title - the flyway project. Leave null if using framework`
+        `'MyFileLocation', #FileLocations - where to store all files`
+		`$null, #MetadatachangeFile - Specify if not using the default location`
+		`$null, #modelFile - Specify if not using the default location`
+		`$null  #MyPUMLFile - The path to the PUML file`
+`);`
+#>
 
 
 $GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
@@ -3558,6 +3605,207 @@ $CreateVersionNarrativeIfNecessary = {
 	}
 }
 
+<#
+This creates a simple entity diagram for the current version. You only need two files to do this and
+you don't need to contact the database. The ER diagram has all objects that are either added, removed or
+changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste
+the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
+#>
+
+$WriteOutERDiagramCode = {
+	Param ($param1,
+		$version = $Null,
+		#the flyway version of the database. Leave null if using framework
+		$Title = $null,
+        #The shared directory where all the files are read or written to
+        $FileLocations = $null,
+		#the flyway project. Leave null if using framework
+		$MetadatachangeFile = $null,
+		#Specify if not using the default location
+		$modelFile = $null,
+		#Specify if not using the default location
+		$MyPUMLFile = $null) # $WriteOutERDiagramCode - dont delete this
+	
+	
+	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
+	$problems = @() #none yet!
+	$feedback = @();
+	if ($version -eq $null)
+	{ $version = $param1.version };
+	#the flyway version of the database. Leave null if using framework
+	if ($Title -eq $null)
+	{ $Title = "$($Param1.project) database: $($Param1.Database) $version $($Param1.branch) branch" };
+	#the flyway project. Leave null if using framework
+    if ($FileLocations -eq $null) # just in case you wish to specify a shard location
+	{ $FileLocations = "$($Param1.reportLocation)\$version\Reports" };
+	if ($MetadatachangeFile -eq $null)
+	{ $MetadatachangeFile = "$FileLocations\MetadataChanges.json" }
+	if ($modelFile -eq $null)
+	{ $modelFile = "$FileLocations\DatabaseModel.JSON" }
+	if ($MyPUMLFile -eq $null)
+	{ $MyPUMLFile = "$FileLocations\ERDiagram.PUML" }
+	
+	# variables to colour changed, added (or deleted database objects)
+	$deleted = '#pink ##[bold]red'
+	$added = '#lightgreen ##[bold]green'
+	$altered = '#gold ##[bold]saddlebrown'
+	
+	# check that the files exist
+	@($MetadatachangeFile, $modelFile) | foreach{
+		If (!(Test-Path -PathType Leaf -Path $_))
+		{
+			$problems += "$_ does not exist. You'll need this for this diagram"
+		}
+	}
+	
+	if ($problems.Count -eq 0)
+	{
+<# First, get the change file and convert it to a PoSh object#>
+		$changes = ConvertFrom-json ([IO.File]::ReadAllText($MetadatachangeFile))
+		if ($changes -ne $null)
+		{
+			$ChangedEntities = $changes | foreach{ @{ 'object' = $_.Ref.Split('.'); 'match' = $_.match } }
+			$ChangedObjects = @{ }
+			$ChangedEntities | foreach {
+				"$($_.object[1]).$($_.object[3])" } | sort -Unique | foreach{ $ChangedObjects."$($_)" = '--' }
+			$ChangedEntities | foreach {
+				@{ "$($_.object[1]).$($_.object[3])" = $_.match } } |
+			foreach{
+				$which = $_;
+				$change = [string]$which.Values[0]
+				$objectName = [string]$which.Keys[0]
+				$ChangedObjects."$objectName" =
+				switch ($ChangedObjects."$objectName")
+				{
+					'--' { "$change" }
+					'<-' { '<' + $change[1] }
+					'->' { $change[0] + '>' }
+					default { '<>' }
+				}
+			}
+		}
+		
+<# Get the model and convert it into a PlantUML script #>
+		$Model = ConvertFrom-json ([IO.File]::ReadAllText($modelFile))
+		$EntityCode = $model | Display-object -depth 3 |
+		foreach{
+			#split into the individual objects
+			$bits = $_.Path.split('.');
+			$objectName = "$($Bits[1]).$($bits[3])"
+			$ObjecType = "$($Bits[2].replace(' ', '_'))"
+			[pscustomobject]@{
+				'ObjectName' = $objectName; 'ObjectType' = $ObjecType;
+				'change' = if ($changes -ne $null)
+				{
+					$TheObjectName = "$($Bits[1]).$($bits[3])"
+					if ($Changedobjects.$TheObjectName -ne $null)
+					{
+						switch ($Changedobjects.$TheObjectName)
+						{
+							'->' { $added } '<-' { $deleted }  '<>' { $altered }
+							default { '?' }
+						}
+					}
+				}
+				else { '' }
+			}
+		} | foreach {
+			#finally write them all out
+			" $($_.ObjectType)($($_.ObjectName))  $($_.change)"
+		}
+		
+		#Now add in any completely deleted objects that wouldn't be in the current model
+		if ($changes.count -gt 0)
+		{
+			$ObjectPaths = $model | Display-object -depth 3 | foreach{ "$($_.path)" }
+			$changes |
+			foreach{ $Bits = $_.ref.split('.'); "`$.$($bits[1] + '.' + $bits[2] + '.' + $bits[3])" } |
+			select -unique | where { $_ -notin $ObjectPaths } | foreach {
+				#finally write them all out
+				$EntityCode += " $($bits[2])($($bits[1] + $bits[3]))  $deleted"
+			}
+		}
+		
+		#now print out the 'hard entities'.
+		$EntityRelations = $model | Display-object -depth 10 |
+		where{ $_.path -like '$.*.*.*.foreign key.*.Foreign Table' } |
+		foreach{
+			$bits = $_.Path.split('.');
+			[pscustomobject]@{
+				'TableSchema' = "$($Bits[1])";
+				'TableName' = "$($bits[3])";
+				'Key' = "$($bits[5])";
+				'ReferenceSchema' = "$($_.Value)".Split('.')[0];
+				'ReferenceTable' = "$($_.Value)".Split('.')[1]
+			}
+		} | foreach {
+			"$($_.TableSchema).$($_.TableName)  }|..|| $($_.ReferenceSchema).$($_.ReferenceTable)   "
+			
+		}
+<# now print out the plantuml header and the code. #>
+		$pumlCode = @"
+@startuml
+skinparam class {
+BackgroundColor WhiteSmoke
+ArrowColor black
+BorderColor gray
+}
+skinparam wrapWidth 150
+skinparam handwritten true
+skinparam monochrome false
+skinparam packageStyle rect
+skinparam defaultFontName Buxton Sketch
+skinparam shadowing true
+skinparam MessageAlign left
+skinparam header{
+  FontColor black
+  FontSize 14
+}
+skinparam footer{
+  FontColor black
+  FontSize 10
+}
+left to right direction
+
+Title $title
+header Date: $(((get-date).Date).ToString().replace(' 00:00:00', '')
+		)
+footer <back:pink>Pink background</back> means deleted <back:lightgreen> green Background</back>means added and <back:gold>Gold background</back> means altered.
+
+!define table(x) class x << (T,mistyrose) >>
+!define user_table(x) class x << (T,mistyrose) >>
+!define view(x) class x << (V,lightblue) >>
+!define dml_trigger(x) class x << (R,red) >>
+!define table_valued_function(x) class x << (F,darkorange) >>
+!define aggregate_function(x) class x << (F,white) >>
+!define scalar_function(x) class x << (F,plum) >>
+!define clr_scalar_function(x) class x << (F,tan) >>
+!define clr_table_valued_function(x) class x << (F,wheat) >>
+!define inline_table_valued_function(x) class x << (F,gaisboro) >>
+!define stored_procedure(x) class x << (P,indianred) >>
+!define clr_stored_procedure(x) class x << (P,lemonshiffon) >>
+!define extended_stored_procedure(x) class x << (P,linen) >>
+
+
+$($EntityCode -join "`r`n") 
+$($EntityRelations -join "`r`n  ")
+
+@enduml
+"@
+		$pumlCode > "$MyPUMLFile"
+	} #if parameters were OK
+	if ($problems.Count -gt 0)
+	{
+		$Param1.Problems.'WriteOutERDiagramCode' += $problems;
+	}
+	else
+	{
+		$Param1.WriteLocations.'WriteOutERDiagramCode' = $MyPUMLFile;
+	}
+}
+
+
+
 $SaveFlywaySchemaHistoryIfNecessary = {
 	Param ($param1) # $SaveFlywaySchemaHistoryIfNecessary - dont delete this
 	$problems = @() #none yet!
@@ -3751,9 +3999,6 @@ function Process-FlywayTasks
 		$DatabaseDetails.feedback = @{ }
 	}
 	
-	#$Reports=$DatabaseDetails.WriteLocations.GetEnumerator() |
-	#	Foreach{ @{"Source"= $($_.Key); "Report"=$($_.Value)} 
-	#if ($Reports.Count -gt 0) {write-warning "$($Reports| ConvertTo-Json)"}
 }
 
 <#
@@ -3852,6 +4097,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.122'
+'FlywayTeamwork framework  loaded. V1.2.133'
 
 
