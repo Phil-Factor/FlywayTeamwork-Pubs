@@ -2437,7 +2437,7 @@ possible on information schema $param1=$dbdetails
 		MD5(routine_definition) AS "hash",
 		Routine_Comment AS "comment"
 	FROM information_schema.routines
-	WHERE Routine_Schema IN IN ($ListOfSchemas) 
+	WHERE Routine_Schema IN ($ListOfSchemas) 
 UNION ALL
 SELECT 
 		Table_name AS "name", 
@@ -2450,7 +2450,7 @@ SELECT
 	FROM information_schema.tables
 	WHERE Table_type='base table' 
 		AND Table_Schema IN ($ListOfSchemas) 
-		AND TABLE_NAME NOT LIKE 'flyway_schema_history' 
+		AND TABLE_NAME NOT LIKE '$FlywayTableName' 
 UNION ALL
 	SELECT 
 		Table_name AS "name", 
@@ -4108,6 +4108,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.133'
+'FlywayTeamwork framework  loaded. V1.2.134'
 
 
