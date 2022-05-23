@@ -2688,7 +2688,7 @@ SELECT ParentObjects.[Schema] AS "Schema", ParentObjects.type,
   WHERE Object_Name (ParentObjects.object_id) <> '$FlywayTableName'
   ORDER BY
   "Schema", "type", Name, TheOrder
-FOR JSON AUTO;
+FOR JSON AUTO
 "@
 					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
 					#now get the details of the routines
@@ -4108,6 +4108,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.134'
+'FlywayTeamwork framework  loaded. V1.2.135'
 
 
