@@ -2057,33 +2057,35 @@ $SaveDatabaseModelIfNecessary = {
 	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
 	$problems = @() #none yet!
 	$feedback = @();
-    $AlreadyDone =$false;
+	$AlreadyDone = $false;
 	#check that you have the  entries that we need in the parameter table.
-	if ($MyOutputReport -eq $null -and $MyCurrentReport -eq $null -and $MyModelPath -eq $null)
+	$Essentials = @('server', 'database', 'RDBMS', 'schemas', 'flywayTable')
+	$WeHaveToCalculateADestination = $false; #assume default report locations
+	if ($MyOutputReport -eq $null -or $MyCurrentReport -eq $null -or $MyModelPath -eq $null)
 	{
-		$Essentials = @('server', 'database', 'version', 'project', 'RDBMS', 'schemas', 'flywayTable')
+		#slightly less required for an ad-hoc model.
+		$Essentials += @('version', 'project', 'Reportdirectory')
+		$WeHaveToCalculateADestination = $true;
 	}
-	else #slightly less required for an ad-hoc model.
-	{
-		$Essentials = @('server', 'database', 'RDBMS', 'schemas', 'flywayTable')
-	}
+	
 	$Essentials | foreach{
 		if ([string]::IsNullOrEmpty($param1.$_))
 		{ $Problems += "no value for '$($_)'" }
 	}
-	if ($MyOutputReport -eq $null -or $MycurrentReport -eq $null -or $MyModelPath -eq $null)
-	#if all parameters not provided
+	if ($WeHaveToCalculateADestination)
 	{
 		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+		# if any of the optional parameters aren't given
 		if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a classic or NULL value
 		{ $where = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)" }
 		else { $where = "$($param1.reportLocation)" }
+		
+		#if all parameters not provided
 		$MyDatabasePath = "$where\$($param1.Version)\Reports";
 		$MyCurrentPath = "$where\current";
-		if ($MyModelPath -eq $null) { $MyModelPath = "$where\$($param1.Version)\model" };
-		#the object-level models
 	}
-	#else the simple version
+	if ($MyModelPath -eq $null)
+	{ $MyModelPath = "$where\$($param1.Version)\model" };
 	# so if not specified in the parameters, generate the correct location.
 	if ($MyOutputReport -eq $null)
 	{ $MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON" }
@@ -2095,7 +2097,7 @@ $SaveDatabaseModelIfNecessary = {
 	{ $FlywayTableName = ($param1.flywayTable -split '\.')[1] }
 	else
 	{ $FlywayTableName = 'flyway_schema_history' }
-	if (!(Test-Path -PathType Leaf $MyOutputReport)) #only do it once
+	if (!(Test-Path -PathType Leaf  $MyOutputReport)) #only do it once
 	{
 		try
 		{
@@ -2866,7 +2868,7 @@ FOR JSON auto
 					}
 					#display-object $schemaTree|convertto-json -depth 10
             <# now stitch in the constraints with their columns  #>
-					$constraints | Select schema, table_name, Type, constraint_name, referenced_table -Unique | foreach{
+					$constraints | Select schema, table_name, Type, constraint_name, referenced_table, definition -Unique | foreach{
 						$constraintSchema = $_.schema;
 						$constrainedTable = $_.table_name;
 						$constraintName = $_.constraint_name;
@@ -4108,6 +4110,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.135'
+'FlywayTeamwork framework  loaded. V1.2.136'
 
 
