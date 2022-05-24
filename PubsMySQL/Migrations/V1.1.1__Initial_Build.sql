@@ -1,4 +1,5 @@
-﻿CREATE TABLE employee (
+﻿
+CREATE TABLE employee (
 	emp_id char(9) NOT NULL,
 	fname varchar(20) NOT NULL,
 	minit char(1),
