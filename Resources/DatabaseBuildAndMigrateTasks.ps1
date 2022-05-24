@@ -2073,7 +2073,7 @@ $SaveDatabaseModelIfNecessary = {
 		{ $Problems += "no value for '$($_)'" }
 	}
 	if ($WeHaveToCalculateADestination)
-	{
+	{# by default, we need to calculate destinations from the param1
 		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 		# if any of the optional parameters aren't given
 		if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a classic or NULL value
@@ -2091,17 +2091,23 @@ $SaveDatabaseModelIfNecessary = {
 	{ $MyOutputReport = "$MyDatabasePath\DatabaseModel.JSON" }
 	if ($MyCurrentReport -eq $null)
 	{ $MyCurrentReport = "$MyCurrentPath\Reports\DatabaseModel.JSON" }
-	#handy stuff for where clauses
+	if ($MyDatabasePath -eq $null)
+    {$MyDatabasePath=split-path -Path $MyOutputReport -Parent}
+    
+
+    #handy stuff for where clauses in SQL Statements
 	$ListOfSchemas = ($param1.schemas -split ',' | foreach{ "'$_'" }) -join ',';
+    
 	if ($param1.flywayTable -ne $null)
 	{ $FlywayTableName = ($param1.flywayTable -split '\.')[1] }
 	else
 	{ $FlywayTableName = 'flyway_schema_history' }
+
 	if (!(Test-Path -PathType Leaf  $MyOutputReport)) #only do it once
 	{
 		try
 		{
-			@($MyDatabasePath, "$MyCurrentPath\Reports") | foreach {
+			@($MyDatabasePath, "$(split-path -path $MyCurrentReport -Parent)") | foreach {
 				if (Test-Path -PathType Leaf $_)
 				{
 					# does the path to the reports directory exist as a file for some reason?
@@ -4110,6 +4116,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.136'
+'FlywayTeamwork framework  loaded. V1.2.137'
 
 
