@@ -89,7 +89,7 @@ if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 
 Now we check that the directories and files that we need are there #>
 @(@{ path = "$($pwd.Path)"; desc = 'project directory'; type = 'container' },
-	@{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
+	# @{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
 	@{ path = "$($pwd.Path)\flyway.conf"; desc = 'flyway.conf file'; type = 'leaf' }
 ) | foreach{
 	if (-not (Test-Path $_.path -PathType $_.type))

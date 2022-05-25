@@ -47,7 +47,7 @@ $dataPath= if ([string]::IsNullOrEmpty($FileLocations.DataPath))
 $VersionsPath= if ([string]::IsNullOrEmpty($FileLocations.VersionsPath)) 
         {'Versions'} else {"$($FileLocations.VersionsPath)"}
 $Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory)) 
-        {'reports'} else {"$($FileLocations.Reportdirectory)"}
+        {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
 #$ReportLocation is used for the branch version
 $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
 
@@ -89,7 +89,7 @@ if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 
 Now we check that the directories and files that we need are there #>
 @(@{ path = "$($pwd.Path)"; desc = 'project directory'; type = 'container' },
-	@{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
+	# @{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
 	@{ path = "$($pwd.Path)\flyway.conf"; desc = 'flyway.conf file'; type = 'leaf' }
 ) | foreach{
 	if (-not (Test-Path $_.path -PathType $_.type))

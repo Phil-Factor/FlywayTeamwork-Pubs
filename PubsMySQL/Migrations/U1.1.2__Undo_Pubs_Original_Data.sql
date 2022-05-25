@@ -1,14 +1,75 @@
 DELIMITER $$
-DROP PROCEDURE IF EXISTS undo_Pubs1_1_2 $$ 
-CREATE PROCEDURE undo_Pubs1_1_2()
+DROP PROCEDURE IF EXISTS dbo.undo_Pubs1_1_2 $$ 
+CREATE PROCEDURE dbo.undo_Pubs1_1_2()
 BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 	BEGIN
 	 GET DIAGNOSTICS CONDITION 1
     @p2 = MESSAGE_TEXT;
-    SELECT CONCAT('I am sorry but ',@p2) AS 'Migration undo_Pubs1_1_2 terminated' INTO @theError;
+    SELECT CONCAT('I am sorry but ',@p2) AS 'Migration undo_Pubs1_1_3 terminated' INTO @theError;
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @theError ;
 	END;
+	
+	if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='discounts' 
+			AND CONSTRAINT_NAME='fk_Discounts_Stores_Stor_id')) then 
+		ALTER TABLE discounts DROP FOREIGN KEY  fk_Discounts_Stores_Stor_id;
+	END IF;	
+ 
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='employee' 
+			AND CONSTRAINT_NAME='fk_Employee_Pubs_JobID')) then 
+		ALTER TABLE employee DROP FOREIGN KEY  fk_Employee_Pubs_JobID;
+	END IF;		
+  
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='employee' 
+			AND CONSTRAINT_NAME='fk_Employee_publishers_pub_id')) then 
+		ALTER TABLE employee DROP FOREIGN KEY  fk_Employee_publishers_pub_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='pub_info' 
+			AND CONSTRAINT_NAME='fk_Pubinfo_publishers_pub_id')) then 
+		ALTER TABLE pub_info DROP FOREIGN KEY  fk_Pubinfo_publishers_pub_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='roysched' 
+			AND CONSTRAINT_NAME='fk_roysched_Titles_title_id')) then 
+		ALTER TABLE roysched DROP FOREIGN KEY  fk_roysched_Titles_title_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='sales' 
+			AND CONSTRAINT_NAME='fk_sales_stores_Store_id')) then 
+		ALTER TABLE sales DROP FOREIGN KEY  fk_sales_stores_Store_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='sales' 
+			AND CONSTRAINT_NAME='fk_sales_titles_titleid')) then 
+		ALTER TABLE sales DROP FOREIGN KEY  fk_sales_titles_titleid;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='titleauthor' 
+			AND CONSTRAINT_NAME='fk_titleauthor_authors_au_id')) then 
+		ALTER TABLE titleauthor DROP FOREIGN KEY fk_titleauthor_authors_au_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='titleauthor' 
+			AND CONSTRAINT_NAME='fk_titleauthor_titles_title_id')) then 
+		ALTER TABLE titleauthor DROP FOREIGN KEY fk_titleauthor_titles_title_id;
+	END IF;		
+
+  if EXISTS ((SELECT * FROM information_schema.REFERENTIAL_CONSTRAINTS 
+			WHERE TABLE_NAME='titles' 
+			AND CONSTRAINT_NAME='fk_titles_Publishers_pub_id')) then 
+		ALTER TABLE titles DROP FOREIGN KEY fk_titles_Publishers_pub_id;
+	END IF;		
+	
 	SET foreign_key_checks = 0;
 	-- Delete rows from dbo.titleauthor')
 	DELETE FROM dbo.titleauthor WHERE au_id = '172-32-1176' AND title_id = 'PS3333';
@@ -210,9 +271,9 @@ BEGIN
 	SET foreign_key_checks = 1;
 END $$
 
-CALL undo_Pubs1_1_2  $$
+call dbo.undo_Pubs1_1_2  $$
 
-DROP PROCEDURE IF exists undo_Pubs1_1_2 $$
+DROP PROCEDURE IF exists dbo.undo_Pubs1_1_2 $$
 
 DELIMITER ;
 
