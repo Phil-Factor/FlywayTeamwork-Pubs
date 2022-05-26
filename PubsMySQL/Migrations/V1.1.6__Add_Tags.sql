@@ -1,13 +1,13 @@
 INSERT INTO publications (Publication_id, title, pub_id, notes, pubdate)
-  SELECT title_id, title, pub_id, notes, pubdate FROM Titles;
+  SELECT title_id, title, pub_id, notes, pubdate FROM titles;
 
 INSERT INTO editions (publication_id, Publication_type, EditionDate)
-  SELECT title_id, 'book', pubdate FROM Titles;
+  SELECT title_id, 'book', pubdate FROM titles;
 
 INSERT INTO prices (Edition_id, price, advance, royalty, ytd_sales,
 PriceStartDate, PriceEndDate)
   SELECT Edition_id, price, advance, royalty, ytd_sales, pubdate, NULL
-    FROM Titles t
+    FROM titles t
       INNER JOIN editions
         ON t.title_id = editions.publication_id;
 
@@ -24,30 +24,30 @@ CREATE TABLE Newsales (
 	FOREIGN KEY (title_id) REFERENCES  publications (publication_id)
 	);
 
-INSERT INTO NewSales (stor_id, ord_num, title_id, ord_date, qty, payterms)
+INSERT INTO Newsales (stor_id, ord_num, title_id, ord_date, qty, payterms)
   SELECT stor_id, ord_num, title_id, ord_date, qty, payterms FROM sales;
 
 DROP TABLE sales;
-ALTER TABLE NewSales RENAME TO Sales;
+ALTER TABLE Newsales RENAME TO sales;
 
 DROP VIEW titleview;
 
-CREATE TABLE Newtitleauthor (
+CREATE TABLE NewTitleAuthor (
 	au_id varchar(11) NOT NULL,
 	title_id varchar(6) NOT NULL,
 	au_ord int,
 	royaltyper int,
 	FOREIGN KEY (au_id) REFERENCES authors (au_id),
-   FOREIGN KEY (title_id) REFERENCES  publications (publication_id),
+        FOREIGN KEY (title_id) REFERENCES  publications (publication_id),
 	PRIMARY KEY (au_id,title_id)
 );
 
 
 
-INSERT INTO NewTitleauthor(au_id, title_id, au_ord, royaltyper)
+INSERT INTO NewTitleAuthor(au_id, title_id, au_ord, royaltyper)
   SELECT au_id, title_id, au_ord, royaltyper FROM titleauthor; 
 DROP TABLE titleauthor ;
-ALTER TABLE Newtitleauthor  RENAME TO titleauthor;
+ALTER TABLE NewTitleAuthor  RENAME TO titleauthor;
 
 Create VIEW titleview
 AS 
@@ -91,18 +91,18 @@ CREATE TABLE TagTitle
    PRIMARY KEY (title_id ASC, TagName_ID)
   );
 
-  INSERT INTO TagName (Tag) SELECT DISTINCT type FROM Titles;
+  INSERT INTO TagName (Tag) SELECT DISTINCT type FROM titles;
 
 INSERT INTO TagTitle (title_id,Is_Primary,TagName_ID)
-  SELECT title_id, 1, TagName_ID FROM Titles 
-    INNER JOIN TagName ON Titles.type = TagName.Tag;
+  SELECT title_id, 1, TagName_ID FROM titles 
+    INNER JOIN TagName ON titles.type = TagName.Tag;
 
 
 DROP TABLE titles;
 -- now done by publications
 
 CREATE VIEW titles
-/* this view replaces the old TITLES table and shows only those books that represent each publication and only the current price */
+/* this view replaces the old titles table and shows only those books that represent each publication and only the current price */
 AS
 SELECT publications.Publication_id AS title_id, publications.title,
   Tag AS Type, pub_id, price, advance, royalty, ytd_sales, notes, pubdate
@@ -123,13 +123,13 @@ create VIEW PublishersByPublicationType as
 /* A view to provide the number of each type of publication produced
 by each publisher*/
 SELECT Coalesce(publishers.pub_name, '---All types') AS publisher,
-Sum(CASE WHEN Editions.Publication_type = 'AudioBook' THEN 1 ELSE 0 END) AS 'AudioBook',
-Sum(CASE WHEN Editions.Publication_type ='Book' THEN 1 ELSE 0 END) AS 'Book',
-Sum(CASE WHEN Editions.Publication_type ='Calendar' THEN 1 ELSE 0 END) AS 'Calendar',
-Sum(CASE WHEN Editions.Publication_type ='Ebook' THEN 1 ELSE 0 END) AS 'Ebook',
-Sum(CASE WHEN Editions.Publication_type ='Hardback' THEN 1 ELSE 0 END) AS 'Hardback',
-Sum(CASE WHEN Editions.Publication_type ='Map' THEN 1 ELSE 0 END) AS 'Map',
-Sum(CASE WHEN Editions.Publication_type ='Paperback' THEN 1 ELSE 0 END) AS 'PaperBack',
+Sum(CASE WHEN editions.Publication_type = 'AudioBook' THEN 1 ELSE 0 END) AS 'AudioBook',
+Sum(CASE WHEN editions.Publication_type ='Book' THEN 1 ELSE 0 END) AS 'Book',
+Sum(CASE WHEN editions.Publication_type ='Calendar' THEN 1 ELSE 0 END) AS 'Calendar',
+Sum(CASE WHEN editions.Publication_type ='Ebook' THEN 1 ELSE 0 END) AS 'Ebook',
+Sum(CASE WHEN editions.Publication_type ='Hardback' THEN 1 ELSE 0 END) AS 'Hardback',
+Sum(CASE WHEN editions.Publication_type ='Map' THEN 1 ELSE 0 END) AS 'Map',
+Sum(CASE WHEN editions.Publication_type ='Paperback' THEN 1 ELSE 0 END) AS 'PaperBack',
 Count(*) AS total
  FROM publishers
 INNER JOIN publications
@@ -192,6 +192,3 @@ AS
         AND TN.Tag = 'science'
          OR TN.Tag LIKE '%cook%'
       GROUP BY titles.pub_id, TN.Tag WITH rollup;
-
-
-

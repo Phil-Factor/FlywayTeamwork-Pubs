@@ -38,8 +38,8 @@ call createindex('dbo','prices','Editionid_index','edition_id');
 call createindex('dbo','discounts','Storid_index','Stor_id');
 call createindex('dbo','TagTitle','Titleid_index','Title_id');
 call createindex('dbo','TagTitle','TagName_index','Tagname_id');    
-call createindex('dbo','Employee','Jobid_index','Job_id');    
-call createindex('dbo','Employee','pub_id_index','pub_id');  
+call createindex('dbo','employee','Jobid_index','Job_id');    
+call createindex('dbo','employee','pub_id_index','pub_id');  
 call createindex('dbo','publications','pubid_index','pub_id'); 
 
 DROP PROCEDURE IF EXISTS dbo.CreateIndex;
@@ -57,7 +57,7 @@ VALUES
   ('dbo.employee', 'An employee of any of the publishers'),
   ('dbo.jobs', 'These are the job descriptions and min/max salary level' ),
   ('dbo.prices', 'these are the current prices of every edition of every publication'),
-  ('dbo.Sales', 'these are the sales of every edition of every publication'),
+  ('dbo.sales', 'these are the sales of every edition of every publication'),
   ('dbo.pub_info', 'this holds the special information about every publisher'),
   ('dbo.publications', 'This lists every publication marketed by the distributor'),
   ('dbo.publishers', 'this is a table of publishers who we distribute books for'),
@@ -78,8 +78,8 @@ set @ii = 0;
 SELECT COUNT(*) FROM WhatToDocument INTO @iiMax;
 SET @ii=1;
 WHILE @ii <= @iiMax DO 
-		SET @TABLE=(Select tablename FROM whatToDocument WHERE TheOrder=@ii);
-		SET @COMMENT=(Select TheDescription FROM whatToDocument WHERE TheOrder=@ii);
+		SET @TABLE=(Select tablename FROM WhatToDocument WHERE TheOrder=@ii);
+		SET @COMMENT=(Select TheDescription FROM WhatToDocument WHERE TheOrder=@ii);
 		SET @sqlstmt = CONCAT(
 		'ALTER TABLE ',@Table,' COMMENT ''',@COMMENT,''';');
 		PREPARE st FROM @sqlstmt;
