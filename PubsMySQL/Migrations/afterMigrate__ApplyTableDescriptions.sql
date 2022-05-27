@@ -1,9 +1,7 @@
--- SET SESSION SQL_MODE='ANSI';
-DROP TEMPORARY TABLE IF EXISTS WhatTableToDocument;
-DROP TEMPORARY TABLE IF EXISTS TableCommentsWanted;
-CREATE TEMPORARY TABLE  TableCommentsWanted(Tablename varchar(80), TheDescription VARCHAR(255));
+-- now put the table comments into a temporary table called TableCommentsWanted
+CREATE TEMPORARY TABLE  TableCommentsWanted(Tablename VARCHAR(128), TheDescription VARCHAR(1024));
 INSERT INTO TableCommentsWanted (Tablename, TheDescription)
-VALUES
+VALUES -- all the tables either in place or planned in future work
   ('dbo.authors' , 'The authors of the publications. a publication can have one or more author'),
   ('dbo.discounts', 'These are the discounts offered by the sales people for bulk orders'),
   ('dbo.editions', 'A publication can come out in several different editions, of maybe a different type'),
@@ -20,8 +18,9 @@ VALUES
   ('dbo.TagTitle', 'This relates tags to publications so that publications can have more than one'),
   ('dbo.titleauthor', 'this is a table that relates authors to publications, and gives their order of listing and royalty')
   ;
-
-CREATE TEMPORARY TABLE if not exists  TheDocumentation (TableObjectName varchar (128), `Type` varchar(20), `Column` varchar(4000), `comment` VARCHAR(400) );
+-- now put the table comments into a temporary table called TheDocumentation
+CREATE TEMPORARY TABLE TheDocumentation (TableObjectName varchar (128), `Type` varchar(20),
+                                        `Column` VARCHAR(128), `comment` VARCHAR(1024) );
 INSERT INTO TheDocumentation (`TableObjectName`, `TYPE`, `Column`, `comment`)
 VALUES
 ( N'dbo.publications', N'TABLE', N'Publication_id', N'The surrogate key to the Publications Table' ), 
@@ -133,7 +132,8 @@ VALUES
 ( N'dbo.TitlesAndEditionsByPublisher', N'VIEW', N'Listofeditions', N'a list of editions with its price' )
 ;
 
-
+-- now we determine what comments need to be inseted or updated into a table
+-- and insert the results into a temporary table WhatTableToDocument
 CREATE TEMPORARY TABLE  WhatTableToDocument (
 	TheOrder int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	Tablename varchar(80), 
@@ -144,9 +144,9 @@ INSERT INTO TableCommentsWanted (Tablename, TheDescription)
  on CONCAT (TABLE_SCHEMA,'.',TABLE_NAME)=TableName
  AND TABLE_TYPE = 'BASE TABLE'
  WHERE table_comment <> TheDescription;
-
+-- We now need to insert these comments into the tables
+-- we'll do it one at a time so it requirese several prepared sttements
 Delimiter $$
-DROP PROCEDURE IF EXISTS CommentEachTable $$
 
 CREATE PROCEDURE CommentEachTable()
 BEGIN
@@ -168,14 +168,15 @@ END;
 $$
 DELIMITER ;  
 
-CALL CommentEachTable;
+CALL CommentEachTable; -- execute the temporary procedure
 
-
-DROP temporary table if exists WhatWeNeedToDocument;
-Create temporary table WhatWeNeedToDocument (
+/*now we need to insert or update all the comments. This is a bit more
+complicated because we need to recereate the colunm exactly as it existed
+with the addition of the comment */
+Create temporary table WhatColumnToDocument (
 	TheOrder int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	Theexpression VARCHAR(255)); 
-INSERT INTO WhatWeNeedToDocument (Theexpression)
+INSERT INTO WhatColumnToDocument (Theexpression)
 SELECT CONCAT('ALTER ',
 			comments.type,
 			'  `',
@@ -201,19 +202,18 @@ ON comments.column=`COLUMNS`.COLUMN_NAME
 and TABLE_SCHEMA = DATABASE() 
 AND TYPE <> 'VIEW'
 AND CONCAT (TABLE_SCHEMA,'.',TABLE_NAME)=TableObjectName
-WHERE COLUMN_COMMENT <> comment; 
-
+WHERE COLUMN_COMMENT <> COMMENT; 
+/* now a procedure to do each column that needs to be updated */
 Delimiter $$
-DROP PROCEDURE IF EXISTS CommentPerRow $$
 
 CREATE PROCEDURE CommentPerRow()
 BEGIN
 set @iiMax = 0;
 set @ii = 0;
-SELECT COUNT(*) FROM WhatWeNeedToDocument INTO @iiMax;
+SELECT COUNT(*) FROM WhatColumnToDocument INTO @iiMax;
 SET @ii=1;
 WHILE @ii <= @iiMax DO 
-		SET @expression=(Select Theexpression FROM WhatWeNeedToDocument WHERE TheOrder=@ii);
+		SET @expression=(Select Theexpression FROM WhatColumnToDocument WHERE TheOrder=@ii);
 		PREPARE st FROM @expression;
         EXECUTE st;
         DEALLOCATE PREPARE st;
@@ -222,11 +222,10 @@ END WHILE;
 END;
 $$
 DELIMITER ;  
-
+-- now mop up if necessary 
 CALL CommentPerRow;
-DROP PROCEDURE IF EXISTS CommentPerRow;
-DROP PROCEDURE IF EXISTS CommentEachTable;
-DROP TEMPORARY TABLE IF EXISTS WhatTableToDocument;
-DROP TEMPORARY TABLE IF EXISTS TableCommentsWanted;
+DROP PROCEDURE  CommentPerRow;
+DROP PROCEDURE  CommentEachTable;
+-- temporary tables will only last as long as the session is alive. 
 
 
