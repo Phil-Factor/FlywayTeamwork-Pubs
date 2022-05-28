@@ -26,7 +26,8 @@ create the file with the default settings in place
     {$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json}
 
 #we need this resource path to find out our resources 
-$ResourcesPath=if($WeHaveDirectoryNames){$FileLocations.ResourcePath} else {'Resources'}
+$ResourcesPath=if($WeHaveDirectoryNames){$FileLocations.ResourcesPath} else {'Resources'}
+if ($ResourcesPath -eq $null) {$ResourcesPath='Resources'}
 $structure=if($WeHaveDirectoryNames){$FileLocations.structure} else {'classic'}
 if ($structure -eq $null) {$structure='classic';$WeNeedToCreateAPreferencesFile=$true;}
 #look for the common resources directory for all assets such as modules that are shared
@@ -62,7 +63,7 @@ If (!($WeHaveDirectoryNames))
         {
         $WeNeedToCreateAPreferencesFile=$true;
         $FileLocations=@{
-            ResourcePath='Resources';
+            ResourcesPath='Resources';
             sourcePath ='Source';
             ScriptsPath='Scripts';
             DataPath='Data';

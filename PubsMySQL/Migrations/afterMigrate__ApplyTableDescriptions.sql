@@ -1,6 +1,6 @@
 -- now put the table comments into a temporary table called TableCommentsWanted
 CREATE TEMPORARY TABLE  TableCommentsWanted(Tablename VARCHAR(128), TheDescription VARCHAR(1024));
-INSERT INTO TableCommentsWanted (Tablename, TheDescription)
+INSERT INTO TableCommentsWanted (Tablename, TheDescription)-- used to store all the table comments
 VALUES -- all the tables either in place or planned in future work
   ('dbo.authors' , 'The authors of the publications. a publication can have one or more author'),
   ('dbo.discounts', 'These are the discounts offered by the sales people for bulk orders'),
@@ -18,10 +18,10 @@ VALUES -- all the tables either in place or planned in future work
   ('dbo.TagTitle', 'This relates tags to publications so that publications can have more than one'),
   ('dbo.titleauthor', 'this is a table that relates authors to publications, and gives their order of listing and royalty')
   ;
--- now put the table comments into a temporary table called TheDocumentation
-CREATE TEMPORARY TABLE TheDocumentation (TableObjectName varchar (128), `Type` varchar(20),
+-- now put the table comments into a temporary table called ColumnCommentsWanted
+CREATE TEMPORARY TABLE ColumnCommentsWanted (TableObjectName varchar (128), `Type` varchar(20),
                                         `Column` VARCHAR(128), `comment` VARCHAR(1024) );
-INSERT INTO TheDocumentation (`TableObjectName`, `TYPE`, `Column`, `comment`)
+INSERT INTO ColumnCommentsWanted (`TableObjectName`, `TYPE`, `Column`, `comment`)
 VALUES
 ( N'dbo.publications', N'TABLE', N'Publication_id', N'The surrogate key to the Publications Table' ), 
 ( N'dbo.publications', N'TABLE', N'title', N'the title of the publicxation' ), 
@@ -138,7 +138,7 @@ CREATE TEMPORARY TABLE  WhatTableToDocument (
 	TheOrder int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	Tablename varchar(80), 
  	TheDescription VARCHAR(255));
-INSERT INTO TableCommentsWanted (Tablename, TheDescription) 	
+INSERT INTO WhatTableToDocument (Tablename, TheDescription) 	
  SELECT Tablename, TheDescription FROM information_schema.`TABLES`
  INNER JOIN TableCommentsWanted 
  on CONCAT (TABLE_SCHEMA,'.',TABLE_NAME)=TableName
@@ -196,7 +196,7 @@ SELECT CONCAT('ALTER ',
         extra,
         ' COMMENT \'',
         REPLACE(`comment`,'''',''''''),
-        '\' ;') as script FROM TheDocumentation comments
+        '\' ;') as script FROM ColumnCommentsWanted comments
 INNER JOIN information_schema.`COLUMNS` 
 ON comments.column=`COLUMNS`.COLUMN_NAME 
 and TABLE_SCHEMA = DATABASE() 
