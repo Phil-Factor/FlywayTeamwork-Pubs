@@ -315,6 +315,7 @@ set 'simpleText' to true #>
 	}
 }
 
+
 $GetdataFromMySQL = {<# a Scriptblock way of accessing MySQL via a CLI to get JSON-based  results without having to 
 explicitly open a connection. it will take either SQL files or queries.  #>
 	Param (
@@ -350,7 +351,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		Try
 		{
 			
-			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" '--comments'  '--html')
+			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--port=$($TheArgs.Port -replace '[^\d]', '')" "--show-warnings" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" '--comments'  '--html')
 			if ($? -eq 0)
 			{
 				$problems += "The MySQL CLI returned an error $($error[0])"
@@ -1864,7 +1865,7 @@ SELECT @Json
 
 <# This places in a report a json report of the documentation of every table and its
 columns. If you add or change tables, this can be subsequently used to update the 
-AfterMigrate callback script $param1=$dbDetails
+AfterMigrate callback script
 for the documentation */#>
 
 $ExecuteTableDocumentationReport = {
@@ -1905,8 +1906,8 @@ FROM information_schema.columns  c
 LEFT OUTER JOIN information_schema.views v 
 ON c.TABLE_NAME=v.Table_Name
 AND v.table_Schema=c.table_Schema
-WHERE c.table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
-	and c.TABLE_NAME <> 'flyway_schema_history'
+WHERE c.table_schema in ($ListOfSchemas)
+	AND c.TABLE_NAME <> '$FlywayTableName'
 ORDER BY c.TABLE_NAME, ordinal_Position;
 "@;
 			#Although there is metadata storage for comments in views, it isnt used.
@@ -1915,7 +1916,7 @@ SELECT CONCAT( table_schema, '.',TABLE_NAME) AS TableObjectName,
 'user table' as "Type",
 TABLE_COMMENT AS "Description" 
 FROM information_schema.tables
-WHERE table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+WHERE table_schema in ($ListOfSchemas)
 	AND TABLE_NAME <> '$FlywayTableName'
 	AND TABLE_TYPE = 'BASE TABLE'
 		
