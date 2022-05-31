@@ -5,12 +5,14 @@ Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible #>
+
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
 {
 	write-error "This script requires Flyway to be installed and available on a PATH or via an alias" -ErrorAction Stop
 }
+<# is it too old? #>
 if ($FlywayCommand.CommandType -eq 'Application' -and
 	($FlywayCommand.Version -gt [version]'0.0.0.0' -and $FlywayCommand.Version -lt [version]'0.8.1.0'))
 {
@@ -20,62 +22,62 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 pick up any changed locations that the user wants. If nothing exists, then 
 create the file with the default settings in place
 #>
- If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
-    {@{
-	'migrationsPath' = 'Unknown'; 
-        #where the migration scripts are stored-branch structure default to Migrations
-	'resourcesPath' = 'resources'; #the directory that stores the project-wide resources
-	'sourcePath' = 'Source'; #where the source of any branch version is stored
-	'scriptsPath' = 'Scripts'; #where the various scripts of any branch version is stored #>
-	'DataPath' = 'Data'; #where the data for any branch version is stored #>
-	'VersionsPath' = 'Versions'; #where data for all the versions is stored #>
-    'Reportdirectory'='Documents\GitHub\'<# path to the directory where data about migration is stored #>
-    } |convertto-json > "$pwd\DirectoryNames.json"
-    }
+ If ($WeHaveDirectoryNames=Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf)
+    {$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json}
 
-$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json
-
-$ResourcesPath= if ([string]::IsNullOrEmpty($FileLocations.ResourcePath)) 
-        {'resources'} else {"$($FileLocations.ResourcesPath)"}
-$sourcePath= if ([string]::IsNullOrEmpty($FileLocations.SourcePath))
-        {'source'} else {"$($FileLocations.sourcePath)"}
-$ScriptsPath= if ([string]::IsNullOrEmpty($FileLocations.ScriptsPath)) 
-        {'scripts'} else {"$($FileLocations.ScriptsPath)"}
-$dataPath= if ([string]::IsNullOrEmpty($FileLocations.DataPath)) 
-        {'data'} else {"$($FileLocations.DataPath)"}
-#$ReportLocation is used for the  classic version
-$VersionsPath= if ([string]::IsNullOrEmpty($FileLocations.VersionsPath)) 
-        {'Versions'} else {"$($FileLocations.VersionsPath)"}
-$Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory)) 
-        {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
-#$ReportLocation is used for the branch version
-$ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
-
+#we need this resource path to find out our resources 
+$ResourcesPath=if($WeHaveDirectoryNames){$FileLocations.ResourcesPath} else {'Resources'}
+if ($ResourcesPath -eq $null) {$ResourcesPath='Resources'}
+$structure=if($WeHaveDirectoryNames){$FileLocations.structure} else {'classic'}
+if ($structure -eq $null) {$structure='classic';$WeNeedToCreateAPreferencesFile=$true;}
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
-$structure='classic'
 if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
     {$structure='branch'}
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
+#look down the directory structure. 
+
 {
-	$Project = split-path -path $dir -leaf
+	# first see if there is a reference list of directory names
+    if (test-path  "$dir\DirectoryNames.json" -PathType Leaf)
+        {$ReferenceDirectoryNamesPath="$dir\DirectoryNames.json"}
+    $Project = split-path -path $dir -leaf
     if ($Project -eq 'Branches') {$structure='branch'} 
-	$dir = Split-Path $Dir;
+	if (test-path  "$dir\Branches") {$structure='branch'} 
+    $dir = Split-Path $Dir;
 	$ii = $ii - 1;
 }
-$MigrationsPath= if ($FileLocations.MigrationsPath -ieq 'Unknown') 
-        {if ($structure -eq 'branch'){'Migrations'} else {'Scripts'}}
-         else {"$($FileLocations.MigrationsPath)"}
-
-if ($FileLocations.MigrationsPath -ieq 'Unknown') 
-    {$FileLocations.MigrationsPath=$MigrationsPath;
-    $FileLocations|convertto-json > "$pwd\DirectoryNames.json"
+if ($dir -eq '') { throw "no resources directory found" }
+$WeNeedToCreateAPreferencesFile=$false;
+#if no directory  names
+$WeNeedToCreateAPreferencesFile=$false;
+If (!($WeHaveDirectoryNames))
+    {
+    if ($ReferenceDirectoryNamesPath -ne $null)
+        {$FileLocations=[IO.File]::ReadAllText("$ReferenceDirectoryNamesPath")|convertfrom-json;
+        Copy-Item -Path $ReferenceDirectoryNamesPath -Destination "$pwd\DirectoryNames.json"
+        }
+    else
+        {
+        $WeNeedToCreateAPreferencesFile=$true;
+        $FileLocations=@{
+            ResourcesPath='Resources';
+            sourcePath ='Source';
+            ScriptsPath='Scripts';
+            DataPath='Data';
+            VersionsPath='Versions'
+            Reportdirectory='Documents\GitHub\'
+            MigrationsPath =(if ($structure -eq 'branch'){'Migrations'} else {'Scripts'});
+            Structure=$structure;
+            }
+        }
     }
 
-if ($dir -eq '') { throw "no resources directory found" }
 #Read in shared resources
+if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
+    {Throw "Expecting resources in $Dir\$ResourcesPath- instead found preliminary.ps1"}
 dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
@@ -101,11 +103,6 @@ Now we check that the directories and files that we need are there #>
 # The config items are case-sensitive camelcase so beware if you aren't used to this
 
 
-#ForEach ($Key in $FlywayValues.Keys) 
-#    {$Output.$Key = If ($dbDetails.ContainsKey($Key)) {@($Output.$Key) + $Hashtable.$Key} Else  {$Hashtable.$Key}}
-
-#cd S:\work\Github\FlywayTeamwork\Pubs\Branches\develop
-
 $FlywayConfContent=@()
 $FlywayKeys = (Get-Content "flyway.conf")  |
 where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
@@ -116,7 +113,6 @@ foreach{$_ -replace '\\','\\'}|ConvertFrom-StringData|foreach{
     if (!($_.Keys -in $FlywayKeys)) 
         {$FlywayConfContent+=$_}
     }
-
 
 # use this information for our own local data
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
@@ -149,7 +145,8 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
-
+$migrationsPath = split-path -Leaf -path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','').Split(',')[0]
+$migrationsLocation = resolve-path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','')
 
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
@@ -160,13 +157,14 @@ $DBDetails = @{
     'filterpath'=$filterpath
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
+	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
 	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
 	'dataPath' = $DataPath; #where the data for any branch version is stored #>
     'versionsPath'=$VersionsPath;
     'reportDirectory'=$Reportdirectory;
-    'reportLocation'=$ReportLocation; # part of path from user area to project artefacts folder location 
+    'reportLocation'="$pwd\$($FileLocations.VersionsPath)"; # part of path from user area to project artefacts folder location 
 	'Port' = $port
 	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in
@@ -232,3 +230,5 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd
+if ($WeNeedToCreateAPreferencesFile)
+    {$FileLocations|convertto-json > "$pwd\DirectoryNames.json"}

@@ -1250,7 +1250,7 @@ $CreateScriptFoldersIfNecessary = {
 					{
 						if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
 						{ $Null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
-						mysqldump "--host=$($param1.server)" "--password=$($param1.pwd)" "--user=$($param1.uid)" --triggers --skip-set-charset --skip-add-drop-table --skip-set-charset --compact --no-data  "$($_.Schema)" "$($_.Name)" > "$WhereToStoreIt\$($_.Schema).$($_.Name).sql"
+						mysqldump "--host=$($param1.server)" "--port=$($param1.Port -replace '[^\d]','')" "--password=$($param1.pwd)" "--user=$($param1.uid)" --triggers --skip-set-charset --skip-add-drop-table --skip-set-charset --compact --no-data  "$($_.Schema)" "$($_.Name)" > "$WhereToStoreIt\$($_.Schema).$($_.Name).sql"
 						if (!($?))
 						{
 							#report a problem and send back the args for diagnosis
@@ -1533,7 +1533,8 @@ $CreateBuildScriptIfNecessary = {
                         {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
                     }            else
                 {
-                powershell.exe "mysqldump --host=$($param1.server) --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ')" > "$MyDatabasePath\V$($param1.Version)__Build.sql"
+                #$param1=$dbDetails
+                powershell.exe "mysqldump --host=$($param1.server) --port=$($param1.Port -replace '[^\d]','')  --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ')" > "$MyDatabasePath\V$($param1.Version)__Build.sql"
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                } 
             }
@@ -2213,7 +2214,7 @@ possible on information schema #>
             FROM information_schema."columns" 
             left outer JOIN (SELECT  table_schema,table_name FROM information_schema."views")as views
             ON columns.table_schema=views.table_schema AND  columns.TABLE_NAME=views.table_name
-            WHERE columns.table_catalog=current_database() AND columns.table_schema NOT IN ('pg_catalog','information_schema')
+            WHERE columns.table_catalog=current_database() AND columns.table_schema IN ($listOfSchemas)
             and columns.TABLE_NAME <> '$FlywayTableName'
             ORDER BY columns.table_schema, columns.TABLE_NAME, ordinal_position
                 ) e;
@@ -2227,12 +2228,12 @@ possible on information schema #>
 		CONCAT(Routine_Schema,'.', Routine_name) AS "fullname", 
 		LOWER(routine_type) AS "type",
 		routine_definition AS definition, 
-		MD5(routine_definition) AS "hash",
-		description AS "comment"
+		MD5(routine_definition) AS "hash" --,
+		-- description AS "comment"
    FROM information_schema.routines
-	INNER JOIN pg_proc ON proname LIKE routine_name
-	LEFT OUTER JOIN pg_description
-	ON OID= objoid
+	-- INNER JOIN pg_proc ON proname LIKE routine_name
+	-- LEFT OUTER JOIN pg_description
+	-- ON OID= objoid
 	WHERE Routine_Schema IN ($ListOfSchemas) 	
 UNION ALL
 SELECT 
@@ -2241,18 +2242,18 @@ SELECT
 		CONCAT(table_Schema,'.', table_name) AS "fullname", 
 		LOWER(replace(table_type,'BASE ','')) AS "type",
 		'' AS definition, 
-		MD5('') AS HASH,
-		description AS COMMENT
+		MD5('') AS HASH -- ,
+		-- description AS COMMENT
 	FROM information_schema.tables
-		INNER JOIN pg_class ON relname LIKE table_name
-	LEFT OUTER JOIN pg_description
-	ON OID= objoid
+	--	INNER JOIN pg_class ON relname LIKE table_name
+	-- LEFT OUTER JOIN pg_description
+	-- ON OID= objoid
 	WHERE Table_Schema IN ($listOfSchemas) 
 		AND TABLE_NAME NOT LIKE '$FlywayTableName'
                 ) e;
 "@
 					$Routines = Execute-SQL $param1 $query | ConvertFrom-json
-					#now do the constraints
+					#now do the constraints 
 					$query = @"
             SELECT json_agg(e) 
             FROM (SELECT lower(tc.constraint_type) as type, tc.table_schema as schema, 
@@ -2424,9 +2425,9 @@ possible on information schema $param1=$dbdetails
 		  	case when COLUMN_DEFAULT IS NULL then '' ELSE CONCAT (' DEFAULT (',COLUMN_DEFAULT,')') END,
 			' ',
 			Extra,
-			' ',
+			' '
 			-- case COLUMN_KEY when 'PRI' then ' PRIMARY KEY' ELSE '' end,
-			case when column_comment <> '' then CONCAT('-- ',column_comment) ELSE '' end
+			-- case when column_comment <> '' then CONCAT('-- ',column_comment) ELSE '' end
 		 ) AS coltype  
         FROM information_schema.columns c 
         LEFT OUTER JOIN information_schema.views v 
@@ -2443,8 +2444,8 @@ possible on information schema $param1=$dbdetails
 		CONCAT(Routine_Schema,'.', Routine_name) AS "fullname", 
 		LOWER(routine_type) AS "type",
 		CONCAT(LEFT(routine_definition,800), CASE WHEN LENGTH(routine_definition)>800 THEN '...' ELSE '' END) AS definition, 
-		MD5(routine_definition) AS "hash",
-		Routine_Comment AS "comment"
+		MD5(routine_definition) AS "hash" -- ,
+		-- Routine_Comment AS "comment"
 	FROM information_schema.routines
 	WHERE Routine_Schema IN ($ListOfSchemas) 
 UNION ALL
@@ -2454,8 +2455,8 @@ SELECT
 		CONCAT(table_Schema,'.', table_name) AS "fullname", 
 		'table' AS "type",
 		'' AS definition, 
-		MD5('') AS HASH,
-		TABLE_Comment AS COMMENT
+		MD5('') AS HASH -- ,
+		-- TABLE_Comment AS COMMENT
 	FROM information_schema.tables
 	WHERE Table_type='base table' 
 		AND Table_Schema IN ($ListOfSchemas) 
@@ -2467,8 +2468,8 @@ UNION ALL
 		CONCAT(Table_Schema,'.', Table_name) AS "fullname", 
 		'view' AS "type",
 		View_definition AS definition, 
-		MD5(View_definition) AS HASH,
-		'' AS COMMENT
+		MD5(View_definition) AS HASH -- ,
+		-- '' AS COMMENT
 	FROM information_schema.views
 		WHERE Table_Schema IN ($ListOfSchemas) 
 		AND TABLE_NAME NOT LIKE '$FlywayTableName'
@@ -2632,7 +2633,8 @@ SELECT ParentObjects.[Schema] AS "Schema", ParentObjects.type,
 				QUOTENAME(Schemae.name) + '.' + QUOTENAME(SchemaCollection.name)
 				,'NULL') + ')'
 				ELSE ''
-			END+Coalesce(' -- '+Description,'')	AS "Column",
+			END -- +Coalesce(' -- '+Description,'')
+        	AS "Column",
 			TheOrder
 -- SQL Prompt formatting on
   FROM --columns, parameters, return values ColsAndParams.

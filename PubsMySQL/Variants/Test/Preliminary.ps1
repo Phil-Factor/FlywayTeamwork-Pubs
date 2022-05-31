@@ -76,6 +76,8 @@ If (!($WeHaveDirectoryNames))
     }
 
 #Read in shared resources
+if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
+    {Throw "Expecting resources in $Dir\$ResourcesPath- instead found preliminary.ps1"}
 dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
@@ -143,8 +145,8 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
-#$migrationsPath = split-path -Leaf -path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','').Split(',')[0]
-$migrationsPath = resolve-path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','')
+$migrationsPath = split-path -Leaf -path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','').Split(',')[0]
+$migrationsLocation = resolve-path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','')
 
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
@@ -155,6 +157,7 @@ $DBDetails = @{
     'filterpath'=$filterpath
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
+	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
 	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
