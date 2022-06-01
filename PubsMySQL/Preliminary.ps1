@@ -145,8 +145,10 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
-$migrationsPath = split-path -Leaf -path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','').Split(',')[0]
-$migrationsLocation = resolve-path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','')
+$migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_ -like 'filesystem:*'}|foreach {
+   resolve-path $_.Replace('filesystem:','') -ErrorAction Ignore}
+# the directory of the first one
+$migrationsPath=split-path -Leaf -path $migrationsLocation[0]
 
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
