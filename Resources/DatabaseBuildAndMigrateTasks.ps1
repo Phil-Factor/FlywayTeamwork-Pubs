@@ -1146,7 +1146,7 @@ for each type of object. A tables folder will, for example, have a file for ever
 each containing a  build script to create that object.
 When this exists, it allows SQL Compare to do comparisons and check that a version has not
 drifted.
-$param1=$dbdetails  #>
+ #>
 $CreateScriptFoldersIfNecessary = {
 	Param ($param1) # $CreateScriptFoldersIfNecessary 
 	$Problems = @(); #We check that it contains the keys for the values that we need 
@@ -1399,7 +1399,7 @@ $CreateScriptFoldersIfNecessary = {
 
 <# 
 a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever.
-$param1=$dbDetails #>
+#>
 
 $CreateBuildScriptIfNecessary = {
 	Param ($param1) # $CreateBuildScriptIfNecessary (Don't delete this) 
@@ -1533,7 +1533,6 @@ $CreateBuildScriptIfNecessary = {
                         {$problems += 'You must have provided a path to mysqldump.exe in $MySQLDumpAlias the ToolLocations.ps1 file in the resources folder'}
                     }            else
                 {
-                #$param1=$dbDetails
                 powershell.exe "mysqldump --host=$($param1.server) --port=$($param1.Port -replace '[^\d]','')  --password=$($param1.pwd) --user=$($param1.uid) --no-data --databases $($param1.schemas -replace ',',' ')" > "$MyDatabasePath\V$($param1.Version)__Build.sql"
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                } 
@@ -2049,8 +2048,8 @@ To run this, you need to provide values for
 'project', The name of the whole project for the output filenames
 'RDBMS', the rdbms being used, e.g. sqlserver, mysql, mariadb, postgresql, sqlite
 'schemas', the schemas to be used to create the model
-'flywayTable' the name and schema of the flyway table 
-$param1=$DBDetails*/#>
+'flywayTable' the name and schema of the flyway table $dbDetails
+/#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1,
 		$MyOutputReport = $null,
@@ -2061,18 +2060,19 @@ $SaveDatabaseModelIfNecessary = {
 	$feedback = @();
 	$AlreadyDone = $false;
 	#check that you have the  entries that we need in the parameter table.
-	$Essentials = @('server', 'database', 'RDBMS', 'schemas', 'flywayTable')
+	$Essentials = @('server', 'database', 'RDBMS', 'flywayTable')
+    if ($param1.RDBMS -ne 'sqlite'){$Essentials +='schemas'}
 	$WeHaveToCalculateADestination = $false; #assume default report locations
 	if ($MyOutputReport -eq $null -or $MyCurrentReport -eq $null -or $MyModelPath -eq $null)
 	{
 		#slightly less required for an ad-hoc model.
-		$Essentials += @('version', 'project', 'Reportdirectory')
+		$Essentials += @('project', 'Reportdirectory');
 		$WeHaveToCalculateADestination = $true;
 	}
 	
 	$Essentials | foreach{
 		if ([string]::IsNullOrEmpty($param1.$_))
-		{ $Problems += "no value for '$($_)'" }
+		{ $Problems += "no value for '$($_)' parameter in db Details" }
 	}
 	if ($WeHaveToCalculateADestination)
 	{# by default, we need to calculate destinations from the param1
@@ -2151,16 +2151,35 @@ $SaveDatabaseModelIfNecessary = {
 					
             <# we get the list of different base types (obvious in SQLite but it can get tricky with other
             RDBMS  #>
+                    $TheSchema=(split-path $param1.database -Leaf).replace('.sqlite3','')
 					$THeTypes = $TablesAndViews | Select type -Unique #|foreach{$_.type}
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
-					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+					$SchemaTree =@{$TheSchema=@{}; } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
-					$TheTypes | foreach{
-						$SchemaTree | add-member -NotePropertyName $_.type -NotePropertyValue @{ }
+ 					$TheTypes | foreach{
+						#$SchemaTree.database | add-member -notePropertyName $_.type -notePropertyValue @{ }
+                        $SchemaTree.$TheSchema += @{$_.type=@{ }}
 					}
+                    
+                    $TheRelationMetadata | Select type, object -Unique | foreach{
+						$type = $_.type;
+						$object = $_.object;
+                        $pk = @{ }
+						$TheColumnList = $TheRelationMetadata |
+						where {$_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+						   foreach{ $_.col }
+                        $SchemaTree.$TheSchema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+                        $primaryKey = $pk | Where { $_.pk -gt 0 } |
+						Sort-Object -Property pk |
+						Foreach{ [regex]::matches($_.col, '\A\S{1,80}').value }
+						if ($primaryKey.count -gt 0)
+						{
+							$SchemaTree.$TheSchema.$type.$object += @{ 'PrimaryKey' = $primaryKey }
+						}
+					} 
 					
-            <# now inject all the objects into the schema tree. First we get all the relations  #>
-					$TheRelationMetadata | Select type, object -Unique | foreach{
+            <# now inject all the objects into the schema tree. First we get all the relations  
+					$TheRelationMetadata | Select type, object -Unique | select -first 3| foreach{
 						$type = $_.type;
 						$object = $_.object;
 						$pk = @{ }
@@ -2168,15 +2187,15 @@ $SaveDatabaseModelIfNecessary = {
 						where { $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
 						foreach{ $_.col }
 						$primaryKey = @();
-						$SchemaTree.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+						$SchemaTree.'database'.$type += @{ $object = @{ 'columns' = $TheColumnList } }
 						$primaryKey = $pk | Where { $_.pk -gt 0 } |
 						Sort-Object -Property pk |
 						Foreach{ [regex]::matches($_.col, '\A\S{1,80}').value }
 						if ($primaryKey.count -gt 0)
 						{
-							$SchemaTree.$type.$object += @{ 'PrimaryKey' = $primaryKey }
+							$SchemaTree.'database'.$type.$object += @{ 'PrimaryKey' = $primaryKey }
 						}
-					}
+					}#>
             <# now stitch in the indexes with their columns  #>
 					$indexes | Select table_name, index_name -Unique | foreach{
 						$indexedTable = $_.table_name
@@ -2184,7 +2203,7 @@ $SaveDatabaseModelIfNecessary = {
 						$columns = $indexes |
 						where{ $_.table_name -eq $indexedTable -and $_.index_name -eq $indexName } |
 						Sort-Object -Property seqno | Select -ExpandProperty column_name
-						$SchemaTree.table.$indexedTable.indexes += @{ $indexName = $columns }
+						$SchemaTree.$TheSchema.table.$indexedTable.indexes += @{ $indexName = $columns }
 					}
 					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
@@ -2410,7 +2429,7 @@ left outer join information_schema.table_constraints rel_tco
 					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 				}
 <# this is the section that creates a MariaDB or MySQL Database Model based where
-possible on information schema $param1=$dbdetails
+possible on information schema 
  #>
 				'mysql|mariaDB' {
 					#create a delimited list for SQL's IN command
@@ -2604,7 +2623,7 @@ UNION ALL
 <# this is the section that creates a SQL Server Database Model based where
 possible on information schema #>
 				'sqlserver'  {
-					#fetch all the relations (anything that produces columns) $param1=$dbDetails
+					#fetch all the relations (anything that produces columns)
 					$query = @"
 SELECT ParentObjects.[Schema] AS "Schema", ParentObjects.type,
        ParentObjects.Name,
@@ -4119,6 +4138,6 @@ function Execute-SQLStatement
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.137'
+'FlywayTeamwork framework  loaded. V1.2.138'
 
 

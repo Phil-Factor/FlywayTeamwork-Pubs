@@ -148,8 +148,7 @@ Create view byroyalty AS
 
 create view reptq1
 AS
-    SELECT CASE WHEN Grouping(publications.pub_id) = 1 
-	         THEN 'ALL' ELSE publications.pub_id END AS pub_id,
+        SELECT   publications.pub_id,
       Avg(price) AS avg_price
       FROM publishers
         INNER JOIN publications
@@ -164,9 +163,7 @@ AS
 
 create view reptq2
 as
-
-    SELECT CASE WHEN Grouping(TN.tag) = 1 THEN 'ALL' ELSE TN.Tag END AS type,
-      CASE WHEN Grouping(titles.pub_id) = 1 THEN 'ALL' ELSE titles.pub_id END AS pub_id,
+    SELECT  titles.pub_id AS pub_id,
       Avg(titles.ytd_sales) AS avg_ytd_sales
       FROM titles AS titles
         INNER JOIN TagTitle AS TagTitle
@@ -178,9 +175,8 @@ as
 
 create view reptq3 
 AS
-
-    SELECT CASE WHEN Grouping(titles.pub_id) = 1 THEN 'ALL' ELSE titles.pub_id END AS pub_id,
-      CASE WHEN Grouping(TN.tag) = 1 THEN 'ALL' ELSE TN.Tag END AS type,
+  SELECT  titles.pub_id AS pub_id,
+      TN.Tag AS type,
       Count(titles.title_id) AS cnt
       FROM titles AS titles
         INNER JOIN TagTitle AS TagTitle
@@ -190,9 +186,8 @@ AS
       WHERE titles.price > 10
         AND TagTitle.Is_Primary = 1
         AND titles.price < 100
-        AND TN.Tag = 'science'
-         OR TN.Tag LIKE '%cook%'
       GROUP BY titles.pub_id, TN.Tag;
+		           
 
 
 
