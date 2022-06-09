@@ -222,6 +222,12 @@ if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
 }
 
 #This is a utility scriptblock used by the task scriptblocks.
+<#
+ $query= "";
+ $TheArgs=$dbdetails;
+ $fileBasedQuery = ".\Migrations\Adventureworks_Build.sql";
+  $simpleText=$true;
+  $simpleText#>
 #with SQL Server, you really want your datab back as JSN, but SQLcmd can't do it.
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
@@ -238,7 +244,7 @@ set 'simpleText' to true #>
 	{ $Problems += "Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided"; }
 	else
 	{
-		#the alias must be set to the path of your installed version of SQL Compare
+		#the alias must be set to the path of your installed version of SQL Cmd
         $command=$null;
         $command = get-command SQLCmd -ErrorAction Ignore 
 		if ($command -eq $null)
@@ -270,13 +276,14 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -i $TempInputFile -U $TheArgs.Uid -P $TheArgs.pwd `
-					   -o "$TempOutputFile" -u -y0
+					   -o "$TempOutputFile" -u -y0 -b -m-1
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0
+					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b -m-1
 			}
+            $Succeeded=$?
 			#if it is just for storing a query
 			if ([string]::IsNullOrEmpty($FileBasedQuery)) { Remove-Item $TempInputFile }
 		}
@@ -287,20 +294,21 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -U $TheArgs.uid -P $TheArgs.pwd `
-					   -o `"$TempOutputFile`" -u -y0
+					   -o `"$TempOutputFile`" -u -y0 -b -m-1
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0
+					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b -m-1
 			}
+            $Succeeded=$?
 		}
-		If (Test-Path -Path $TempOutputFile)
+        If (Test-Path -Path $TempOutputFile)
 		{
 			#make it easier for the caller to read the error
 			$response = [IO.File]::ReadAllText($TempOutputFile);
-			Remove-Item $TempOutputFile
-			if ($response -like 'Msg*')
+            Remove-Item $TempOutputFile
+			if ($response -like 'Msg*' -or !($succeeded))
 			{ $Problems += "$($TheArgs.database) says $Response" }
 			elseif ($response -like 'SqlCmd*')
 			{ $problems += "SQLCMD says $Response" }
