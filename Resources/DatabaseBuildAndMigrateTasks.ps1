@@ -276,12 +276,12 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -i $TempInputFile -U $TheArgs.Uid -P $TheArgs.pwd `
-					   -o "$TempOutputFile" -u -y0 -b -m-1
+					   -o "$TempOutputFile" -u -y0 -b 
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b -m-1
+					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b 
 			}
             $Succeeded=$?
 			#if it is just for storing a query
@@ -294,12 +294,12 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -U $TheArgs.uid -P $TheArgs.pwd `
-					   -o `"$TempOutputFile`" -u -y0 -b -m-1
+					   -o `"$TempOutputFile`" -u -y0 -b 
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b -m-1
+					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b 
 			}
             $Succeeded=$?
 		}
