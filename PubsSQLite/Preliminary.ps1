@@ -5,7 +5,7 @@ Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible #>
-
+$FileLocations=@{}; #these can be specified in a JSON file
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
@@ -25,9 +25,10 @@ create the file with the default settings in place
  If ($WeHaveDirectoryNames=Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf)
     {$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json}
 
-#we need this resource path to find out our resources 
-$ResourcesPath=if($WeHaveDirectoryNames){$FileLocations.ResourcesPath} else {'Resources'}
-if ($ResourcesPath -eq $null) {$ResourcesPath='Resources'}
+# we need this resource path to find out our resources 
+$ResourcesPath=( $FileLocations.ResourcesPath,'Resources' -ne $null)[0]
+# while we're at it, we get the tests path 
+$TestsPath=( $FileLocations.TestsPath,'Tests' -ne $null)[0]
 $structure=if($WeHaveDirectoryNames){$FileLocations.structure} else {'classic'}
 if ($structure -eq $null) {$structure='classic';$WeNeedToCreateAPreferencesFile=$true;}
 #look for the common resources directory for all assets such as modules that are shared
@@ -43,6 +44,8 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
 	# first see if there is a reference list of directory names
     if (test-path  "$dir\DirectoryNames.json" -PathType Leaf)
         {$ReferenceDirectoryNamesPath="$dir\DirectoryNames.json"}
+    if (test-path  "$dir\$TestsPath" -PathType Container)
+        {$TestsLocation="$dir\$TestsPath"}
     $Project = split-path -path $dir -leaf
     if ($Project -eq 'Branches') {$structure='branch'} 
 	if (test-path  "$dir\Branches") {$structure='branch'} 
@@ -50,8 +53,13 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
 	$ii = $ii - 1;
 }
 if ($dir -eq '') { throw "no resources directory found" }
-$WeNeedToCreateAPreferencesFile=$false;
 #if no directory  names
+if ($TestsLocation -eq $null)
+    {
+    $TestsLocation="$dir\$Project\$TestsPath";
+    New-Item -ItemType Directory -Path "$TestsLocation" -Force 
+    }
+
 $WeNeedToCreateAPreferencesFile=$false;
 If (!($WeHaveDirectoryNames))
     {
@@ -66,14 +74,24 @@ If (!($WeHaveDirectoryNames))
             ResourcesPath='Resources';
             sourcePath ='Source';
             ScriptsPath='Scripts';
+            VariantsPath='Variants';
             DataPath='Data';
-            VersionsPath='Versions'
-            Reportdirectory='Documents\GitHub\'
+            VersionsPath='Versions';
+            Reportdirectory='Documents\GitHub\';
+            TestsPath='Tests';
             MigrationsPath =(if ($structure -eq 'branch'){'Migrations'} else {'Scripts'});
             Structure=$structure;
             }
         }
     }
+#ensure that there are default values for the names of the paths
+$VersionsPath=( $FileLocations.VersionsPath,'Versions' -ne $null)[0]
+$VariantsPath=( $FileLocations.VariantsPath,'Variants' -ne $null)[0]
+$scriptsPath=( $FileLocations.ScriptsPath,'Scripts' -ne $null)[0]
+$testsPath=( $FileLocations.TestsPath,'Tests' -ne $null)[0]
+$sourcePath=( $FileLocations.SourcePath,'Source' -ne $null)[0]
+$dataPath=( $FileLocations.SourcePath,'Data' -ne $null)[0]
+$Reportdirectory=( $FileLocations.Reportdirectory,'Documents\GitHub\' -ne $null)[0]
 
 #Read in shared resources
 if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
@@ -145,8 +163,10 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
-$migrationsPath = split-path -Leaf -path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','').Split(',')[0]
-$migrationsLocation = resolve-path $FlywayConfContent.'flyway.locations'.Replace('filesystem:','')
+$migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_ -like 'filesystem:*'}|foreach {
+   resolve-path $_.Replace('filesystem:','') -ErrorAction Ignore}
+# the directory of the first one
+$migrationsPath=split-path -Leaf -path $migrationsLocation[0]
 
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
@@ -154,15 +174,19 @@ $DBDetails = @{
     'RDBMS'= $RDBMS; 
 	'server' = $server; #The Server name
     'directoryStructure'=$structure;
-    'filterpath'=$filterpath
+    'filterpath'=$filterpath;
+    'variant'='default';
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
 	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
+    'TestsLocation'=$TestsLocation;#where the tests are held
 	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
 	'dataPath' = $DataPath; #where the data for any branch version is stored #>
+    'testsPath' =$testsPath;
     'versionsPath'=$VersionsPath;
+    'variantsPath'=$VariantsPath;
     'reportDirectory'=$Reportdirectory;
     'reportLocation'="$pwd\$($FileLocations.VersionsPath)"; # part of path from user area to project artefacts folder location 
 	'Port' = $port
@@ -194,6 +218,8 @@ foreach{
 	$dbDetails."$variable" = $value;
 }
 
+if (($pwd.Path|split-path -Parent|split-path -leaf) -eq 'variants')
+    {$DBDetails.variant=$pwd.Path|split-path -Leaf}
 
 #now add in any values passed as environment variables
 try{
