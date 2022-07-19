@@ -29,6 +29,7 @@ create the file with the default settings in place
 $ResourcesPath=( $FileLocations.ResourcesPath,'Resources' -ne $null)[0]
 # while we're at it, we get the tests path 
 $TestsPath=( $FileLocations.TestsPath,'Tests' -ne $null)[0]
+$TestsLocations=@();
 $structure=if($WeHaveDirectoryNames){$FileLocations.structure} else {'classic'}
 if ($structure -eq $null) {$structure='classic';$WeNeedToCreateAPreferencesFile=$true;}
 #look for the common resources directory for all assets such as modules that are shared
@@ -39,13 +40,12 @@ if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
 #look down the directory structure. 
-
 {
 	# first see if there is a reference list of directory names
     if (test-path  "$dir\DirectoryNames.json" -PathType Leaf)
         {$ReferenceDirectoryNamesPath="$dir\DirectoryNames.json"}
-    if (test-path  "$dir\$TestsPath" -PathType Container)
-        {$TestsLocation="$dir\$TestsPath"}
+    if ((test-path  "$dir\$TestsPath" -PathType Container))
+        {$TestsLocations+="$dir\$TestsPath"}
     $Project = split-path -path $dir -leaf
     if ($Project -eq 'Branches') {$structure='branch'} 
 	if (test-path  "$dir\Branches") {$structure='branch'} 
@@ -54,10 +54,10 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
 }
 if ($dir -eq '') { throw "no resources directory found" }
 #if no directory  names
-if ($TestsLocation -eq $null)
+if ($TestsLocations.count -eq 0)
     {
-    $TestsLocation="$dir\$Project\$TestsPath";
-    New-Item -ItemType Directory -Path "$TestsLocation" -Force 
+    $TestsLocations+="$dir\$Project\$TestsPath";
+    New-Item -ItemType Directory -Path "$TestsLocations" -Force 
     }
 
 $WeNeedToCreateAPreferencesFile=$false;
@@ -179,7 +179,7 @@ $DBDetails = @{
 	'database' = $database; #The Database
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
 	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
-    'TestsLocation'=$TestsLocation;#where the tests are held
+    'TestsLocations'=$TestsLocations;#where the tests are held
 	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>

@@ -169,7 +169,6 @@ You might not want all the project array because you're just generating diagrams
 
 #>
 
-
 $GetdataFromSqlite = { <# a Scriptblock way of accessing SQLite via a CLI to get JSON-based  results 
 without having to explicitly open a connection. it will take either SQL files or queries.  #>
 	Param (
@@ -177,20 +176,22 @@ without having to explicitly open a connection. it will take either SQL files or
 		#this is the same ubiquitous hashtable 
 		$query,
 		#a query. If a file, put the path in the $fileBasedQuery parameter
-		$fileBasedQuery = $null) # $GetdataFromSqlite: (Don't delete this)
+		$fileBasedQuery = $null,
+		$simpleText = $false,
+		$timing = $false) # $GetdataFromSqlite: (Don't delete this)
 	$problems = @()
-    $command=$null;
-    $command = get-command sqlite -ErrorAction Ignore 
+	$command = $null;
+	$command = get-command sqlite -ErrorAction Ignore
 	if ($command -eq $null)
-	  {  
-         if ($sqliteAlias -ne $null)
-        {Set-Alias sqlite $sqliteAlias}
-    else
-        {$problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder'}
-    }
+	{
+		if ($sqliteAlias -ne $null)
+		{ Set-Alias sqlite $sqliteAlias }
+		else
+		{ $problems += 'You must have provided a path to sqlite.exe in the ToolLocations.ps1 file in the resources folder' }
+	}
 	
 	if ($TheArgs.Database -in @($null, '')) # do we have the necessary values
-    { $problems += "Can't do this: no value for the database" }
+	{ $problems += "Can't do this: no value for the database" }
 	
 	if ($problems.Count -eq 0)
 	{
@@ -199,26 +200,51 @@ without having to explicitly open a connection. it will take either SQL files or
 		{ $TempInputFile = $FileBasedQuery }
 		else
 		{ [System.IO.File]::WriteAllLines($TempInputFile, $query); }
-		
+		if ($timing)
+		{ $AreWeTiming = 'on'; }
+		else
+		{ $AreWeTiming = 'off'; }
 		$params = @(
 			'.bail on',
+			".timer $AreWeTiming",
 			'.mode json',
 			'.headers off',
 			#".output $($TempOutputFile -replace '\\','/')",
 			".read $($TempInputFile -replace '\\', '/')",
 			'.quit')
-        
 		try
 		{
-			$result = sqlite "$($param1.database)" @Params
+			$result = (sqlite "$($Theargs.database)" @Params) -join "`n`r"
 		}
 		catch
 		{ $problems += "SQL called to SQLite  failed because $($_)" }
-        if ($?) { $result }
-        else {$problems +='The SQL Call to SQLite failed'}
+		
+		if ($?)
+		{
+			# we had a good result so maybe cope with timings, otherwise just the result
+			if ($timing)
+			{
+				$regex = 'Run Time: real (?<RealTime>[\d\.]{1,20})\s{1,10}user (?<UserTime>[\d\.]{1,20})\s{1,10}sys\s{1,10}(?<SystemTime>[\d\.]{1,20})'
+				
+				if ($result -imatch $regex)
+				{
+					$timingData = [pscustomobject]$matches | convertto-json
+					($result -replace $regex, '').Trim();
+					write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) secs."
+				}
+				else
+				{
+					$timingData = '';
+					$result;
+				}
+			}
+			else
+			{ $result }
+		}
+		else { $problems += 'The SQL Call to SQLite failed' }
 		if ([string]::IsNullOrEmpty($FileBasedQuery)) { Remove-Item $TempInputFile }
 	}
-if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
+	if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
 }
 
 #This is a utility scriptblock used by the task scriptblocks.
@@ -228,7 +254,7 @@ if ($problems.Count -gt 0) { $Param1.Problems.'GetdataFromSqlite' = $problems }
  $fileBasedQuery = ".\Migrations\Adventureworks_Build.sql";
   $simpleText=$true;
   $simpleText#>
-#with SQL Server, you really want your datab back as JSN, but SQLcmd can't do it.
+#with SQL Server, you really want your data back as JSON, but SQLcmd can't do it.
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
 set 'simpleText' to true #>
@@ -238,7 +264,8 @@ set 'simpleText' to true #>
 		#either a query that returns JSON, or a simple expression
 		$fileBasedQuery = $null,
 		#if you specify input from a file
-		$simpleText = $false) # $GetdataFromSQLCMD: (Don't delete this)
+		$simpleText = $false,
+        $timing = $false) # $GetdataFromSQLCMD: (Don't delete this)
 	$problems = @();
 	if ([string]::IsNullOrEmpty($TheArgs.server) -or [string]::IsNullOrEmpty($TheArgs.database))
 	{ $Problems += "Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided"; }
@@ -255,13 +282,16 @@ set 'simpleText' to true #>
 			{ $problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder' }
 		}
 		$TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).json"
-		if (!($simpleText))
+        if ($timing) {$profile='-p1'} else {$profile=''}  #add the timing switch
+		if ($simpleText -or $timing)
 		{
-			$FullQuery = "Set nocount on; Declare @Json nvarchar(max) 
-        Select @Json=($query) Select @JSON"
+		$FullQuery = "Set nocount on; $query"
 		}
 		else
-		{ $FullQuery = $query };
+		{
+		$FullQuery = "Set nocount on; Declare @Json nvarchar(max) 
+        Select @Json=($query) Select @JSON"
+        };
 		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
 		{ $TempInputFile = $FileBasedQuery }
 		else
@@ -276,12 +306,12 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -i $TempInputFile -U $TheArgs.Uid -P $TheArgs.pwd `
-					   -o "$TempOutputFile" -u -y0 -b 
+					   -o "$TempOutputFile" -u -y0 -b $profile
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b 
+					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b $profile
 			}
             $Succeeded=$?
 			#if it is just for storing a query
@@ -294,12 +324,12 @@ set 'simpleText' to true #>
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -U $TheArgs.uid -P $TheArgs.pwd `
-					   -o `"$TempOutputFile`" -u -y0 -b 
+					   -o `"$TempOutputFile`" -u -y0 -b $profile
 			}
 			else #we are using integrated security
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
-					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b 
+					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b $profile
 			}
             $Succeeded=$?
 		}
@@ -308,7 +338,39 @@ set 'simpleText' to true #>
 			#make it easier for the caller to read the error
 			$response = [IO.File]::ReadAllText($TempOutputFile);
             Remove-Item $TempOutputFile
-			if ($response -like 'Msg*' -or !($succeeded))
+
+        if ($timing)            # if there was timing data appended
+	        {
+            $regex = '(?<PacketSize>\d{1,6}):(?<NoTransactions>\d{1,6}):(?<TotalTime>[.\d]{1,20}):(?<AverageTime>[.\d]{1,20}):(?<AverageTPS>[.\d]+)'
+	
+	            if ($response -imatch $regex)
+	            {
+		            $timingData = [pscustomobject]$matches | convertto-json
+		            $response= ($response -replace $regex, '').Trim()
+	            }
+	            else
+	            {
+		            $timingData = ''
+	            }
+	            if ($timingData -ne '')
+	            {
+		            $TimingHashTable = $TimingData | convertfrom-JSON
+		            if ($TimingHashTable.NoTransactions -gt 1)
+		            {
+			            write-output "the $($TimingHashTable.NoTransactions) transactions in  '$SQLQuery' took a total of  $($TimingHashTable.TotalTime)ms "
+		            }
+		            elseif ($TimingHashTable.NoTransactions -eq 1)
+		            {
+			            write-output "the transaction in '$SQLQuery' took  $($TimingHashTable.TotalTime)ms "
+		            }
+		            else
+		            {
+			            Write-Output "there were no transactions to time in $SQLQuery"
+		            }
+	            }
+            }
+
+    		if ($response -like 'Msg*' -or !($succeeded))
 			{ $Problems += "$($TheArgs.database) says $Response" }
 			elseif ($response -like 'SqlCmd*')
 			{ $problems += "SQLCMD says $Response" }
@@ -2004,6 +2066,9 @@ SELECT Object_Schema_Name (tables.object_id) + '.' + tables.name AS "TableObject
   FOR JSON auto, INCLUDE_NULL_VALUES
 "@
 		}
+ Default{
+      $problems+="Sorry but $($param1.RDBMS) is not implemented yet"
+      }
 	}
 	if ($problems.Count -eq 0)
 	{
@@ -4144,8 +4209,69 @@ function Execute-SQLStatement
 	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
 }
 
+<#
+	.SYNOPSIS
+		Run the tests that are available
+	
+	.DESCRIPTION
+		Runs all the available and suitable tests in the directory
+	
+	.PARAMETER TheDetails
+		The DBDetails hashtable
+	
+	.PARAMETER ThePath
+		The path to the test directory you want
+	
+	.EXAMPLE
+				PS C:\> Run-TestsForMigration -TheDetails $value1 -ThePath 'Value2'
+	
+#>
+function Run-TestsForMigration
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true)]
+		[System.Collections.Hashtable]$DatabaseDetails,
+		[Parameter(Mandatory = $true)]
+		[string]$ThePath
+	)
+	
+	
+	Dir "$ThePath\T*.ps1" |
+	foreach{
+		if ($_.Name -cmatch '\A(?m:^)T(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.ps1\z')
+		{
+			@{
+				#turn blank strings into nulls so we can process underfined starts and ends properly
+				'StartVersion' = switch ($matches.StartVersion)
+				{
+					''{ $null }
+					Default { $_ }
+				};
+				'EndVersion' = switch ($matches.EndVersion)
+				{
+					''{ $null }
+					Default { $_ }
+				};
+				'Description' = $matches.Description;
+				'Filename' = $matches.0;
+			}
+		}
+		else
+		{ throw "could not parse $_.Name" }
+	} |
+	where {
+		[version]$DatabaseDetails.version -ge ($_.StartVersion, [version]'0.0.0.0' -ne $null)[0] -and
+		[version]$DatabaseDetails.version -lt ($_.EndVersion, [version]'999.0.0.0' -ne $null)[0]
+	} | foreach {
+		"executing $($_.Filename) ($($_.Description))"
+		# now we execute it
+		. "$ThePath\$($_.Filename)"
+	}
+}
 
 
-'FlywayTeamwork framework  loaded. V1.2.138'
+'FlywayTeamwork framework  loaded. V1.2.140'
 
 
