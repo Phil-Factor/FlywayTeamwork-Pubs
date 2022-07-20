@@ -178,7 +178,9 @@ without having to explicitly open a connection. it will take either SQL files or
 		#a query. If a file, put the path in the $fileBasedQuery parameter
 		$fileBasedQuery = $null,
 		$simpleText = $false,
-		$timing = $false) # $GetdataFromSqlite: (Don't delete this)
+		$timing = $false,#do you return timing information
+        $muted = $false #do you return the data
+        ) # $GetdataFromSqlite: (Don't delete this)
 	$problems = @()
 	$command = $null;
 	$command = get-command sqlite -ErrorAction Ignore
@@ -229,13 +231,13 @@ without having to explicitly open a connection. it will take either SQL files or
 				if ($result -imatch $regex)
 				{
 					$timingData = [pscustomobject]$matches | convertto-json
-					($result -replace $regex, '').Trim();
+					if (!($muted)) {($result -replace $regex, '').Trim()};
 					write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) secs."
 				}
 				else
 				{
 					$timingData = '';
-					$result;
+					if (!($muted)) {$result};
 				}
 			}
 			else
@@ -265,8 +267,11 @@ set 'simpleText' to true #>
 		$fileBasedQuery = $null,
 		#if you specify input from a file
 		$simpleText = $false,
-        $timing = $false) # $GetdataFromSQLCMD: (Don't delete this)
+        $timing = $false,#do you return timing information
+        $muted = $false #do you return the data
+        ) # $GetdataFromSQLCMD: (Don't delete this)
 	$problems = @();
+    $SQLQuery=$query;
 	if ([string]::IsNullOrEmpty($TheArgs.server) -or [string]::IsNullOrEmpty($TheArgs.database))
 	{ $Problems += "Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided"; }
 	else
@@ -293,7 +298,8 @@ set 'simpleText' to true #>
         Select @Json=($query) Select @JSON"
         };
 		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
-		{ $TempInputFile = $FileBasedQuery }
+		{ $TempInputFile = $FileBasedQuery;
+          $SQLQuery=  Split-Path $FileBasedQuery -Leaf}
 		else
 		{ $TempInputFile = "$($env:Temp)\TempInput.sql" }
 		#If we can't pass a query string directly, or we have a file ...
@@ -380,7 +386,7 @@ set 'simpleText' to true #>
 			elseif ($response -like 'NULL*')
 			{ '' }
 			else
-			{ $response }
+			{ if (!($muted)) {$response} }
 		}
 	}
 }
@@ -4234,13 +4240,15 @@ function Run-TestsForMigration
 		[Parameter(Mandatory = $true)]
 		[System.Collections.Hashtable]$DatabaseDetails,
 		[Parameter(Mandatory = $true)]
-		[string]$ThePath
+		[string]$ThePath,
+		[Parameter(Mandatory = $false)]
+		[string]$Type='T',
+		[Parameter(Mandatory = $false)]
+		[string]$Script='ps1'
 	)
-	
-	
-	Dir "$ThePath\T*.ps1" |
+	Dir "$ThePath\$($Type)*.$($Script)" -name |
 	foreach{
-		if ($_.Name -cmatch '\A(?m:^)T(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.ps1\z')
+		if ($_ -cmatch "\A(?m:^)$type(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.$Script\z")
 		{
 			@{
 				#turn blank strings into nulls so we can process underfined starts and ends properly
@@ -4254,12 +4262,12 @@ function Run-TestsForMigration
 					''{ $null }
 					Default { $_ }
 				};
-				'Description' = $matches.Description;
+				'Description' = $matches.Description.Replace('_',' ');
 				'Filename' = $matches.0;
 			}
 		}
 		else
-		{ throw "could not parse $_.Name" }
+		{ throw "could not parse $($_) with regex" }
 	} |
 	where {
 		[version]$DatabaseDetails.version -ge ($_.StartVersion, [version]'0.0.0.0' -ne $null)[0] -and
@@ -4267,11 +4275,16 @@ function Run-TestsForMigration
 	} | foreach {
 		"executing $($_.Filename) ($($_.Description))"
 		# now we execute it
-		$TestOutput=. "$ThePath\$($_.Filename)"
-        $testOutput > "$($dbDetails.reportLocation)\$($dbDetails.version)\Report_$($_.Description).txt"
+        if ($Script -eq 'ps1') {$TestOutput=. "$ThePath\$($_.Filename)"}
+        elseif ($Script -eq 'sql') 
+          {$TestOutput=$GetdataFromSQLCMD.Invoke($DatabaseDetails,'',"$ThePath\$($_.Filename)" , $false,$true,$true)
+}
+        $testOutput > "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\Report_$($_.Description).txt"
         write-output $TestOutput
 	}
 }
+
+
 
 
 'FlywayTeamwork framework  loaded. V1.2.140'
