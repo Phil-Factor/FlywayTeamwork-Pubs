@@ -4267,7 +4267,9 @@ function Run-TestsForMigration
 	} | foreach {
 		"executing $($_.Filename) ($($_.Description))"
 		# now we execute it
-		. "$ThePath\$($_.Filename)"
+		$TestOutput=. "$ThePath\$($_.Filename)"
+        $testOutput > "$($dbDetails.reportLocation)\$($dbDetails.version)\Report_$($_.Description).txt"
+        write-output $TestOutput
 	}
 }
 

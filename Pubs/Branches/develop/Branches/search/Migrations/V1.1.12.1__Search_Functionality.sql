@@ -1,5 +1,5 @@
 IF Object_Id(N'dbo.IterativeWordChop') IS NOT NULL DROP FUNCTION dbo.IterativeWordChop;
-go
+GO
 CREATE FUNCTION dbo.IterativeWordChop
 /*
 summary:   >
@@ -23,27 +23,27 @@ RETURNS
 @Results TABLE
 (
 Item VARCHAR(255),
-location int,
-Sequence int identity primary key
+location INT,
+Sequence INT IDENTITY PRIMARY KEY
 )
 AS
 BEGIN
 DECLARE @Len INT, @Start INT, @end INT, @Cursor INT,@length INT
-SELECT @Cursor=1, @len=LEN(@string)
+SELECT @Cursor=1, @len=Len(@string)
 WHILE @cursor<@len
    BEGIN
-   SELECT @start=PATINDEX('%[^A-Za-z0-9][A-Za-z0-9%]%',
-                   ' '+SUBSTRING (@string,@cursor,50)
+   SELECT @start=PatIndex('%[^A-Za-z0-9][A-Za-z0-9%]%',
+                   ' '+Substring (@string,@cursor,50)
                    )-1
-   if @start<0 break                
-   SELECT @length=PATINDEX('%[^A-Z''a-z0-9-%]%',SUBSTRING (@string,@cursor+@start+1,50)+' ')   
+   IF @start<0 BREAK                
+   SELECT @length=PatIndex('%[^A-Z''a-z0-9-%]%',Substring (@string,@cursor+@start+1,50)+' ')   
    INSERT INTO @results(item, location) 
-       SELECT  SUBSTRING(@string,@cursor+@start,@length), @cursor+@start
+       SELECT  Substring(@string,@cursor+@start,@length), @cursor+@start
    SELECT @Cursor=@Cursor+@Start+@length+1
    END
 RETURN
 END
-go
+GO
 ---sanity-check the word-chop routine to make sure it is more or less working
 if exists (select count(*)
 from (
@@ -287,7 +287,7 @@ AS
           (TheOrder, theWord, context, Thekey, TheDate, InsertedBy)
           SELECT @ii, @TheStrings,
                  '...' + Substring (Note, @Location - 70, 150) + '...',
-                 @Location, InsertionDate, InsertedBy
+                 @key, InsertionDate, InsertedBy
             FROM people.Note
             WHERE Note_id = @Key;
         SELECT @ii = @ii + 1;

@@ -1,5 +1,5 @@
 ﻿#We provide the name of the test file with the correct result in it.
-$Test1="$($dbDetails.TestsLocation)\PeopleAuthors.json"
+$Test1="$(Split-Path $MyInvocation.MyCommand.Path  -Parent)\PeopleAuthors.json"
 # the SQL is SQL Server specific. 
 # For other RDBMSs, you need to tweak the SQL. 
 # to execute raw queries. I'd stick to running JSON
@@ -32,3 +32,4 @@ $TestResult=execute-sql $dbDetails $TheSQL |convertFrom-JSON
 
 #we now report any differences 
 compare-Resultsets -TestResult $TestResult -CorrectResult $correctResult -KeyField $TheKeyField
+
