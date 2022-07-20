@@ -1,5 +1,13 @@
 ﻿#We provide the name of the test file with the correct result in it.
-$Test1="$(Split-Path $MyInvocation.MyCommand.Path  -Parent)\PeopleAuthors.json"
+if ($MyInvocation.MyCommand.Path -ne $null)
+    {
+    $Test1="$(Split-Path $MyInvocation.MyCommand.Path  -Parent)\PeopleAuthors.json"
+    }
+else 
+    {
+    $Test1="$($dbdetails.TestsLocations[0])\PeopleAuthors.json"
+    }
+
 # the SQL is SQL Server specific. 
 # For other RDBMSs, you need to tweak the SQL. 
 # to execute raw queries. I'd stick to running JSON
