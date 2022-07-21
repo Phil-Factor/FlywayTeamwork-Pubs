@@ -4242,10 +4242,14 @@ function Run-TestsForMigration
 		[Parameter(Mandatory = $true)]
 		[string]$ThePath,
 		[Parameter(Mandatory = $false)]
-		[string]$Type='T',
+		[string]$Type = 'T',
 		[Parameter(Mandatory = $false)]
-		[string]$Script='ps1'
+		[string]$Script = 'ps1'
 	)
+    #check the report directory to make sure it exists
+	$OurReportDirectory = "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\reports\tests"
+	if (-not (Test-Path $OurReportDirectory -PathType Container))
+	{ New-Item -ItemType Directory -Path $OurReportDirectory -Force }
 	Dir "$ThePath\$($Type)*.$($Script)" -name |
 	foreach{
 		if ($_ -cmatch "\A(?m:^)$type(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.$Script\z")
@@ -4262,7 +4266,7 @@ function Run-TestsForMigration
 					''{ $null }
 					Default { $_ }
 				};
-				'Description' = $matches.Description.Replace('_',' ');
+				'Description' = $matches.Description.Replace('_', ' ');
 				'Filename' = $matches.0;
 			}
 		}
@@ -4275,12 +4279,17 @@ function Run-TestsForMigration
 	} | foreach {
 		"executing $($_.Filename) ($($_.Description))"
 		# now we execute it
-        if ($Script -eq 'ps1') {$TestOutput=. "$ThePath\$($_.Filename)"}
-        elseif ($Script -eq 'sql') 
-          {$TestOutput=$GetdataFromSQLCMD.Invoke($DatabaseDetails,'',"$ThePath\$($_.Filename)" , $false,$true,$true)
-}
-        $testOutput > "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\Report_$($_.Description).txt"
-        write-output $TestOutput
+		if ($Script -eq 'ps1') { $TestOutput = . "$ThePath\$($_.Filename)" }
+		elseif ($Script -eq 'sql')
+		{
+			if ($Type -eq 'P') 
+            # we run these with timings and with the results 'muted'
+            {$TestOutput = $GetdataFromSQLCMD.Invoke($DatabaseDetails, '', "$ThePath\$($_.Filename)", $false, $true, $true)}
+            else
+            {$TestOutput = $GetdataFromSQLCMD.Invoke($DatabaseDetails, '', "$ThePath\$($_.Filename)", $false)}
+ 		}
+		$testOutput > "$OurReportDirectory\Report_$($_.Description).txt"
+		write-output $TestOutput
 	}
 }
 

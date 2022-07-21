@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM dbo.searchNotes('"appalling customer service"')
