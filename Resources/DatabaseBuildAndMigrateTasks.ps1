@@ -402,11 +402,16 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		#a query. If a file, put the path in the $fileBasedQuery parameter
 
 		$fileBasedQuery = $null,
-		$simpleText = $false) # $GetdataFromMySQL: (Don't delete this)
+		$simpleText = $false,
+		$timing = $false,
+		#do you return timing information
+
+		$muted = $false #do you return the data
+	) # $GetdataFromMySQL: (Don't delete this)
 	$problems = @()
 	
-    $command=$null;
-    $command = get-command Mysql -ErrorAction Ignore 
+	$command = $null;
+	$command = get-command Mysql -ErrorAction Ignore
 	if ($command -eq $null)
 	{
 		if ($MySQLAlias -ne $null)
@@ -424,48 +429,72 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		{ $TempInputFile = $FileBasedQuery }
 		else
 		{ [System.IO.File]::WriteAllLines($TempInputFile, $query); }
+		if ($timing) { $timingParameter = '-vvv' }
+		else { $timingParameter = '' }
 		Try
 		{
 			
-			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--port=$($TheArgs.Port -replace '[^\d]', '')" "--show-warnings" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" '--comments'  '--html')
+			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--port=$($TheArgs.Port -replace '[^\d]', '')" "--show-warnings" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" $timingParameter '--comments'  '--html')
 			if ($? -eq 0)
 			{
 				$problems += "The MySQL CLI returned an error $($error[0])"
 			}
 			$TheColumns = @();
-				$Rows = Select-String '<TR>(.*?)</TR>' -input $html -AllMatches | foreach{ $_.matches } | Foreach{
-					$Col = 0;
-					$lineValue = $_.Value
-					
-					if ($Thecolumns.count -eq 0)
-					{
-						$TheColumns = Select-String '<TH>(.*?)</TH>' -input $lineValue -AllMatches |
-						foreach{ $_.matches.groups } | where { $_.Name -eq 1 } | foreach{ $_.value }
-					}
-					else
-					{
-						$Row = [ordered]@{ };
-						Select-String '<TD>(.*?)</TD>' -input $LineValue -AllMatches |
-						foreach{ $_.matches.groups } | where { $_.Name -eq 1 } | foreach{
+			$Rows = Select-String '<TR>(.*?)</TR>' -input $html -AllMatches | foreach{ $_.matches } | Foreach{
+				$Col = 0;
+				$lineValue = $_.Value
+				
+				if ($Thecolumns.count -eq 0)
+				{
+					$TheColumns = Select-String '<TH>(.*?)</TH>' -input $lineValue -AllMatches |
+					foreach{ $_.matches.groups } | where { $_.Name -eq 1 } | foreach{ $_.value }
+				}
+				else
+				{
+					$Row = [ordered]@{ };
+					Select-String '<TD>(.*?)</TD>' -input $LineValue -AllMatches |
+					foreach{ $_.matches.groups } | where { $_.Name -eq 1 } | foreach{
 						if ($TheColumns -is [string])
-                            {$Row += @{ $TheColumns = $_.value }}
-                        else
-							{$Row += @{ $TheColumns[$col++] = $_.value }}
+						{ $Row += @{ $TheColumns = $_.value } }
+						else
+						{ $Row += @{ $TheColumns[$col++] = $_.value } }
 						
-						}
-						$Row
 					}
-					
-				} | Where { $_.Count -gt 0 };
-			}
-			catch
-			{ $problems += "$MySQL query failed because $($_)" }
-			
-			$Rows | ConvertTo-Json
-			if ([string]::IsNullOrEmpty($FileBasedQuery)) {Remove-Item $TempInputFile};
+					$Row
+				}
+				
+			} | Where { $_.Count -gt 0 };
 		}
-	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromMySQL' += $problems }
+		catch
+		{ $problems += "$MySQL query failed because $($_)" }
+		if ($simpleText)
+		{ $Result = $Rows|foreach{[pscustomobject]$_}|Format-Table }
+		else
+		{ $Result = $Rows | ConvertTo-Json }
+		if ($timing)
+		{# we are getting timing data from the CLI tool
+			$TimingRegex = '</TABLE>(?<rows>\d{1,20})\s{1,5}rows in set \((?<RealTime>[\d\.]{1,20})'
+			if ($HTML -join '' -match $TimingRegex)
+			{# if we found the timing information
+				$timingData = [pscustomobject]$matches | convertto-json
+				write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) secs."
+			}
+			else
+			{
+				$timingData = '';
+				
+			}
+			if (!($muted)) { $result };
+		}
+		else
+		{
+			$Result;
+		}
+		if ([string]::IsNullOrEmpty($FileBasedQuery)) { Remove-Item $TempInputFile };
 	}
+	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromMySQL' += $problems }
+	if ($timing) { $Theargs.feedback.'FetchOrSaveDetailsOfParameterSet' += $timingData }
+}
 
 $GetdataFromPsql = {<# a Scriptblock way of accessing PosgreSQL via a CLI to get JSON-based  results without having to 
 explicitly open a connection. it will take either SQL files or queries.  #>
