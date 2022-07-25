@@ -250,12 +250,6 @@ without having to explicitly open a connection. it will take either SQL files or
 }
 
 #This is a utility scriptblock used by the task scriptblocks.
-<#
- $query= "";
- $TheArgs=$dbdetails;
- $fileBasedQuery = ".\Migrations\Adventureworks_Build.sql";
-  $simpleText=$true;
-  $simpleText#>
 #with SQL Server, you really want your data back as JSON, but SQLcmd can't do it.
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
@@ -405,7 +399,6 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		$simpleText = $false,
 		$timing = $false,
 		#do you return timing information
-
 		$muted = $false #do you return the data
 	) # $GetdataFromMySQL: (Don't delete this)
 	$problems = @()
@@ -497,55 +490,91 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 }
 
 $GetdataFromPsql = {<# a Scriptblock way of accessing PosgreSQL via a CLI to get JSON-based  results without having to 
-explicitly open a connection. it will take either SQL files or queries.  #>
+explicitly open a connection. it will take either SQL files or queries.
+$query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
+#>
 	Param (
-        $Theargs, #this is the same ubiquitous hashtable 
-		$query, #a query. If a file, put the path in the $fileBasedQuery parameter
-        $fileBasedQuery=$null,
-        $simpleText=$false)  # $GetdataFromPsql: (Don't delete this)
- 
-    $problems=@()
-    $command=$null;
-    $command = get-command psql -ErrorAction Ignore 
+		$Theargs,
+		#this is the same ubiquitous hashtable 
+		$query,
+		#a query. If a file, put the path in the $fileBasedQuery parameter
+		$fileBasedQuery = $null,
+		$simpleText = $false,
+		$timing = $false,
+		#do you return timing information
+		$muted = $false #do you return the data       
+	) # $GetdataFromPsql: (Don't delete this)
+	
+	$problems = @()
+	$command = $null;
+	$command = get-command psql -ErrorAction Ignore
 	if ($command -eq $null)
-        {    if ($psqlAlias -ne $null)
-        {Set-Alias psql $psqlAlias}
-    else
-        {$problems += 'You must have provided a path to psql in the ToolLocations.ps1 file in the resources folder'}
-        }
-    @('server', 'database', 'port','user','pwd') |
-	        foreach{ if ($TheArgs.$_ -in @($null,'')) { $problems += "Can't do this: no value for '$($_)'" } }
-    
-    if ($problems.Count -eq 0)
-    {
-	    $TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).csv"
-        $TempInputFile = "$($env:Temp)\TempInput.sql"
-        if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
-            {$TempInputFile=$FileBasedQuery}
-        else
-            {[System.IO.File]::WriteAllLines($TempInputFile, $query);}
-       Try
-        {
-        $Params=@(
-        "--dbname=$($TheArgs.database)",
-        "--host=$($TheArgs.server)",
-        "--username=$($TheArgs.user)",
-        "--password=$($TheArgs.pwd)",
-        "--port=$($TheArgs.Port -replace '[^\d]','')",
-        "--file=$TempInputFile",
-        '--tuples-only',
-        '-Pformat=unaligned',
-        "--no-password")
-        $env:PGPASSWORD="$($TheArgs.pwd)"
-        $result=psql @params
-        }
-        catch
-        {$problems += "$psql query failed because $($_)"}
-       if ($?)
-        {$result}
-       else {$problems += "The PSql CLI returned an error $($error[1])" }
-    }
-    if ($problems.Count -gt 0) {$Theargs.Problems.'GetdataFromPsql'+=$problems}
+	{
+		if ($psqlAlias -ne $null)
+		{ Set-Alias psql $psqlAlias }
+		else
+		{ $problems += 'You must have provided a path to psql in the ToolLocations.ps1 file in the resources folder' }
+	}
+	@('server', 'database', 'port', 'user', 'pwd') |
+	foreach{ if ($TheArgs.$_ -in @($null, '')) { $problems += "Can't do this: no value for '$($_)'" } }
+	
+	if ($problems.Count -eq 0)
+	{
+		$TempOutputFile = "$($env:Temp)\TempOutput$(Get-Random -Minimum 1 -Maximum 900).csv"
+		$TempInputFile = "$($env:Temp)\TempInput.sql"
+		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
+		{ $TempInputFile = $FileBasedQuery }
+		else
+		{ [System.IO.File]::WriteAllLines($TempInputFile, $query); }
+		Try
+		{
+			$Params = @(
+				"--command=\timing $(if ($timing) { 'on' } else { 'off' })",
+				"--dbname=$($TheArgs.database)",
+				"--host=$($TheArgs.server)",
+				"--username=$($TheArgs.user)",
+				"--password=$($TheArgs.pwd)",
+				"--port=$($TheArgs.Port -replace '[^\d]', '')",
+				"--file=$TempInputFile",
+				'--tuples-only',
+				'-Pformat=unaligned',
+				"--no-password")
+			$env:PGPASSWORD = "$($TheArgs.pwd)"
+			$result = psql @params
+		}
+		catch
+		{ $problems += "$psql query failed because $($_)" }
+		if ($?)
+		{
+		$result = ($result -replace 'Timing is (on|off)\.', '').trim();
+
+			if ($timing)
+			{
+				# we are getting timing data from the CLI tool
+				$TimingRegex = 'Time:\s{1,5}(?<RealTime>[\d\.]{1,20})\s{1,5}ms'
+				$result = $result -join "`r`n"; #in case it comes back as an array
+				if ($result -match $TimingRegex)
+				{
+					# if we found the timing information
+					$timingData = [pscustomobject]$matches | convertto-json
+					write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) ms."
+					$result = $result -replace $TimingRegex, '';
+				}
+				else
+				{
+					$timingData = '';
+					
+				}
+				if (!($muted)) { $result };
+			}
+			else
+			{
+				$Result;
+			}
+		}
+		else { $problems += "The PSql CLI returned an error $($error[1])" }
+	}
+	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromPsql' += $problems }
 }
 
 
@@ -2156,7 +2185,7 @@ To run this, you need to provide values for
 'project', The name of the whole project for the output filenames
 'RDBMS', the rdbms being used, e.g. sqlserver, mysql, mariadb, postgresql, sqlite
 'schemas', the schemas to be used to create the model
-'flywayTable' the name and schema of the flyway table $dbDetails
+'flywayTable' the name and schema of the flyway table
 /#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1,
@@ -4224,10 +4253,15 @@ function Execute-SQLStatement
 	(
 		[Parameter(Mandatory = $true,
 				   Position = 1)]
-		[System.Collections.Hashtable]$DatabaseDetails,
+		[System.Collections.Hashtable]$DatabaseDetails, #this is the same ubiquitous hashtable 
 		[Parameter(Mandatory = $true,
 				   Position = 2)]
-		[String]$Statement
+		[String]$Statement, #a query. If a file, put the path in the $fileBasedQuery parameter
+		[String]$fileBasedQuery = $null,
+		[boolean]$simpleText = $true,
+		[boolean]$timing = $false,
+		#do you return timing information
+		[boolean]$muted = $false #do you return the data       
 	)
 	
 	$Scriptblock = switch ($DatabaseDetails.RDBMS)
@@ -4239,7 +4273,38 @@ function Execute-SQLStatement
         'Mysql' { $GetdataFromMySQL }
         	}
 	$ErrorsSoFar = $Error.count
-	$Scriptblock.invoke($DatabaseDetails,$Statement,$null,$true) ;
+	$Scriptblock.invoke($DatabaseDetails,$Statement,$fileBasedQuery,$simpleText,$timing,$muted) ;
+	if ($Error.Count -gt $ErrorsSoFar)
+	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
+}
+function Execute-SQLTimedStatement
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true,
+				   Position = 1)]
+		[System.Collections.Hashtable]$DatabaseDetails,
+		[Parameter(Mandatory = $true,
+				   Position = 2)]
+		[String]$Statement,
+
+       [Parameter(Mandatory = $true,
+				   Position = 3)]
+		[bool]$muted
+	)
+	
+	$Scriptblock = switch ($DatabaseDetails.RDBMS)
+	{
+		'postgresql'   { $GetdataFromPsql }
+		'sqlserver'  { $GetdataFromSQLCMD }
+		'sqlite' { $GetdataFromSqlite }
+        'mariadb' { $GetdataFromMySQL }
+        'Mysql' { $GetdataFromMySQL }
+        default {throw "Sorry, we don't support $_ yet!"}
+        	}
+	$ErrorsSoFar = $Error.count
+	$Scriptblock.invoke($DatabaseDetails,$Statement,$null,$true,$true,$muted) ;
 	if ($Error.Count -gt $ErrorsSoFar)
 	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
 }
@@ -4313,9 +4378,9 @@ function Run-TestsForMigration
 		{
 			if ($Type -eq 'P') 
             # we run these with timings and with the results 'muted'
-            {$TestOutput = $GetdataFromSQLCMD.Invoke($DatabaseDetails, '', "$ThePath\$($_.Filename)", $false, $true, $true)}
+            {$TestOutput = Execute-SQLStatement $DatabaseDetails '' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
             else
-            {$TestOutput = $GetdataFromSQLCMD.Invoke($DatabaseDetails, '', "$ThePath\$($_.Filename)", $false)}
+            {$TestOutput = Execute-SQLStatement $DatabaseDetails '' -fileBasedQuery "$ThePath\$($_.Filename)" }
  		}
 		$testOutput > "$OurReportDirectory\Report_$($_.Description).txt"
 		write-output $TestOutput
@@ -4325,6 +4390,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.140'
+'FlywayTeamwork framework  loaded. V1.2.141'
 
 
