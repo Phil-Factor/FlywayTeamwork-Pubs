@@ -1,5 +1,5 @@
     #we always use SQLCMD to access SQL Server
-    $SQLCmdAlias = "$($env:ProgramFiles)\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\sqlcmd.exe"
+    $SQLCmdAlias = "$($env:ProgramFiles)\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\sqlcmd.exe"
     #We use SQL Code Guard just for code analysis.
     $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
     # We use SQL Compare to compare build script with database
