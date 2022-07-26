@@ -232,7 +232,7 @@ without having to explicitly open a connection. it will take either SQL files or
 				{
 					$timingData = [pscustomobject]$matches | convertto-json
 					if (!($muted)) {($result -replace $regex, '').Trim()};
-					write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) secs."
+					write-output "the transaction in '$Query' took $([decimal]([pscustomobject]$matches.RealTime)*1000) ms."
 				}
 				else
 				{
@@ -253,7 +253,8 @@ without having to explicitly open a connection. it will take either SQL files or
 #with SQL Server, you really want your data back as JSON, but SQLcmd can't do it.
 $GetdataFromSQLCMD = {<# a Scriptblock way of accessing SQL Server via a CLI to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. It will also deal with simple SQL queries if you
-set 'simpleText' to true #>
+set 'simpleText' to true 
+#>
 	Param ($Theargs,
 		#this is the same ubiquitous hashtable 
 		$query,
@@ -357,11 +358,11 @@ set 'simpleText' to true #>
 		            $TimingHashTable = $TimingData | convertfrom-JSON
 		            if ($TimingHashTable.NoTransactions -gt 1)
 		            {
-			            write-output "the $($TimingHashTable.NoTransactions) transactions in  '$SQLQuery' took a total of  $($TimingHashTable.TotalTime)ms "
+			            write-output "the $($TimingHashTable.NoTransactions) transactions in  '$SQLQuery' took a total of  $($TimingHashTable.TotalTime) ms."
 		            }
 		            elseif ($TimingHashTable.NoTransactions -eq 1)
 		            {
-			            write-output "the transaction in '$SQLQuery' took  $($TimingHashTable.TotalTime)ms "
+			            write-output "the transaction in '$SQLQuery' took  $($TimingHashTable.TotalTime) ms."
 		            }
 		            else
 		            {
@@ -371,7 +372,7 @@ set 'simpleText' to true #>
             }
 
     		if ($response -like 'Msg*' -or !($succeeded))
-			{ $Problems += "$($TheArgs.database) says $Response" }
+			{ $Problems += " When connecting to $($TheArgs.server); $($TheArgs.database) as $($TheArgs.uid) had error $Response" }
 			elseif ($response -like 'SqlCmd*')
 			{ $problems += "SQLCMD says $Response" }
 			
@@ -470,7 +471,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 			if ($HTML -join '' -match $TimingRegex)
 			{# if we found the timing information
 				$timingData = [pscustomobject]$matches | convertto-json
-				write-output "the transaction in '$Query' took $([pscustomobject]$matches.RealTime) secs."
+				write-output "the transaction in '$Query' took $([decimal]([pscustomobject]$matches.RealTime)*1000) ms."
 			}
 			else
 			{
@@ -1224,6 +1225,8 @@ $IsDatabaseIdenticalToSource = {
 				"/Password2:$($param1.pwd)"
 			)
 		}
+        #we don't want the schema history table
+        $schemaAndName=$param1.flywayTable -split '\.';
 		if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		{
 			$CLIArgs += @(
@@ -1233,7 +1236,8 @@ $IsDatabaseIdenticalToSource = {
 		else
 		{
 			$CLIArgs += @(
-				"/exclude:table:$($param1.flywayTable)",
+                
+				"/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])",
 				'/exclude:ExtendedProperty') #trivial}
 		}
 	}
@@ -1331,6 +1335,7 @@ $CreateScriptFoldersIfNecessary = {
 						"/Password1:$($param1.pwd)"
 					)
 				}
+                $schemaAndName=$param1.flywayTable -split '\.'
 				if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 				{
 					$CLIArgs += @(
@@ -1340,7 +1345,7 @@ $CreateScriptFoldersIfNecessary = {
 				else
 				{
 					$CLIArgs += @(
-						"/exclude:table:$($param1.flywayTable)",
+						"/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])",
 						'/exclude:ExtendedProperty') #trivial}
 				}
 				
@@ -1597,6 +1602,7 @@ $CreateBuildScriptIfNecessary = {
 						"/Password1:$($param1.pwd)"
 					)
 				}
+                $schemaAndName=$param1.flywayTable -split '\.'
                 if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		        {
 			        $CLIArgs += @(
@@ -1606,7 +1612,7 @@ $CreateBuildScriptIfNecessary = {
                 else
                     {
                     $CLIArgs += @(
-                      "/exclude:table:$($param1.flywayTable)")
+                     "/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])")
 		        } 
 				
 				# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
@@ -3210,6 +3216,7 @@ $CreateUndoScriptIfNecessary = {
 			    "/Password2:$($param1.pwd)"
 		    )
 	    }
+        $schemaAndName=$param1.flywayTable -split '\.'
          if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 		{
 			$CLIArgs += @(
@@ -3219,7 +3226,7 @@ $CreateUndoScriptIfNecessary = {
         else
             {
             $CLIArgs += @(
-              "/exclude:table:$($param1.flywayTable)")
+               "/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])")
 		} 
 	    if (-not (Test-Path -PathType Container $CurrentUndoPath))
 	    {
@@ -3303,6 +3310,7 @@ $CreatePossibleMigrationScript = {
 			"/Password1:$($param1.pwd)"
 		)
 	}
+    $schemaAndName=$param1.flywayTable -split '\.';
     if ($param1.'filterpath' -ne $NULL) #add the arguments for compare filters
 	{
 		$CLIArgs += @(
@@ -3312,7 +3320,7 @@ $CreatePossibleMigrationScript = {
     else
         {
         $CLIArgs += @(
-            "/exclude:table:$($param1.flywayTable)")
+             "/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])")
 	} 
 	if (-not (Test-Path -PathType Container $CurrentVersionPath))
 	{

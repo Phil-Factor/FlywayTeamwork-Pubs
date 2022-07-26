@@ -4,7 +4,10 @@
     $CodeGuardAlias= "${env:ProgramFiles(x86)}\SQLCodeGuard\SqlCodeGuard30.Cmd.exe"
     # We use SQL Compare to compare build script with database
     # and for generating scripts.
-    $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 13\sqlcompare.exe"
+    $SQLCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Compare 14\sqlcompare.exe"
+    # We use SQL Compare to compare build script with database
+    # and for generating scripts.
+    $SQLDataCompareAlias= "${env:ProgramFiles(x86)}\Red Gate\SQL Data Compare 14\SQLDataCompare.exe"
     #we use pgdump for doing ProgreSQL build scripts
     $PGDumpAlias= "$($env:LOCALAPPDATA)\Programs\pgAdmin 4\v5\runtime\pg_dump.exe"
     #we always use PSQL to access ProgreSQL
