@@ -11,8 +11,7 @@ on $($dbDetails.server) server with user $($dbDetails.installedBy)"
 if ($dbDetails.TestsLocations -eq $null)
 { Throw "Please upgrade the Preliminary.ps1 to the latest version" }
 #double-check that the version is properly in place. We're going to need that
-if ([string]::IsNullOrEmpty($DBDetails.Version))
-{ Process-FlywayTasks $DBDetails $GetCurrentVersion }
+
 #now we just scoop up all the test files that are relevant, collect their information  and execute them
 
 # to just run the local tests,...
