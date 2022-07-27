@@ -4420,9 +4420,9 @@ function Run-TestsForMigration
 		{
 			if ($Type -eq 'P') 
             # we run these with timings and with the results 'muted'
-            {$TestOutput = Execute-SQLStatement $DatabaseDetails '' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
+            {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
             else
-            {$TestOutput = Execute-SQLStatement $DatabaseDetails '' -fileBasedQuery "$ThePath\$($_.Filename)" }
+            {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" }
  		}
 		$testOutput > "$OurReportDirectory\Report_$($_.Description).txt"
 		write-output $TestOutput
