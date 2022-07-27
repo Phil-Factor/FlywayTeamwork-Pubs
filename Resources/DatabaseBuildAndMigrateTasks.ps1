@@ -966,6 +966,8 @@ $CheckCodeInMigrationFiles = {
 
 <#This scriptblock gets the current version of a flyway_schema_history data from the 
 table in the database. if there is no Flyway Data, then it returns a version of 0.0.0
+
+$param1=$dbdetails
  #>
 $GetCurrentVersion = {
 	Param ($param1) # $GetCurrentVersion parameter is a hashtable 
@@ -1063,8 +1065,8 @@ $GetCurrentVersion = {
     $version = '0.0.0'; $previous = '0.0.0'
 	if ($problems.count -eq 0)
 	{
-		$OrderedVersions = $AllVersions | %{
-			new-object System.Version ($_.version)
+		$OrderedVersions = $AllVersions.version | foreach{
+			new-object System.Version ($_)
 		} |
 		sort | % -Begin { $ii = 1 }{
 			[pscustomobject]@{ 'Order' = $ii++; 'version' = $_.ToString() }
