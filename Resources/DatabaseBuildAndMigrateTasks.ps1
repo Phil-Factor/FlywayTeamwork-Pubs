@@ -541,8 +541,8 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 				'-Pformat=unaligned',
 				"--no-password")
 			$env:PGPASSWORD = "$($TheArgs.pwd)"
-			$result = psql @params
-		}
+			$result = (psql @params) -join "`r`n"
+        }
 		catch
 		{ $problems += "$psql query failed because $($_)" }
 		if ($?)
@@ -967,7 +967,6 @@ $CheckCodeInMigrationFiles = {
 <#This scriptblock gets the current version of a flyway_schema_history data from the 
 table in the database. if there is no Flyway Data, then it returns a version of 0.0.0
 
-$param1=$dbdetails
  #>
 $GetCurrentVersion = {
 	Param ($param1) # $GetCurrentVersion parameter is a hashtable 
@@ -1403,6 +1402,7 @@ $CreateScriptFoldersIfNecessary = {
 			'postgresql'
 			{
 				$command=$null;
+                #Remove-Item Alias:pg_dump
                 $command = get-command pg_dump -ErrorAction Ignore 
 				if ($command -eq $null)
 				{
@@ -1540,13 +1540,28 @@ $CreateScriptFoldersIfNecessary = {
 
 <# 
 a script block that produces a build script from a database, using SQL Compare, pg_dump or whatever.
+
 #>
 
 $CreateBuildScriptIfNecessary = {
 	Param ($param1) # $CreateBuildScriptIfNecessary (Don't delete this) 
 	$problems = @();
     $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
-	@('version', 'server', 'database', 'project') |
+    Trap
+        {
+	        # Handle the error
+	        $err = $_.Exception
+	        $problems += $err.Message
+	        while ($err.InnerException)
+	        {
+		        $err = $err.InnerException
+		        $problems += $err.Message
+	        };
+            $Param1.Problems.'CreateBuildScriptIfNecessary' += $problems;
+	        # End the script.
+	        break
+        }
+    @('version', 'server', 'database', 'project') |
 	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
 
 	#the database scripts path would be up to you to define, of course
@@ -1619,7 +1634,7 @@ $CreateBuildScriptIfNecessary = {
 				
 				# if it is done already, then why bother? (delete it if you need a re-run for some reason 	
 				Sqlcompare @CLIArgs #run SQL Compare with splatted arguments
-				if ($?) { $Param1.WriteLocations.'CreateBuildScriptIfNecessary'="Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath"
+				if ($?) { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written build script for $($param1.Project) $($param1.Version) to $MyDatabasePath"
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql"
                 }
 				else # if no errors then simple message, otherwise....
@@ -1652,9 +1667,10 @@ $CreateBuildScriptIfNecessary = {
                     "--file=$MyDatabasePath\V$($param1.Version)__Build.sql",
                     '--encoding=UTF8',
                     '--schema-only')
-                 pg_dump @Params 
+                 pg_dump  @Params 
 				if ($?) 
-                { $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" 
+                { 
+                $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" 
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                 }
 				else # if no errors then simple message, otherwise....
@@ -2200,8 +2216,23 @@ $SaveDatabaseModelIfNecessary = {
 		$MyOutputReport = $null,
 		$MyCurrentReport = $null,
 		$MyModelPath = $null) # $SaveDatabaseModelIfNecessary - dont delete this
-	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
+ 	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll be using out redirection
 	$problems = @() #none yet!
+   Trap
+    {
+	    # Handle the error
+	    $err = $_.Exception
+	    $problems += $err.Message
+	    while ($err.InnerException)
+	    {
+		    $err = $err.InnerException
+		    $problems += $err.Message
+	    };
+        $Param1.Problems.'SaveDatabaseModelIfNecessary' += $problems;
+	    # End the script.
+	    break
+    }
+
 	$feedback = @();
 	$AlreadyDone = $false;
 	#check that you have the  entries that we need in the parameter table.
@@ -2355,7 +2386,8 @@ $SaveDatabaseModelIfNecessary = {
 					
 				} #end of SQLite version
 <# this is the section that creates a PostgreSQL Database Model based where
-possible on information schema #>				
+possible on information schema
+ #>				
 				'postgresql' {
 					#fetch all the relations (anything that produces columns)
 					$query = @"
@@ -2383,7 +2415,7 @@ possible on information schema #>
             ORDER BY columns.table_schema, columns.TABLE_NAME, ordinal_position
                 ) e;
 "@
-					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
+					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json 
 					#now get the details of the routines
 					$query = @"
  SELECT json_agg(e) 
@@ -2441,7 +2473,7 @@ left outer join information_schema.table_constraints rel_tco
               AND tc.table_schema NOT IN ('pg_catalog','information_schema')
                 ) e;
 "@
-					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
+					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json 
             <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
 					$indexes = Execute-SQL $param1 @"
             SELECT json_agg(e) 
@@ -2535,7 +2567,7 @@ left outer join information_schema.table_constraints rel_tco
 						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
 						
 					}
-              <# now stitch in the constraints with their columns  #>
+              <# now stitch in the routines and their contents #>
 					$routines | Foreach {
 						$TheSchema = $_.schema;
 						$TheName = $_.name;
