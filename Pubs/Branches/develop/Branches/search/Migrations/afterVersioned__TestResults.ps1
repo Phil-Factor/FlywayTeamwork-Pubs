@@ -18,9 +18,14 @@ if ($dbDetails.TestsLocations -eq $null)
 # Run-TestsForMigration $dbDetails  $dbDetails.TestsLocations[0]
 
 #to run all the tests for this project
-$dbDetails.TestsLocations|foreach {
-    Run-TestsForMigration -DatabaseDetails $DBDetails -ThePath $_} 
-# to run all the SQL performance tests
-$dbDetails.TestsLocations|foreach {
-    Run-TestsForMigration -DatabaseDetails $DBDetails -ThePath $_ -type 'P' -script 'sql'} 
-	
+$dbDetails.TestsLocations | foreach {
+	#for each test location
+	$TestLocation = $_
+	@('sql', 'ps1') | foreach {
+		#for each type (sql or powershell) of test
+		#run the unit and integration tests
+		Run-TestsForMigration -DatabaseDetails $DBDetails -ThePath $TestLocation -type 'T' -script $_
+		#run the performance tests
+		Run-TestsForMigration -DatabaseDetails $DBDetails -ThePath $TestLocation -type 'P' -script $_
+	}
+}
