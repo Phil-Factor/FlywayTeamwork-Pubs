@@ -448,10 +448,12 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 					$Row = [ordered]@{ };
 					Select-String '<TD>(.*?)</TD>' -input $LineValue -AllMatches |
 					foreach{ $_.matches.groups } | where { $_.Name -eq 1 } | foreach{
+                        $currentValue=$_.value;
+                        if ($currentValue -eq 'null'){$currentValue = $null}
 						if ($TheColumns -is [string])
-						{ $Row += @{ $TheColumns = $_.value } }
+						{ $Row += @{ $TheColumns = $currentValue } }
 						else
-						{ $Row += @{ $TheColumns[$col++] = $_.value } }
+						{ $Row += @{ $TheColumns[$col++] = $currentValue } }
 						
 					}
 					$Row
@@ -3136,23 +3138,59 @@ FOR JSON auto
 				}
 			}
 			#Final things to do: Break up the model into individual objects, in different folders depending on type
+            #while we are about it, we'll do the table manifest
 			if (Test-Path "$MyOutputReport" -PathType leaf)
 			{
-				$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll need it
-				$Model = [IO.File]::ReadAllText("$MyOutputReport") | ConvertFrom-JSON
-				$model.psobject.Properties |
-				foreach{ $schema = $_.Name; $_.Value.psobject.Properties } |
-				Foreach{ $Type = $_.Name.ToLower(); $_.Value.psobject.Properties } |
-				foreach{
-					$objectName = $_.Name;
-					$WhereToStoreIt = "$MyModelPath\$type"
-					if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
-					{ $null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
-					$_.Value | convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
-					Copy-Item -Path "$MyModelPath" -Destination "$MyCurrentPath" -Recurse -Force
-				}
-				$feedback += "written object-level model to $MyModelPath"
+			$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8' #we'll need it
+			$Model = [IO.File]::ReadAllText("$MyOutputReport") | ConvertFrom-JSON
+			$model.psobject.Properties |
+			foreach{ $schema = $_.Name; $_.Value.psobject.Properties } |
+			Foreach{ $Type = $_.Name.ToLower(); $_.Value.psobject.Properties } |
+			foreach{
+				$objectName = $_.Name;
+				$WhereToStoreIt = "$MyModelPath\$type"
+				if (-not (Test-Path "$WhereToStoreIt" -PathType Container))
+				{ $null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
+				$_.Value | convertto-json > "$WhereToStoreIt\$schema.$objectName.json"
+				Copy-Item -Path "$MyModelPath" -Destination "$MyCurrentPath" -Recurse -Force
 			}
+			$feedback += "written object-level model to $MyModelPath"
+			
+            #now do the table manifest
+            #calculate the path to save the manifest to
+            $MyManifestPath="$(split-path -Path $MyOutputReport -Parent)\TableManifest.txt";
+            #get all the foreign key references
+            $TableReferences = Display-Object $Model | where { $_.path -like '$*.*.table.*.Foreign key.*' } | foreach{
+	            $Splitpath = ($_.Path -split '\.')
+	            $References = $_.value.'Foreign Table'; $Table = "$($Splitpath[1]).$($Splitpath[3])";
+	            [pscustomObject]@{ 'referencing' = $Table; 'references' = $references }
+            }
+            $ObjectsToBuild = Display-Object $Model -reportNodes $true | where {
+                 ($_.path -split '\.').count -eq 4 
+                 } | select Path # get all the objects (for later full manifests)
+            $Tables = $ObjectsToBuild | where { $_.path -like '$*.*.table.*' } | foreach {
+	            $Splitpath = ($_.Path -split '\.'); "$($Splitpath[1]).$($Splitpath[3])"
+            }
+            #now we work out the dependency order
+            $TablesInDependencyOrder = $Tables | where { $_ -notin $TableReferences.referencing }
+            $ii = 10;
+            do #add tables  their dependent 
+            {
+	            $PreviousCount = $TablesInDependencyOrder.count
+	            $TablesInDependencyOrder += $Tables | where {
+		            $_ -notin $TablesInDependencyOrder -and
+		            $_ -notin ($TableReferences | where {
+				            $_.references -notin $TablesInDependencyOrder
+			            })
+	            }
+	            $ii--;
+            }
+            while ($TablesInDependencyOrder.count -lt $PreviousCount -and $ii -gt 0)
+            if ($TablesInDependencyOrder.count -ne $Tables.count)
+            { Throw 'could not get tables in dependency order' }
+            $TablesInDependencyOrder > $MyManifestPath #and save the manifest
+            $feedback += "written table manifest  to $MyManifestPath"
+            }
 		}
 		catch { $problems += "$($PSItem.Exception.Message)" }
 	}
@@ -3421,7 +3459,6 @@ SELECT Object_Schema_Name (object_id) AS [Schema], name
      is_ms_shipped = 0 AND name NOT LIKE 'Flyway%'
   FOR JSON AUTO
 "@) | ConvertFrom-Json
-		Write-verbose "Reading data in from $DirectoryToLoadFrom"
 		if ($Tables.Error -ne $null)
 		{
 			$internalLog += $Tables.Error;
@@ -3502,7 +3539,6 @@ SELECT Object_Schema_Name (object_id) AS [Schema], name
      is_ms_shipped = 0 AND name NOT LIKE 'Flyway%'
   FOR JSON AUTO
 "@) | ConvertFrom-Json
-	Write-verbose "Reading data in from $DirectoryToLoadFrom"
 	if ($Tables.Error -ne $null)
 	{
 		$internalLog += $Tables.Error;
@@ -4432,6 +4468,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.142'
+'FlywayTeamwork framework  loaded. V1.2.144'
 
 
