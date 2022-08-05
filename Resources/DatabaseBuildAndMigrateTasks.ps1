@@ -3171,21 +3171,27 @@ FOR JSON auto
             $Tables = $ObjectsToBuild | where { $_.path -like '$*.*.table.*' } | foreach {
 	            $Splitpath = ($_.Path -split '\.'); "$($Splitpath[1]).$($Splitpath[3])"
             }
-            #now we work out the dependency order
+            #now we work out the dependency order. First we put in the tables that aren't being
+            #referenced by anything
             $TablesInDependencyOrder = $Tables | where { $_ -notin $TableReferences.referencing }
             $ii = 10;
             do #add tables  their dependent 
             {
-	            $PreviousCount = $TablesInDependencyOrder.count
-	            $TablesInDependencyOrder += $Tables | where {
-		            $_ -notin $TablesInDependencyOrder -and
-		            $_ -notin ($TableReferences | where {
+	            $PreviousCount = $TablesInDependencyOrder.count #$tables.count
+	            $NotYetPicked = $Tables | where { $_ -notin $TablesInDependencyOrder }
+	            $TablesInDependencyOrder += $NotYetPicked | where {
+		            $_  -notin  ($NotyetPicked | foreach{
+				            $notpicked = $_; $TableReferences | where {
+					            $_.Referencing -eq $notpicked
+				            }
+			            } |
+			            where {
 				            $_.references -notin $TablesInDependencyOrder
-			            })
+			            } | Select -ExpandProperty referencing)
 	            }
 	            $ii--;
             }
-            while ($TablesInDependencyOrder.count -lt $PreviousCount -and $ii -gt 0)
+            while (($TablesInDependencyOrder.count -lt $Tables.count) -and ($ii -gt 0))
             if ($TablesInDependencyOrder.count -ne $Tables.count)
             { Throw 'could not get tables in dependency order' }
             $TablesInDependencyOrder > $MyManifestPath #and save the manifest
@@ -4468,6 +4474,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.144'
+'FlywayTeamwork framework  loaded. V1.2.147'
 
 
