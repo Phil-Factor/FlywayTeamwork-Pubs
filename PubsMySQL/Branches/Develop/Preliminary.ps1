@@ -4,7 +4,9 @@ each branch needs its own place for reports, source and scripts
 Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
-Use flyway.conf where possible #>
+Use flyway.conf where possible 
+
+#>
 $FileLocations=@{}; #these can be specified in a JSON file
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
@@ -115,24 +117,45 @@ Now we check that the directories and files that we need are there #>
 	if (-not (Test-Path $_.path -PathType $_.type))
 	{ throw "Sorry, but I couldn't find a $($_.desc) at the $($pwd.Path) location" }
 }
-
-# now we get the password if necessary. To do this we need to know the server and userid
-# possibly even the database name too
-# The config items are case-sensitive camelcase so beware if you aren't used to this
-
-
-$FlywayConfContent=@()
-$FlywayKeys = (Get-Content "flyway.conf")  |
-where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
-    foreach{$_ -replace '\\','\\'}|
-    ConvertFrom-StringData -OutVariable FlywayConfContent|foreach {$_.keys}
-Get-content "$env:userProfile\flyway.conf" |where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') }|
-foreach{$_ -replace '\\','\\'}|ConvertFrom-StringData|foreach{
-    if (!($_.Keys -in $FlywayKeys)) 
-        {$FlywayConfContent+=$_}
+# is there an extra file
+if (Test-Path 'flywayTeamworks.conf' -PathType Leaf)
+    {if ($env:FLYWAY_CONFIG_FILES -eq $null)
+        {$env:FLYWAY_CONFIG_FILES='flywayTeamworks.conf' }
+        else
+        {# don't add it in more than once
+        if ($env:FLYWAY_CONFIG_FILES -notlike '*flywayTeamworks.conf*')
+            {$env:FLYWAY_CONFIG_FILES=$env:FLYWAY_CONFIG_FILES+',flywayTeamworks.conf'}; 
+        }
     }
+else #make sure that the env reflects the removal of the file
+    {if ($env:FLYWAY_CONFIG_FILES -like '*flywayTeamworks.conf*')
+        {$env:FLYWAY_CONFIG_FILES= ($env:FLYWAY_CONFIG_FILES -split ','| 
+           where {$_ -ne 'flywayTeamworks.conf' }) -join ',' }
+    }
+         
 
+<# now we read in the contents of every config files we can get hold of reading them 
+in order of precedence and only adding a value if there is none there.#>
+$FlywayConfContent=@{}
+#is there a list of extra config files specified 
+if ($env:FLYWAY_CONFIG_FILES -ne $null)
+      {$FlywayConfContent=$env:FLYWAY_CONFIG_FILES -split ',' | foreach {
+            Get-content "$_" |where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') }|
+            foreach{$_ -replace '\\','\\'}|ConvertFrom-StringData
+            }        
+      }
+ @("flyway.conf", "$env:userProfile\flyway.conf")| Foreach {  
+    Get-Content "$($_)"  |
+   where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
+    foreach{$_ -replace '\\','\\'}|
+    ConvertFrom-StringData | foreach {
+        $Theitem=$_;
+       if ($FlywayConfContent."$($Theitem.Keys)" -eq $null) 
+        { $FlywayConfContent+=$_}
+        }
+    }
 # use this information for our own local data
+$RDBMS =''; $port =''; $database =''; $server =''; 
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 {
 	$FlywayURLRegex =
@@ -169,7 +192,6 @@ $migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_
 $migrationsPath=split-path -Leaf -path $migrationsLocation[0]
 
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
-
 $DBDetails = @{
     'RDBMS'= $RDBMS; 
 	'server' = $server; #The Server name
@@ -207,16 +229,19 @@ $DBDetails = @{
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
 if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null))) #if there is a UID then it needs credentials
-    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
+    {
+    if ($Server -ne ''-and $RDBMS -ne '')
+        {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
+    }
 
-$FlywayConfContent |
-foreach{
-	$what = $_;
-	$variable = $_.Keys;
-	$Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
-	$value = $what."$($_.Keys)"
-	$dbDetails."$variable" = $value;
-}
+$FlywayConfContent.GetEnumerator() |
+    foreach{
+	    $what = $_;
+	    $variable = $what.Name;
+	    $Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
+	    $value = $what.Value
+	    $dbDetails."$variable" = $value;
+    }
 
 if (($pwd.Path|split-path -Parent|split-path -leaf) -eq 'variants')
     {$DBDetails.variant=$pwd.Path|split-path -Leaf}
@@ -255,6 +280,7 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
-$env:FLYWAY_PASSWORD=$DBDetails.Pwd
+$env:FLYWAY_PASSWORD=$DBDetails.Pwd 
+   
 if ($WeNeedToCreateAPreferencesFile)
     {$FileLocations|convertto-json > "$pwd\DirectoryNames.json"}
