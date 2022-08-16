@@ -285,7 +285,7 @@ set 'simpleText' to true
         if ($timing) {$profile='-p1'} else {$profile=''}  #add the timing switch
 		if ($simpleText -or $timing)
 		{
-		$FullQuery = "Set nocount on; $query"
+		$FullQuery = "$query"
 		}
 		else
 		{
@@ -428,7 +428,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		Try
 		{
 			
-			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "--host=$($TheArgs.server)" "--port=$($TheArgs.Port -replace '[^\d]', '')" "--show-warnings" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" $timingParameter '--comments'  '--html')
+			$HTML = ([IO.File]::ReadAllText("$TempInputFile") | mysql "$($TheArgs.database)" "--host=$($TheArgs.server)" "--port=$($TheArgs.Port -replace '[^\d]', '')" "--show-warnings" "--password=$($TheArgs.pwd)"  "--user=$($TheArgs.uid)" $timingParameter '--comments'  '--html')
 			if ($? -eq 0)
 			{
 				$problems += "The MySQL CLI returned an error $($error[0])"
@@ -4474,6 +4474,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.147'
+'FlywayTeamwork framework  loaded. V1.2.148'
 
 
