@@ -128,3 +128,21 @@ SELECT $($Lines -join "`r`nUNION ALL`r`n SELECT ");
 	}
 	
 }
+
+
+$result=@'
+[
+ {"Country":"Irish","First":"Dé Luan", "Second":"Dé Mairt", "Third":"Dé Céadaoin","Fourth":"Déardaoin","Fifth":"Dé h-Aoine","Sixth":"Dé Sathairn","Seventh":"Dé Domhnaigh"},
+ {"Country":"German","First":"Montag","Second":"Dienstag","Third":"Mittwoch","Fourth":"Donnerstag","Fifth":"Freitag","Sixth":"Samstag","Seventh":"Sonntag"},
+ {"Country":"Galician","First":"luns","Second":"martes","Third":"mércores","Fourth":"xoves","Fifth":"venres","Sixth":"sábado","Seventh":"domingo"},
+ {"Country":"British","First":"Monday","Second":"Tuesday","Third":"Wednesday","Fourth":"Thursday","Fifth":"Friday","Sixth":"Saturday","Seventh":"Sunday"},
+ {"Country":"French","First":"Lund1","Second":"mardi","Third":"mercredi","Fourth":"jeudi","Fifth":"vendredi","Sixth":"samedi","Seventh":"Dimanche"},
+ {"Country":"Italian","First":"	lunedì","Second":"martedì","Third":"mercoledì","Fourth":"giovedì","Fifth":"venerdì","Sixth":"	sabato","Seventh":"domenica"}]
+'@|convertfrom-json
+
+convertTo-View -TheObject $result -TheNameOfTheView 'WordsForWeekdays' -style 'CTE'
+
+convertTo-View -TheObject $result -TheNameOfTheView 'employee' -style 'TVC'
+
+   convertTo-View -TheObject $result -TheNameOfTheView 'employee' -style 'SIMPLE'
+

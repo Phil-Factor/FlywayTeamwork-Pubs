@@ -23,22 +23,42 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 <#
 pick up any changed locations that the user wants. If nothing exists, then 
 create the file with the default settings in place
-#>
- If ($WeHaveDirectoryNames=Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf)
+These are the defaults that you can over-ride #>
+$FileLocations=[pscustomObject]@{}
+If ($WeHaveDirectoryNames=Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf)
     {$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json}
-
+$OriginalFileWeRead=$FileLocations; #just in case we need to save it
+#we have defaults just in case
+if ($FileLocations.Structure -eq $null) {$MaybeOldType=$True} else {$MaybeOldType=$False}
+$Additions=(@'
+{
+    "sourcePath":  "Source",
+    "Reportdirectory":  "Documents\\GitHub\\",
+    "resourcesPath":  "resources",
+    "scriptsPath":  "Scripts",
+    "migrationsPath":  "Migrations",
+    "DataPath":  "Data",
+    "VersionsPath":  "Versions",
+    "BranchesPath":"Branches",
+    "TestsPath":"Tests",
+    "VariantsPath":"Variants",
+    "Structure":"Branch"
+}
+'@|convertFrom-json).psobject.properties |where {$FileLocations."$($_.Name)"-eq $null}|
+   foreach {Add-Member -InputObject $FileLocations  -MemberType NoteProperty -Name $_.Name -Value $_.Value}
+#use default values if nothing else specified
+$ResourcesPath=$FileLocations.resourcesPath
 # we need this resource path to find out our resources 
-$ResourcesPath=( $FileLocations.ResourcesPath,'Resources' -ne $null)[0]
 # while we're at it, we get the tests path 
 $TestsPath=( $FileLocations.TestsPath,'Tests' -ne $null)[0]
 $TestsLocations=@();
-$structure=if($WeHaveDirectoryNames){$FileLocations.structure} else {'classic'}
-if ($structure -eq $null) {$structure='classic';$WeNeedToCreateAPreferencesFile=$true;}
+
+if ($MaybeOldType) {$structure='classic';}
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 $Branch = Split-Path -Path $pwd.Path -leaf;
-if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
-    {$structure='branch'}
+if ($MaybeOldType -and (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
+    {$FileLocations.structure='Branch'}
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
 #look down the directory structure. 
@@ -49,8 +69,8 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
     if ((test-path  "$dir\$TestsPath" -PathType Container))
         {$TestsLocations+="$dir\$TestsPath"}
     $Project = split-path -path $dir -leaf
-    if ($Project -eq 'Branches') {$structure='branch'} 
-	if (test-path  "$dir\Branches") {$structure='branch'} 
+    if ($MaybeOldType -and $Project -eq 'Branches') {$FileLocations.structure='branch'} 
+	if ($MaybeOldType -and (test-path  "$dir\Branches")) {$FileLocations.structure='branch'} 
     $dir = Split-Path $Dir;
 	$ii = $ii - 1;
 }
@@ -62,38 +82,13 @@ if ($TestsLocations.count -eq 0)
     New-Item -ItemType Directory -Path "$TestsLocations" -Force 
     }
 
-$WeNeedToCreateAPreferencesFile=$false;
-If (!($WeHaveDirectoryNames))
-    {
-    if ($ReferenceDirectoryNamesPath -ne $null)
-        {$FileLocations=[IO.File]::ReadAllText("$ReferenceDirectoryNamesPath")|convertfrom-json;
-        Copy-Item -Path $ReferenceDirectoryNamesPath -Destination "$pwd\DirectoryNames.json"
-        }
-    else
-        {
-        $WeNeedToCreateAPreferencesFile=$true;
-        $FileLocations=@{
-            ResourcesPath='Resources';
-            sourcePath ='Source';
-            ScriptsPath='Scripts';
-            VariantsPath='Variants';
-            DataPath='Data';
-            VersionsPath='Versions';
-            Reportdirectory='Documents\GitHub\';
-            TestsPath='Tests';
-            MigrationsPath =(if ($structure -eq 'branch'){'Migrations'} else {'Scripts'});
-            Structure=$structure;
-            }
-        }
-    }
-#ensure that there are default values for the names of the paths
-$VersionsPath=( $FileLocations.VersionsPath,'Versions' -ne $null)[0]
-$VariantsPath=( $FileLocations.VariantsPath,'Variants' -ne $null)[0]
-$scriptsPath=( $FileLocations.ScriptsPath,'Scripts' -ne $null)[0]
-$testsPath=( $FileLocations.TestsPath,'Tests' -ne $null)[0]
-$sourcePath=( $FileLocations.SourcePath,'Source' -ne $null)[0]
-$dataPath=( $FileLocations.SourcePath,'Data' -ne $null)[0]
-$Reportdirectory=( $FileLocations.Reportdirectory,'Documents\GitHub\' -ne $null)[0]
+$VersionsPath= $FileLocations.VersionsPath
+$VariantsPath= $FileLocations.VariantsPath
+$scriptsPath= $FileLocations.ScriptsPath
+$testsPath= $FileLocations.TestsPath
+$sourcePath= $FileLocations.SourcePath
+$dataPath= $FileLocations.SourcePath
+$Reportdirectory=$FileLocations.Reportdirectory
 
 #Read in shared resources
 if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
@@ -202,7 +197,7 @@ $DBDetails = @{
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
 	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
     'TestsLocations'=$TestsLocations;#where the tests are held
-	'resourcesPath' = $resourcesPath; #the directory that stores the project-wide resources
+	'resourcesPath' = $ResourcesPath; #the directory that stores the project-wide resources
 	'sourcePath' = $sourcePath; #where the source of any branch version is stored
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
 	'dataPath' = $DataPath; #where the data for any branch version is stored #>
@@ -281,6 +276,8 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
-   
-if ($WeNeedToCreateAPreferencesFile)
+#if we added defaults to the naming preferences we write them back so the user can change them
+if ((Diff-Objects $FileLocations $OriginalFileWeRead| where {$_.Match -ne '=='}).count -gt 0)
     {$FileLocations|convertto-json > "$pwd\DirectoryNames.json"}
+
+
