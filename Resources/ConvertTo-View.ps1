@@ -129,6 +129,7 @@ SELECT $($Lines -join "`r`nUNION ALL`r`n SELECT ");
 	
 }
 
+<#
 
 $result=@'
 [
@@ -145,4 +146,4 @@ convertTo-View -TheObject $result -TheNameOfTheView 'WordsForWeekdays' -style 'C
 convertTo-View -TheObject $result -TheNameOfTheView 'employee' -style 'TVC'
 
    convertTo-View -TheObject $result -TheNameOfTheView 'employee' -style 'SIMPLE'
-
+#>
