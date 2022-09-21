@@ -1,3 +1,4 @@
+
 IF (${MaybeBackup})
 	BEGIN
 	PRINT 'We are doing a Backup of ${flyway:database} because the maybeBackup placeholder is set to ${MaybeBackup} '
@@ -22,3 +23,7 @@ else
 	BEGIN
 	PRINT 'We will forget about testing ${flyway:database} because the MaybeTest placeholder is set to ${MaybeTest} '
     END
+
+
+
+
