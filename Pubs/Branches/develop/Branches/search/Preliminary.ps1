@@ -5,7 +5,6 @@ Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible 
-
 #>
 $FileLocations=@{}; #these can be specified in a JSON file
 <# first check that flyway is installed properly #>
@@ -93,7 +92,7 @@ $Reportdirectory=$FileLocations.Reportdirectory
 #Read in shared resources
 if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
     {Throw "Expecting resources in $Dir\$ResourcesPath- instead found preliminary.ps1"}
-dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
+dir "$Dir\$ResourcesPath\*.ps1" | foreach{write-verbose $_.FullName;  . "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
 
