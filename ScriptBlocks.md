@@ -92,7 +92,7 @@ This aims to tell you what has changed between each version of the database.
 This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
 
 
-$WriteOutERDiagramCode
+
 
 ## examples of usage
 
