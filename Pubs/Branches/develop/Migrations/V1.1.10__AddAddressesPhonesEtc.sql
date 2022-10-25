@@ -327,7 +327,7 @@ INNER JOIN People.Address
 ON Address.LegacyIdentifier = organisation.LegacyIdentifier
 
 go
-CREATE VIEW People.publishers
+CREATE VIEW People.publishers --provides all organisations that are publishers
 as
 SELECT Replace (Address.LegacyIdentifier, 'pub-', '') AS pub_id,
   OrganisationName AS pub_name, City, Region AS state, country
@@ -338,7 +338,7 @@ SELECT Replace (Address.LegacyIdentifier, 'pub-', '') AS pub_id,
       ON Address.Address_ID = Location.Address_id
   WHERE LineOfBusiness = 'Publisher' AND End_date IS NULL;
 GO
-CREATE VIEW People.authors
+CREATE VIEW /* provides a legacy 'authors table */ People.authors
 AS
 SELECT Replace (Address.LegacyIdentifier, 'au-', '') AS au_id,
   LastName AS au_lname, FirstName AS au_fname, DiallingNumber AS phone,

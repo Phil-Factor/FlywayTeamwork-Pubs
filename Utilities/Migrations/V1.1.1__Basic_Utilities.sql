@@ -34,6 +34,27 @@ RETURNS @WhatHappened TABLE
    Previous_Type NVARCHAR(20) NULL,
    Last_Action_Type NVARCHAR(20)  NULL)
 AS
+/*
+-- To call this directly from a database, but you might also use SQL
+-- executed by Flyway to call it
+-- Call the routine by this way
+IF (Char(36)+'{flyway:defaultSchema}.'+Char(36)+'{flyway:table}' <> '${flyway:defaultSchema}.${flyway:table}') 
+	begin
+	PRINT 'Executing this with flyway'
+	EXEC ('
+	SELECT * FROM util.TheFlywayVersion(
+       (SELECT [installed_rank] ,[version] ,[type], success 
+	    FROM  ${flyway:defaultSchema}.${flyway:table}  FOR JSON auto))')
+	end
+ELSE 
+	begin
+	PRINT 'Not executing this with flyway'
+	SELECT * FROM util.TheFlywayVersion(
+       (SELECT [installed_rank] ,[version] ,[type], success 
+	    FROM dbo.flyway_schema_history FOR JSON auto))
+	end
+*/
+
   /*define our variables */
   BEGIN
 

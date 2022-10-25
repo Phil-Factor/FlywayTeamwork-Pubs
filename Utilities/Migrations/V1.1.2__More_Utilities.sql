@@ -28,18 +28,3 @@ GROUP BY  SCHEMA_NAME(o.Schema_ID), p.object_id, data_compression_desc
 ORDER BY SUM(p.Rows) DESC;
 GO
 
-IF (Char(36)+'{flyway:defaultSchema}.'+Char(36)+'{flyway:table}' <> '${flyway:defaultSchema}.${flyway:table}') 
-	begin
-	PRINT 'Executing this with flyway'
-	EXEC ('
-	SELECT * FROM util.TheFlywayVersion(
-       (SELECT [installed_rank] ,[version] ,[type], success 
-	    FROM  ${flyway:defaultSchema}.${flyway:table}  FOR JSON auto))')
-	end
-ELSE 
-	begin
-	PRINT 'Not executing this with flyway'
-	SELECT * FROM util.TheFlywayVersion(
-       (SELECT [installed_rank] ,[version] ,[type], success 
-	    FROM util.flyway_schema_history FOR JSON auto))
-	end
