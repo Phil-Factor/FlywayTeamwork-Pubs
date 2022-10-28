@@ -966,6 +966,122 @@ $CheckCodeInMigrationFiles = {
 }
 
 
+<#This scriptblock checks the code in the pending files for any issues,
+using SQL Fluff to do all the work. It saves the report in a subdirectory 
+of the version directory of your project artefacts. It also reports back 
+in the $DatabaseDetails Hashtable. 
+#>
+
+$CheckFluffInPendingFiles = {
+	Param ($param1) # $CheckFluffInPendingFiles - (Don't delete this)
+	#you must set this value correctly before starting.
+	$Problems = @(); #our local problem counter
+	$Feedback = @();
+	$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8';
+	#these are the post-shredding tidy-up substitutions in Regex form
+	$ValueAlterations = @(('(?m:^)\s{1,40}?\|', ''), ("`n", ''), ("`r", ''))
+    <#The Regex for slicing up each SQLFluff record. I've commented it to make it
+    easier to read #>
+	$TheRegex = @'
+    (?m:^)(?#Get the line number
+    )L: {1,5}(?<Line>\d{1,4}) {0,10}(?#
+    Get the position (column]
+    )\| {1,4}P: {1,10}(?<Position>\d{1,10}) {1,4}(?#
+    Get the problem number
+    )\| {1,4}(?<Problem>\w\S{1,5}) {1,4}(?#
+    Find the description
+    )\| {1,4}(?<Description>(?s:.){1,200}?(?=\n\w|\z))
+'@
+	$Warnings = @() #an array to collect up all the warnings
+	$ParsingErrors = @() #an array to store all the parsing errors
+	$CompleteProblemData = @() #an array to store all the issues
+	# to get the dialects, use sqlfluff.exe dialects
+	$Dialect = switch -Regex ($param1.RDBMS)
+	{
+		'sqlserver'     {
+			'tsql'
+		}
+		'postgresql'    {
+			'Postgres'
+		}
+		'sqlite'	    {
+			'sqlite'
+		}
+		'mysql|mariadb'	{
+			'mysql'
+		}
+		default
+		{ 'Error' }
+	}
+	# check to make sure you have installed SQLFluff
+	if ($Dialect -eq 'Error')
+	{ $problems += "No SQL dialect specified by $($param1.RDBMS)" }
+	if ((Get-Command -WarningAction SilentlyContinue 'sqlfluff.exe').name -ne 'sqlfluff.exe')
+	{ Write-error "please install SQLFluff.exe using Python" }
+    <# now we get from flyway a list of all the migration files from the
+    info command and turn it into a PowerShell object #>	
+	$Migrations = Flyway info -outputType=json | convertfrom-json
+	if ($Migrations.error -ne $null)
+	{
+		# something wrong within Flyway. Need to deal with it
+		write-warning $Migrations.error.message
+	}
+	else
+	{
+	    <# work through the list of files, using just the SQL Flies that are pending.
+        We wont do the successfully-applied files because it would upset Flyway 
+        if we were to alter them #>
+		$migrations.migrations | `
+		where { ![string]::IsNullOrEmpty($_.filepath) -and ($_.type -ieq 'SQL') -and ($_.state -ieq 'Pending') } | `
+		foreach{
+			# of the right type of file.
+			$TheVersion = $_.version; # the versio attached to the file
+            $Feedback+="checked file for version $TheVersion"
+			# we'll put each file into the version folder. You might want them in a different plce
+			$ReportLocation = "$($param1.reportLocation)\$TheVersion\reports"
+			if (-not (Test-Path "$ReportLocation"))
+			{ New-Item -ItemType Directory -Path "$ReportLocation" -Force }
+            <# you might need to provide other configuration information here
+              fix       Fix SQL files.
+              lint      Lint SQL files via passing a list of files or using stdin #>
+			$report = sqlfluff.exe lint --dialect $dialect "$($_.filepath)"
+			#collect any warnings you want listed
+			$Warnings += $report | where { $_ -ilike 'warning*' }
+			#write out the raw report
+			$report > "$ReportLocation\SQLFluff.rpt"
+			#Slice up the rather odd formatting and read it into powershell
+			#ConvertFrom-Regex is in the resources. It is for text-based data
+			$ThisFileAnalysis = ConvertFrom-Regex -source ($report -join "`r`n") `
+												  -TheRegex $TheRegex `
+												  -ValueAlterations $ValueAlterations
+			#add the current version so we know which file it was in etc.
+			$ThisFileAnalysis | foreach{
+				$_ | Add-Member -MemberType NoteProperty -Name 'Version' -Value $TheVersion
+			}
+			#Write out this list of psCustomObjects as a JSON file for later use
+			$ThisFileAnalysis | ConvertTo-Json >"$ReportLocation\SQLFluff.json"
+			#and build up a complete list for reporting
+			$CompleteProblemData += $ThisFileAnalysis
+		}
+	}
+	#Report the complete list of issued
+	$CompleteProblemData | convertTo-json > "$($param1.reportLocation)\FluffProblems.json"
+	#extract the parsing errors
+	$Fluffproblems = $CompleteProblemData | where { $_.Problem -notlike 'L*' }
+	#Display parsing Errors.
+	if ($problems.Count -gt 0)
+	{
+		$Param1.warnings.'CheckCodeInMigrationFiles' += $FluffProblems;
+	}
+	else
+	{
+		$Param1.feedback.'CheckFluffInPendingFiles' += $Feedback
+		$Param1.WriteLocations.'CheckFluffInPendingFiles' = "$($param1.reportLocation)\FluffProblems.json";
+	}
+	
+}
+
+
 <#This scriptblock gets the current version of a flyway_schema_history data from the 
 table in the database. if there is no Flyway Data, then it returns a version of 0.0.0
 
@@ -4474,6 +4590,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.148'
+'FlywayTeamwork framework  loaded. V1.2.210'
 
 

@@ -7,10 +7,12 @@ Flyway will produce this as a routine if you want, using
  */
 DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
   N'[
+[
    {
       "TableObjectName":"dbo.publications",
       "Type":"user table",
       "Description":"This lists every publication marketed by the distributor",
+      "Brief":"Current books etc",
       "TheColumns":{
          "Publication_id":"The surrogate key to the Publications Table",
          "title":"the title of the publicxation",
@@ -20,9 +22,18 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
+      "TableObjectName":"dbo.employee_insupd",
+      "Type":"Trigger",
+      "Description":"Checks the salary level for the job",
+      "Brief":"Checks salary",
+      "TheColumns":{
+      }
+   },
+   {
       "TableObjectName":"dbo.editions",
       "Type":"user table",
       "Description":"A publication can come out in several different editions, of maybe a different type",
+      "Brief":"the editions of the publication",
       "TheColumns":{
          "Edition_id":"The surrogate key to the Editions Table",
          "publication_id":"the foreign key to the publication",
@@ -34,6 +45,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.prices",
       "Type":"user table",
       "Description":"these are the current prices of every edition of every publication",
+      "Brief":"price for each edition of a book",
       "TheColumns":{
          "Price_id":"The surrogate key to the Prices Table",
          "Edition_id":"The edition that this price applies to",
@@ -49,6 +61,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.TagName",
       "Type":"user table",
       "Description":"All the categories of publications",
+      "Brief":"publication category",
       "TheColumns":{
          "TagName_ID":"The surrogate key to the Tag Table",
          "Tag":"the name of the tag"
@@ -57,7 +70,8 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
    {
       "TableObjectName":"dbo.TagTitle",
       "Type":"user table",
-      "Description":"This relates tags to publications so that publications can have more than one",
+      "Description":"This relates tags (e.g. crime) to publications so that publications can have more than one",
+      "Brief":"Tags for a publication",
       "TheColumns":{
          "TagTitle_ID":"The surrogate key to the TagTitle Table",
          "title_id":"The foreign key to the title",
@@ -69,6 +83,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.employee",
       "Type":"user table",
       "Description":"An employee of any of the publishers",
+      "Brief":"a publishers employees",
       "TheColumns":{
          "emp_id":"The key to the Employee Table",
          "fname":"first name",
@@ -84,6 +99,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.jobs",
       "Type":"user table",
       "Description":"These are the job descriptions and min\/max salary level",
+      "Brief":"Job descriptions",
       "TheColumns":{
          "job_id":"The surrogate key to the Jobs Table",
          "job_desc":"The description of the job",
@@ -95,6 +111,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.stores",
       "Type":"user table",
       "Description":"these are all the stores who are our customers",
+      "Brief":"bookshops and stores",
       "TheColumns":{
          "stor_id":"The primary key to the Store Table",
          "stor_name":"The name of the store",
@@ -108,6 +125,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.discounts",
       "Type":"user table",
       "Description":"These are the discounts offered by the sales people for bulk orders",
+      "Brief":"bulk discounts",
       "TheColumns":{
          "discounttype":"The type of discount",
          "stor_id":"The store that has the discount",
@@ -121,6 +139,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.publishers",
       "Type":"user table",
       "Description":"this is a table of publishers who we distribute books for",
+      "Brief":"client publishers",
       "TheColumns":{
          "pub_id":"The surrogate key to the Publishers Table",
          "pub_name":"The name of the publisher",
@@ -133,6 +152,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.pub_info",
       "Type":"user table",
       "Description":"this holds the special information about every publisher",
+      "Brief":"extended publisher info",
       "TheColumns":{
          "pub_id":"The foreign key to the publisher",
          "logo":"the publisher''s logo",
@@ -143,6 +163,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.roysched",
       "Type":"user table",
       "Description":"this is a table of the authors royalty schedule",
+      "Brief":"royalty schedule",
       "TheColumns":{
          "title_id":"The title to which this applies",
          "lorange":"the lowest range to which the royalty applies",
@@ -155,6 +176,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.sales",
       "Type":"user table",
       "Description":"these are the sales of every edition of every publication",
+      "Brief":"sales per edition",
       "TheColumns":{
          "stor_id":"The store for which the sales apply",
          "ord_num":"the reference to the order",
@@ -168,6 +190,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.authors",
       "Type":"user table",
       "Description":"The authors of the publications. a publication can have one or more author",
+      "Brief":"authors of publications",
       "TheColumns":{
          "au_id":"The key to the Authors Table",
          "au_lname":"last name of the author",
@@ -184,6 +207,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.titleauthor",
       "Type":"user table",
       "Description":"this is a table that relates authors to publications, and gives their order of listing and royalty",
+      "Brief":"publication authors by order",
       "TheColumns":{
          "au_id":"Foreign key to the author",
          "title_id":"Foreign key to the publication",
@@ -195,6 +219,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.titleview",
       "Type":"view",
       "Description":"This shows the authors for every title ",
+      "Brief":"author list for titles",
       "TheColumns":{
          "title":"the name of the title",
          "au_ord":"order in which the authors are listed",
@@ -208,6 +233,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.titles",
       "Type":"view",
       "Description":"This mimics the old Titles Table",
+      "Brief":"imitates legacy titles",
       "TheColumns":{
          "title_id":"The primary key to the Titles table",
          "title":"the name of the title",
@@ -225,6 +251,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.PublishersByPublicationType",
       "Type":"view",
       "Description":"A view to provide the number of each type of publication produced by each publishe",
+      "Brief":"publishersPublications",
       "TheColumns":{
          "publisher":"Name of the publisher",
          "AudioBook":"audiobook sales",
@@ -241,6 +268,7 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       "TableObjectName":"dbo.TitlesAndEditionsByPublisher",
       "Type":"view",
       "Description":"A view to provide the number of each type of publication produced by each publisher",
+      "Brief":"Titles And Editions By Publisher",
       "TheColumns":{
           "Publisher":"Name of publisher",
 		  "Title":"the name of the title",
@@ -248,9 +276,10 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.Person",
+      "TableObjectName":"People.Person",
       "Type":"user table",
-      "Description":" This table represents a person- can be a customer or a member of staff,\r\nor someone in one of the outsourced support agencies",
+      "Description":" This table represents a person- can be a customer or a member of staff,or someone in one of the outsourced support agencies",
+      "Brief":"any type of person in the system",
       "TheColumns":{
          "person_ID":"",
          "Title":" the title (Mr, Mrs, Ms etc",
@@ -264,9 +293,10 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.Address",
+      "TableObjectName":"People.Address",
       "Type":"user table",
       "Description":"This contains the details of an addresss,\r\nany address, it can be a home, office, factory or whatever ",
+      "Brief":"all addresses",
       "TheColumns":{
          "Address_ID":"surrogate key ",
          "AddressLine1":"first line address",
@@ -279,18 +309,20 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.AddressType",
+      "TableObjectName":"People.AddressType",
       "Type":"user table",
-      "Description":" the  way that a particular customer is using the address (e.g. Home, Office, hotel etc ",
+      "Description":" the way that a particular customer is using the address (e.g. Home, Office, hotel etc ",
+      "Brief":"type of address",
       "TheColumns":{
          "TypeOfAddress":"description of the type of address",
          "ModifiedDate":"when was this record LAST modified"
       }
    },
    {
-      "TableObjectName":"Customer.Abode",
+      "TableObjectName":"People.Abode",
       "Type":"user table",
-      "Description":" an abode describes the association has with an address and  the period of time when the person had that association",
+      "Description":" an abode describes the association has with an address and the period of time when the person had that association",
+      "Brief":"relates person to an address",
       "TheColumns":{
          "Abode_ID":"the surrogate key for the place to which the person is associated",
          "Person_id":"the id of the person",
@@ -302,18 +334,20 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.PhoneType",
+      "TableObjectName":"People.PhoneType",
       "Type":"user table",
       "Description":" the description of the type of the phone (e.g. Mobile, Home, work) ",
+      "Brief":"type of phone",
       "TheColumns":{
          "TypeOfPhone":"a description of the type of phone",
          "ModifiedDate":"when this record was last modified"
       }
    },
    {
-      "TableObjectName":"Customer.Phone",
+      "TableObjectName":"People.Phone",
       "Type":"user table",
       "Description":" the actual phone number, and relates it to the person and the type of phone ",
+      "Brief":"all phone numbers",
       "TheColumns":{
          "Phone_ID":"the surrogate key for the phone",
          "Person_id":"the person who has the phone number",
@@ -325,9 +359,10 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.Note",
+      "TableObjectName":"People.Note",
       "Type":"user table",
       "Description":" a note relating to a customer ",
+      "Brief":"correspondence",
       "TheColumns":{
          "Note_id":"Surrogate primary key for the Note",
          "Note":"The actual text of the note",
@@ -338,10 +373,11 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.NotePerson",
+      "TableObjectName":"People.NotePerson",
       "Type":"user table",
       "Description":" relates a note to a person ",
-      "TheColumns":{
+       "Brief":"who wrote the note",
+     "TheColumns":{
          "NotePerson_id":"Surrogate primary key for the link table",
          "Person_id":"foreign key to the person who has the addess",
          "Note_id":"foreign key to the actual note",
@@ -350,9 +386,10 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.CreditCard",
+      "TableObjectName":"People.CreditCard",
       "Type":"user table",
       "Description":" the customer''s credit card details. This is here just because this database is used as a nursery slope to check for personal information ",
+      "Brief":"credit cards",
       "TheColumns":{
          "CreditCardID":"Surrogate primary key for the Credit card",
          "Person_id":"foreign key to the person who has the addess",
@@ -364,9 +401,10 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
       }
    },
    {
-      "TableObjectName":"Customer.EmailAddress",
+      "TableObjectName":"People.EmailAddress",
       "Type":"user table",
       "Description":" the email address for the person. a person can have more than one ",
+      "Brief":"email address",
       "TheColumns":{
          "EmailID":"Surrogate key for the email",
          "Person_id":"foreign key to the person who has the addess",
@@ -375,8 +413,17 @@ DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
          "EndDate":"when the customer stopped using this address",
          "ModifiedDate":"When the email address got modified"
       }
+   },
+   {
+      "TableObjectName":"dbo.SplitStringToWords",
+      "Type":"Function",
+      "Description":"splits strings into words for indexing",
+      "Brief":"string splitter",
+      "TheColumns":{
+      }
    }
-]';
+ ]
+';
 
 DECLARE @TableSourceToDocument TABLE
   (
