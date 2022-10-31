@@ -1,12 +1,11 @@
-﻿
-CREATE TABLE dbo.Publication_Types 
-/*  this migration file creates a table of publication types and 
+﻿/* this migration file creates a table of publication types and 
 then stocks the editions and pricxes with a range of editions of 
 the types we've defined 
 it then alters the existing  dbo.TitlesAndEditionsByPublisher 
 view  that lists Titles And Editions By Publisher, adding the 
-list of editions */
-(
+list of editions*/
+
+CREATE TABLE [dbo].Publication_Types(
 	Publication_Type [nvarchar](20) PRIMARY key
 )
 INSERT INTO dbo.Publication_Types(Publication_Type)

@@ -47,8 +47,7 @@ DROP TABLE People.Person
 /* any type of person in the system */
 ;
 GO
-IF Object_Id('People.Location') IS NOT NULL
-DROP TABLE People.Location ;
+IF Object_Id('People.Location') IS NOT NULL DROP TABLE People.Location;
 GO
 IF Object_Id('People.Address') IS NOT NULL
 DROP TABLE People.Address 
@@ -113,11 +112,10 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF,
      );
 GO
 
-
-CREATE TABLE People.Organisation 
-/*  This table represents a organisation- can be a People or a member of staff,
-or someone in one of the outsourced support agencies */
-(
+/* This table represents a organisation- can be a People or a member of staff,
+or someone in one of the outsourced support agencies*/
+CREATE TABLE People.Organisation
+  (
   organisation_ID INT NOT NULL IDENTITY CONSTRAINT organisationIDPK PRIMARY KEY,--  has to be surrogate
   OrganisationName nvarchar(100) NOT null,
   LineOfBusiness nvarchar(100) NOT null,
@@ -134,10 +132,9 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF,
      ALLOW_PAGE_LOCKS = ON
      );
 GO
-CREATE TABLE People.Address 
-/* This contains the details of an addresss,
-any address, it can be a home, office, factory or whatever  */
 
+CREATE TABLE People.Address /*This contains the details of an addresss,
+any address, it can be a home, office, factory or whatever */
   (
   Address_ID INT IDENTITY /*surrogate key */ CONSTRAINT AddressPK PRIMARY KEY,--the unique key 
   AddressLine1 People.PersonalAddressline NULL, --first line address
@@ -172,7 +169,7 @@ DROP TABLE People.AddressType
 ;
 GO
 CREATE TABLE People.AddressType 
-/*  the way that a particular customer is using the address (e.g. Home, Office, hotel etc  */
+/*  the�way that a particular customer is using�the address (e.g. Home, Office, hotel etc  */
 
   (
   TypeOfAddress NVARCHAR(40) NOT NULL --description of the type of address
@@ -188,7 +185,7 @@ DROP TABLE People.Abode
 ;
 GO
 CREATE TABLE People.Abode 
-/*  an abode describes the association has with an address and the period of time when the person had that association */
+/*  an abode describes the association has with an�address and the period of time when the person had that association */
 
   (
   Abode_ID INT IDENTITY --the surrogate key
@@ -205,13 +202,11 @@ CREATE TABLE People.Abode
      CONSTRAINT AbodeModifiedD DEFAULT GetDate()--when the abode record was created/modified
   );
 
-  IF Object_Id('People.Location') IS NOT NULL
-DROP TABLE People.Location ;
+  IF Object_Id('People.Location') IS NOT NULL DROP TABLE People.Location;
 GO
-CREATE TABLE People.Location 
-/*  an location describes the association has with an
-organisation and  the period of time when the organisation had that association */
 
+CREATE TABLE People.Location /* an location describes the association has with an
+organisation and  the period of time when the organisation had that association*/
   (
   Location_ID INT IDENTITY --the surrogate key
      CONSTRAINT LocationPK PRIMARY KEY, --because it is the only unique column
@@ -232,10 +227,9 @@ DROP TABLE People.PhoneType
 /* type of phone */
 ;
 GO
-
-CREATE TABLE People.PhoneType 
-/*  the description of the type of the phone (e.g. Mobile, Home, work)  */
-(
+/* the description of the type of the phone (e.g. Mobile, Home, work) */
+CREATE TABLE People.PhoneType
+  (
   TypeOfPhone NVARCHAR(40) NOT NULL
   --a description of the type of phone
     CONSTRAINT PhoneTypePK PRIMARY KEY,-- assures unique and indexed
@@ -243,9 +237,10 @@ CREATE TABLE People.PhoneType
     CONSTRAINT PhoneTypeModifiedDateD DEFAULT GetDate()
 	--when the abode record was created/modified
   );
-CREATE TABLE People.Phone 
-/*  the actual phone number, and relates it to the person and the type of phone  */
 
+
+CREATE TABLE People.Phone 
+/* the actual phone number, and relates it to the person and the type of phone */
   (
   Phone_ID INT IDENTITY --the surrogate key
     CONSTRAINT PhonePK PRIMARY KEY, --defunes the phone_id as being the primry key
@@ -274,9 +269,8 @@ CREATE TABLE People.Note
   /* we add a ModifiedDate as usual */
   ModifiedDate DATETIME NOT NULL CONSTRAINT NoteModifiedDateD DEFAULT GetDate()
   );
-CREATE TABLE People.NotePerson 
-/*  relates a note to a person  */
 
+CREATE TABLE People.NotePerson /* relates a note to a person */
   (
   NotePerson_id INT IDENTITY CONSTRAINT NotePersonPK PRIMARY KEY,
   Person_id INT NOT NULL CONSTRAINT NotePerson_PersonFK FOREIGN KEY REFERENCES People.Person,
@@ -305,10 +299,9 @@ CREATE TABLE People.CreditCard
     CONSTRAINT CreditCardModifiedDateD DEFAULT (GetDate()),-- if not specified, it was now
   CONSTRAINT DuplicateCreditCardUK UNIQUE (Person_id, CardNumber) --prevend duplicate card numbers
   );
-
-CREATE TABLE People.EmailAddress 
-/*  the email address for the person. a person can have more than one  */
-(
+/* the email address for the person. a person can have more than one */
+CREATE TABLE People.EmailAddress
+  (
   EmailID INT IDENTITY(1, 1) NOT NULL CONSTRAINT EmailPK PRIMARY KEY,--surrogate primary key 
   Person_id INT NOT NULL CONSTRAINT EmailAddress_PersonFK FOREIGN KEY REFERENCES People.Person, /*
   make the connectiopn between the person and the email address */
@@ -368,9 +361,7 @@ INNER JOIN People.Address
 ON Address.LegacyIdentifier = organisation.LegacyIdentifier
 
 go
-CREATE VIEW People.publishers 
-/* provides all organisations that are publishers */
-
+CREATE VIEW People.publishers
 as
 SELECT Replace (Address.LegacyIdentifier, 'pub-', '') AS pub_id,
   OrganisationName AS pub_name, City, Region AS state, country
@@ -381,8 +372,7 @@ SELECT Replace (Address.LegacyIdentifier, 'pub-', '') AS pub_id,
       ON Address.Address_ID = Location.Address_id
   WHERE LineOfBusiness = 'Publisher' AND End_date IS NULL;
 GO
-CREATE VIEW People.authors 
-/*  provides a legacy 'authors table  */
+CREATE VIEW People.authors
 AS
 SELECT Replace (Address.LegacyIdentifier, 'au-', '') AS au_id,
   LastName AS au_lname, FirstName AS au_fname, DiallingNumber AS phone,
