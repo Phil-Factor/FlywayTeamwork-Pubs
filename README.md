@@ -1,9 +1,27 @@
 # FlywayTeamwork
 ###  Powershell-based Database Development with Branches using Flyway
 
-This is a sample  Flyway framework for supporting  database development with Flyway. It currently supports  PostgreSQL, SQL Server, MySQL, MariaDB and SQLite. If you clone it, you will have a playground for trying Flyway out. 
+Flyway framework  is a PowerShell framework for supporting  database development with Flyway. It currently supports  PostgreSQL, SQL Server, MySQL, MariaDB and SQLite. If you clone it, you will have a playground for trying Flyway out, and the means to support team-based Database development. 
 
-This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses for its examples the old Pubs database, originally a demo database from Sybase. The whole purpose is  to demonstrate and explore the features of Flyway. However, it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get over the initial culture-shock. In this version called FlywayTeamwork, we’ve expanded the system to make it suitable for enterprise-scale developments,  diversified its support for a range of relational databases and rearranged the directory structure to a hierarchical one to accommodate the practice of branching. Although designed with GIT in mind, and currently used with GIT, it is designed to be able to work with any reasonable source control system. It does not rely on the source control system to accomodate branching- it can do it intrinsically.  It is better not to use Git’s branching mechanism which does not work naturally with databases rather then compiled code. 
+Flyway’s great strength is that it encourages the use of migrations to provide discrete and unchanging versions. This allows  a database team to manage a number of installations of the database, updating them immediately to the latest build. It removes many of the risks in deployment what happen because of uncontrolled changes. It also prevents the confusion that often surrounds the creation  of a candidate for release, and removes much of the pain of deployment. 
+
+Out of the box, Flyway Teamwork provides enough for a database development team to start to use Flyway productively. It will provide object-level source scripts, JSON documentation, a JSON reference model, Migration-file search facilities,  a narrative of changes, database diagrams and a host of other ways of supporting a database developer. Most of all, it provides an easily-expanded framework to support  PowerShell-base scripting. 
+
+This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses for its examples the old Pubs database, originally a demo database from Sybase. The whole purpose of doing this  is  to demonstrate and explore the features of Flyway. As a result,  it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get over the initial culture-shock.
+
+#### Managing Changes
+
+When you are scripting in Flyway, you will want to know how individual objects change. To make this possible, we provide obkect-level directories for every version as well as the current version. Together with Source Control, you get an ovject-level view of changes.  For developers more used to build scripts, each version can have its own build script which can be saved in source control to give the developer a roof-top view of development.  You also get a report on what changes happened in each version. There is a system for supporting TDD and unit testing, which runs tests and also provides performance information. 
+
+#### Providing information 
+
+When you are automating processes in a DevOps environment, you need to have a lot of information easily to hand, including the version of  database, the previous version, the current settings of Flyway, the locations of the migration files, the RDBMS and version of the database server you’re using, the name of the server, the location of the various directories that are used for project resources, where you keep your tests,  the userid, the location of project resources, and any extra information you need.
+
+By automating a large number of tasks, I’ve learned what is necessary.  The version of the database is essential for a number of tasks particularly where you need to save to source control or if you save reports for individual versions. It allows you to create a narrative of what changes were made and when.  With a multi-RDBMS approach, it all becomes simple if you know what RDBMS flyway is accessing. You can switch to the correct SQL Syntax in your automation work or use utilities that work across different RDBMSs.  Flyway Teamwork  keeps all the information you need in a hashtable that is used and updated by every scriptblock or cmdlet that  uses it.
+
+#### Support for Branching and merging
+
+Over the years, we have expanded the system to make it suitable for enterprise-scale developments,  diversified its support for a range of relational databases, and rearranged the directory structure to a hierarchical one to accommodate the practice of branching and creating variants. Although designed with GIT in mind, and currently used with GIT, it is designed to be able to work with any reasonable source control system. It does not rely on the source control system to accommodate branching- it can do it intrinsically.  It is better not to use Git’s branching mechanism which does not work naturally with databases as it does with  compiled code. 
 
 We’re using the following model of branching. 
 
