@@ -1,17 +1,23 @@
 # FlywayTeamwork
 ###  Powershell-based Database Development with Branches using Flyway
 
-Flyway framework  is a PowerShell framework for supporting  database development with Flyway. It currently supports  PostgreSQL, SQL Server, MySQL, MariaDB and SQLite. If you clone it, you will have a playground for trying Flyway out, and the means to support team-based Database development. 
+FlywayTeamwork framework  is a PowerShell framework for supporting  database development with Flyway. It currently supports  PostgreSQL, SQL Server, MySQL, MariaDB and SQLite. If you clone it, you will have a playground for trying Flyway out, and the means to support team-based Database development. 
 
-Flyway’s great strength is that it encourages the use of migrations to provide discrete and unchanging versions. This allows  a database team to manage a number of installations of the database, updating them immediately to the latest build. It removes many of the risks in deployment what happen because of uncontrolled changes. It also prevents the confusion that often surrounds the creation  of a candidate for release, and removes much of the pain of deployment. 
+Flyway’s great strength is that it encourages the use of migrations to provide discrete and unchanging versions. This allows  a database team to manage a number of installations of the database, updating them immediately to the latest build. It removes many of the risks in database deployment that happen because of uncontrolled changes. It also prevents the confusion that often surrounds the creation  of a candidate for release, and removes much of the pain of deployment. 
 
-Out of the box, Flyway Teamwork provides enough for a database development team to start to use Flyway productively. It will provide object-level source scripts, JSON documentation, a JSON reference model, Migration-file search facilities,  a narrative of changes, database diagrams and a host of other ways of supporting a database developer. Most of all, it provides an easily-expanded framework to support  PowerShell-base scripting. 
+Out of the box, Flyway Teamwork provides enough for a database development team to start to use Flyway productively. It will provide all the supporting materials that you’ll need, including object-level source scripts, JSON documentation, a JSON reference model, Migration-file search facilities,  a narrative of changes, database diagrams and a host of other ways of supporting a database developer. Most of all, it provides an easily-expanded framework to support  PowerShell-based scripting. 
 
 This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses for its examples the old Pubs database, originally a demo database from Sybase. The whole purpose of doing this  is  to demonstrate and explore the features of Flyway. As a result,  it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get over the initial culture-shock.
 
+#### Why FlywayTeamwork happened
+
+I developed FywayTeamwork because I like to spend as much time in real development work as possible, without the distraction of admin, source control tasks, reporting and managing team resources.  I also like to be able to find out as much as possible about the database as quickly as possible,
+
+The Framework evolved as I hit a frustration. Couldn’t find where a view was altered. Now easy, Couldnt find out exactly what changed between version 2.1  and 2.2? Now easy.  Wasn’t able to run quality checks on migration files? now simple to do. Couldn’t save onkect-level scripts to source control. Now simple. Then, the task of making it work for different RDBMS. Once completed, I had a very different perspective. The simple ability to run tasks on a range of RDBMS. And so on …. Suddenly, there were a lot of database tasks automated 
+
 #### Managing Changes
 
-When you are scripting in Flyway, you will want to know how individual objects change. To make this possible, we provide obkect-level directories for every version as well as the current version. Together with Source Control, you get an ovject-level view of changes.  For developers more used to build scripts, each version can have its own build script which can be saved in source control to give the developer a roof-top view of development.  You also get a report on what changes happened in each version. There is a system for supporting TDD and unit testing, which runs tests and also provides performance information. 
+When you are scripting in Flyway, you will want to know how individual objects change. To make this possible, we provide object-level directories for every version as well as the current version. Together with Source Control, you get an ovject-level view of changes.  For developers more used to build scripts, each version can have its own build script which can be saved in source control to give the developer a roof-top view of development.  You also get a report on what changes happened in each version. There is a system for supporting TDD and unit testing, which runs tests and also provides performance information. 
 
 #### Providing information 
 

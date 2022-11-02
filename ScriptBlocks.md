@@ -37,7 +37,7 @@ produces a build script from the database, using SQL Compare. It saves the build
 **$ExecuteTableSmellReport** *(SQL Server only)*
 This scriptblock executes SQL that produces a report in XML or JSON from the database that alerts you to tables that may have issues
 
-**$ExecuteTableDocumentationReport** *(SQL Server only)*
+**$ExecuteTableDocumentationReport**  *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
  This places in a report a json report of the documentation of every table and its columns. If you add or change tables, this can be subsequently used to update the **AfterMigrate** callback script
 for the documentation. 
 
@@ -87,12 +87,11 @@ This reads the flyway history table, and uses the information to annotate the di
 **$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
 
-
 **$WriteOutERDiagramCode** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
 
-
-
+**$CheckFluffInPendingFiles** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+This scriptblock checks the code in the pending files for any issues,using SQL Fluff to do all the work. It saves the report in a subdirectory  of the version directory of your project artefacts. It also reports back in the $DatabaseDetails Hashtable. 
 
 ## examples of usage
 
