@@ -85,6 +85,12 @@ This aims to tell you what has changed between each version of the database.
 **$WriteOutERDiagramCode** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
 This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
 
+**$CheckFluffInPendingFiles** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+This scriptblock checks the code in the pending files for any issues,using SQL Fluff to do all the work. It saves the report in a subdirectory 
+of the version directory of your project artefacts. It also reports back in the $DatabaseDetails Hashtable. 
+
+
+
 
 ## examples of usage
 
@@ -103,10 +109,10 @@ Here are several being done together
 	`#later use for comparing versions to create a chronicle of changes.`
 	`$CreateVersionNarrativeIfNecessary,`
     `#save the information from the history table about when all the changes were made and by whom
-â€‹    `$SaveFlywaySchemaHistoryIfNecessary`
+‹    `$SaveFlywaySchemaHistoryIfNecessary`
 `)`
 `Process-FlywayTasks $param1 $PostMigrationTasks`
-â€‹	`}`
+‹	`}`
 `}`
 ```
 
@@ -1021,53 +1027,52 @@ $CheckFluffInPendingFiles = {
     <# now we get from flyway a list of all the migration files from the
     info command and turn it into a PowerShell object #>	
 	$Migrations = Flyway info -outputType=json | convertfrom-json
-	if ($Migrations.error -ne $null)
-	{
-		# something wrong within Flyway. Need to deal with it
-		write-warning $Migrations.error.message
-	}
-	else
-	{
-	    <# work through the list of files, using just the SQL Flies that are pending.
+    if ($Migrations.error -ne $null)
+    { # something wrong within Flyway. Need to deal with it
+        write-warning $Migrations.error.message
+    }
+    else
+    {
+        <# work through the list of files, using just the SQL Flies that are pending.
         We wont do the successfully-applied files because it would upset Flyway 
         if we were to alter them #>
-		$migrations.migrations | `
-		where { ![string]::IsNullOrEmpty($_.filepath) -and ($_.type -ieq 'SQL') -and ($_.state -ieq 'Pending') } | `
-		foreach{
-			# of the right type of file.
-			$TheVersion = $_.version; # the versio attached to the file
-            $Feedback+="checked file for version $TheVersion"
-			# we'll put each file into the version folder. You might want them in a different plce
-			$ReportLocation = "$($param1.reportLocation)\$TheVersion\reports"
-			if (-not (Test-Path "$ReportLocation"))
-			{ New-Item -ItemType Directory -Path "$ReportLocation" -Force }
+        $migrations.migrations | `
+        where { ![string]::IsNullOrEmpty($_.filepath) -and ($_.type -ieq 'SQL') -and ($_.state -ieq 'Pending') } | `
+        foreach{ # of the right type of file.
+            $The_warning='';
+            $TheVersion=$_.version; # the versio attached to the file
+            # we'll put each file into the version folder. You might want them in a different plce
+            $ReportLocation = "$($dbDetails.reportLocation)\$TheVersion\reports"
+            if (-not (Test-Path "$ReportLocation"))
+            { New-Item -ItemType Directory -Path "$ReportLocation" -Force }
             <# you might need to provide other configuration information here
               fix       Fix SQL files.
               lint      Lint SQL files via passing a list of files or using stdin #>
-			$report = sqlfluff.exe lint --dialect $dialect "$($_.filepath)"
-			#collect any warnings you want listed
-			$Warnings += $report | where { $_ -ilike 'warning*' }
-			#write out the raw report
-			$report > "$ReportLocation\SQLFluff.rpt"
-			#Slice up the rather odd formatting and read it into powershell
-			#ConvertFrom-Regex is in the resources. It is for text-based data
-			$ThisFileAnalysis = ConvertFrom-Regex -source ($report -join "`r`n") `
-												  -TheRegex $TheRegex `
-												  -ValueAlterations $ValueAlterations
-			#add the current version so we know which file it was in etc.
-			$ThisFileAnalysis | foreach{
-				$_ | Add-Member -MemberType NoteProperty -Name 'Version' -Value $TheVersion
-			}
-			#Write out this list of psCustomObjects as a JSON file for later use
-			$ThisFileAnalysis | ConvertTo-Json >"$ReportLocation\SQLFluff.json"
-			#and build up a complete list for reporting
-			$CompleteProblemData += $ThisFileAnalysis
-		}
-	}
+            $report = sqlfluff.exe lint --dialect $dialect "$($_.filepath)"
+            #collect any warnings you want listed
+            $Warnings += $report|where {$_ -ilike 'warning*'}
+            #write out the raw report
+            $report > "$ReportLocation\SQLFluff.rpt"
+            #Slice up the rather odd formatting and read it into powershell
+            #ConvertFrom-Regex is in the resources. It is for text-based data
+            $ThisFileAnalysis = ConvertFrom-Regex -source ($report -join "`r`n") `
+                                                  -TheRegex $TheRegex `
+                                                  -ValueAlterations $ValueAlterations
+            #add the current version so we know which file it was in etc.
+            $ThisFileAnalysis|foreach{
+                $_|Add-Member -MemberType NoteProperty -Name 'Version' -Value $TheVersion
+                }
+            #Write out this list of psCustomObjects as a JSON file for later use
+            $ThisFileAnalysis | ConvertTo-Json >"$ReportLocation\SQLFluff.json"
+            #and build up a complete list for reporting
+            $CompleteProblemData +=$ThisFileAnalysis
+        }
+    }
 	#Report the complete list of issued
-	$CompleteProblemData | convertTo-json > "$($param1.reportLocation)\FluffProblems.json"
+	$CompleteProblemData | convertTo-json > "$($param1.reportLocation)\FluffIssues.json"
 	#extract the parsing errors
 	$Fluffproblems = $CompleteProblemData | where { $_.Problem -notlike 'L*' }
+	$Fluffproblems | convertTo-json > "$($param1.reportLocation)\FluffProblems.json"
 	#Display parsing Errors.
 	if ($problems.Count -gt 0)
 	{
