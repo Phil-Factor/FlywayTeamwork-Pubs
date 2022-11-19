@@ -1,3 +1,4 @@
+ï»¿/* Pubs Accounting package */
 CREATE TABLE accounting.Chart_of_Accounts (id INTEGER PRIMARY KEY, Name VARCHAR(50) UNIQUE);
 INSERT INTO accounting.Chart_of_Accounts (id, Name)
   SELECT f.id, f.name
@@ -40,7 +41,7 @@ INSERT INTO accounting.Chart_of_Accounts (id, Name)
 
 CREATE TABLE accounting.customer /* 
 a customer can have many invoices but 
-an invoice can’t belong to many customers*/
+an invoice canâ€™t belong to many customers*/
   (id INTEGER PRIMARY KEY,
    person_id INT NULL
      CONSTRAINT FK_person_id_Person_id
@@ -49,12 +50,12 @@ an invoice can’t belong to many customers*/
      CONSTRAINT FK_organisation_id_organisation_id
      REFERENCES people.Organisation (organisation_ID),
    CustomerFrom [DATE] NOT NULL,
-   CustomerTo [DATE] NOT NULL,
+   CustomerTo [DATE] NULL,
    [ModifiedDate] [DATETIME] NOT NULL
      DEFAULT GetDate ());
 
 CREATE TABLE accounting.Invoice_Payments
-  /* There’s a one-to-many 
+  /* Thereâ€™s a one-to-many 
 relationship between Invoice_Payments and Invoices 
 respectively (no partial payments) */
   (id INTEGER PRIMARY KEY,
@@ -120,7 +121,7 @@ CREATE TABLE accounting.Received_Money_Lines
      (id));
 
 CREATE TABLE accounting.Suppliers /*
-a supplier can have many bills but a bill can’t belong to many suppliers*/
+a supplier can have many bills but a bill canâ€™t belong to many suppliers*/
   (id INTEGER PRIMARY KEY,
    supplier_id INT NULL
      CONSTRAINT FK_supplier_id_organisation_id
@@ -129,12 +130,12 @@ a supplier can have many bills but a bill can’t belong to many suppliers*/
      CONSTRAINT FK_contact_id_organisation_id
      REFERENCES people.Organisation (organisation_ID),
    CustomerFrom [DATE] NOT NULL,
-   CustomerTo [DATE] NOT NULL,
+   CustomerTo [DATE] NULL,
    [ModifiedDate] [DATETIME] NOT NULL
      DEFAULT GetDate ());
 
 CREATE TABLE accounting.Bill_Payments
-  /* there’s a one-to-many relationship between Bill_Payments and Bills respectively */
+  /* thereâ€™s a one-to-many relationship between Bill_Payments and Bills respectively */
   (id INTEGER PRIMARY KEY,
    tran_date DATE NOT NULL,
    description NVARCHAR(MAX),             --Purchase FA
@@ -192,8 +193,6 @@ between Spent_Moneys and Chart_of_Accounts*/
    FOREIGN KEY (spent_money_id) REFERENCES accounting.Spent_Moneys (id),
    FOREIGN KEY (line_Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts
      (id));
-
-
 GO
 CREATE VIEW accounting.Invoice_Trans
 AS
@@ -362,15 +361,3 @@ AS
          - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
     FROM accounting.Spent_Money_Trans;
 
-
-
-CREATE TABLE #temptable ( [AssociationType_id] int )
-INSERT INTO #temptable ([AssociationType_id])
-VALUES
-( 1 ), 
-( 2 ), 
-( 3 ), 
-( 4 ), 
-( 5 )
-
-DROP TABLE #temptable

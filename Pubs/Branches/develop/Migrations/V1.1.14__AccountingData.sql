@@ -1,4 +1,7 @@
 ﻿
+Print 'Disable all constraints for database'
+EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"
+
 PRINT(N'Add rows to [accounting].[Bill_Payments]')
 INSERT INTO [accounting].[Bill_Payments] ([id], [tran_date], [description], [reference], [total], [Chart_of_Accounts_id]) VALUES (1, '2020-08-20', N'quartu quo linguens quoque quo,', N'EQTW0609926', -2213.13, 135)
 INSERT INTO [accounting].[Bill_Payments] ([id], [tran_date], [description], [reference], [total], [Chart_of_Accounts_id]) VALUES (2, '2021-09-18', N'gravis fecit, essit. gravis fecit,', N'WK74928', -5487.87, 430)
@@ -10335,51 +10338,11 @@ INSERT INTO [accounting].[Spent_Money_Lines] ([id], [line_amount], [spent_money_
 INSERT INTO [accounting].[Spent_Money_Lines] ([id], [line_amount], [spent_money_id], [line_Chart_of_Accounts_id]) VALUES (1000, 6599.76, 594, 730)
 PRINT(N'Operation applied to 1000 rows out of 1000')
 
-PRINT(N'Add constraints to [accounting].[Spent_Money_Lines]')
-ALTER TABLE [accounting].[Spent_Money_Lines] WITH CHECK CHECK CONSTRAINT [FK__Spent_Mon__line___0F2D40CE]
-ALTER TABLE [accounting].[Spent_Money_Lines] WITH CHECK CHECK CONSTRAINT [FK__Spent_Mon__spent__0E391C95]
+PRINT(N'Operation applied to 3000 rows out of 3000')
 
-PRINT(N'Add constraints to [accounting].[Received_Money_Lines]')
-ALTER TABLE [accounting].[Received_Money_Lines] WITH CHECK CHECK CONSTRAINT [FK__Received___line___7755B73D]
-ALTER TABLE [accounting].[Received_Money_Lines] WITH CHECK CHECK CONSTRAINT [FK__Received___recei__76619304]
 
-PRINT(N'Add constraints to [accounting].[Invoice_Lines]')
-ALTER TABLE [accounting].[Invoice_Lines] WITH CHECK CHECK CONSTRAINT [FK__Invoice_L__line___73852659]
-ALTER TABLE [accounting].[Invoice_Lines] WITH CHECK CHECK CONSTRAINT [FK__Invoice_L__invoi__72910220]
-
-PRINT(N'Add constraints to [accounting].[Bill_Lines]')
-ALTER TABLE [accounting].[Bill_Lines] WITH CHECK CHECK CONSTRAINT [FK__Bill_Line__bill___0A688BB1]
-ALTER TABLE [accounting].[Bill_Lines] WITH CHECK CHECK CONSTRAINT [FK__Bill_Line__line___0B5CAFEA]
-
-PRINT(N'Add constraints to [accounting].[Spent_Moneys]')
-ALTER TABLE [accounting].[Spent_Moneys] WITH CHECK CHECK CONSTRAINT [FK__Spent_Mon__Chart__078C1F06]
-ALTER TABLE [accounting].[Spent_Moneys] WITH CHECK CHECK CONSTRAINT [FK__Spent_Mon__suppl__0697FACD]
-
-PRINT(N'Add constraints to [accounting].[Received_Moneys]')
-ALTER TABLE [accounting].[Received_Moneys] WITH CHECK CHECK CONSTRAINT [FK__Received___Chart__6FB49575]
-ALTER TABLE [accounting].[Received_Moneys] WITH CHECK CHECK CONSTRAINT [FK__Received___custo__6EC0713C]
-
-PRINT(N'Add constraints to [accounting].[Invoices]')
-ALTER TABLE [accounting].[Invoices] WITH CHECK CHECK CONSTRAINT [FK__Invoices__Chart___6BE40491]
-ALTER TABLE [accounting].[Invoices] WITH CHECK CHECK CONSTRAINT [FK__Invoices__custom__69FBBC1F]
-ALTER TABLE [accounting].[Invoices] WITH CHECK CHECK CONSTRAINT [FK__Invoices__invoic__6AEFE058]
-
-PRINT(N'Add constraints to [accounting].[Bills]')
-ALTER TABLE [accounting].[Bills] WITH CHECK CHECK CONSTRAINT [FK__Bills__bill_paym__02C769E9]
-ALTER TABLE [accounting].[Bills] WITH CHECK CHECK CONSTRAINT [FK__Bills__Chart_of___03BB8E22]
-ALTER TABLE [accounting].[Bills] WITH CHECK CHECK CONSTRAINT [FK__Bills__supplier___01D345B0]
-
-PRINT(N'Add constraints to [accounting].[Suppliers]')
-ALTER TABLE [accounting].[Suppliers] WITH CHECK CHECK CONSTRAINT [FK_contact_id_organisation_id]
-ALTER TABLE [accounting].[Suppliers] WITH CHECK CHECK CONSTRAINT [FK_supplier_id_organisation_id]
-
-PRINT(N'Add constraints to [accounting].[Invoice_Payments]')
-ALTER TABLE [accounting].[Invoice_Payments] WITH CHECK CHECK CONSTRAINT [FK__Invoice_P__Chart__671F4F74]
-
-PRINT(N'Add constraints to [accounting].[customer]')
-ALTER TABLE [accounting].[customer] WITH CHECK CHECK CONSTRAINT [FK_organisation_id_organisation_id]
-ALTER TABLE [accounting].[customer] WITH CHECK CHECK CONSTRAINT [FK_person_id_Person_id]
-
-PRINT(N'Add constraints to [accounting].[Bill_Payments]')
-ALTER TABLE [accounting].[Bill_Payments] WITH CHECK CHECK CONSTRAINT [FK__Bill_Paym__Chart__7EF6D905]
+Print 'Enable all constraints for database'
+EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"
 GO
+
+
