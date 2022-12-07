@@ -3,11 +3,10 @@ they are held in the project directory in a file called MyToolLocations.ps1 #>
 
 # use Remove-Item Alias:<MyAlias> whenever you change any values
 #we always use SQLCMD to access SQL Server
-$PSScriptRoot="$Dir\$ResourcesPath\*.ps1"
-if ([string]::IsNullOrEmpty($ResourcesPath) -or ([string]::IsNullOrEmpty($Dir))) 
+if ( ([string]::IsNullOrEmpty($Dir))) 
     {write-error "we couldn't initialise the aliases. Have you executed 'preliminary.ps1'?"}
 else
-    {$LocationOfPaths="$(Split-Path -Path $PSScriptRoot -Parent)\MyToolLocations.ps1"}
+    {$LocationOfPaths="$Dir\MyToolLocations.ps1"}
 
 <#  #>
 if (-not (Test-Path $LocationOfPaths))

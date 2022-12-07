@@ -25,7 +25,9 @@ create the file with the default settings in place
 These are the defaults that you can over-ride #>
 $FileLocations=[pscustomObject]@{}
 If ($WeHaveDirectoryNames=Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf)
-    {$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json}
+    {$FileLocationsJson=[IO.File]::ReadAllText("$pwd\DirectoryNames.json");
+     $FileLocations=($FileLocationsJson|convertfrom-json);
+    }
 $OriginalFileWeRead=$FileLocations; #just in case we need to save it
 #we have defaults just in case
 if ($FileLocations.Structure -eq $null) {$MaybeOldType=$True} else {$MaybeOldType=$False}
@@ -276,7 +278,7 @@ $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
 #if we added defaults to the naming preferences we write them back so the user can change them
-if ((Diff-Objects $FileLocations $OriginalFileWeRead| where {$_.Match -ne '=='}).count -gt 0)
+if ((Diff-Objects $FileLocations ($FileLocationsJson|convertfrom-json)| where {$_.Match -ne '=='}).count -gt 0)
     {$FileLocations|convertto-json > "$pwd\DirectoryNames.json"}
 
 
