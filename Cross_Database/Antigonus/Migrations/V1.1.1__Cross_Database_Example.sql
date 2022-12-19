@@ -1,46 +1,34 @@
--- USE Antigonus; --Without Flyway we'd need to  switch to the database
-/*--  start of Cleanup script to ensure that we start with an empty database  --*/
-IF Object_Id ('dbo.Aristobulus_Hyrcanus_dbo_FirstTable', 'SN') IS NOT NULL
-  DROP SYNONYM dbo.Aristobulus_Hyrcanus_dbo_FirstTable;
-IF Object_Id ('dbo.Aristobulus_Hyrcanus_dbo_SecondTable', 'SN') IS NOT NULL
-  DROP SYNONYM dbo.Aristobulus_Hyrcanus_dbo_SecondTable
-/*-- end of Cleanup script   --*/
-/*--  start of the build script   --*/
---build script for TheSecondDatabase
 
+
+/* Script to demonstrate how to deal with mutual database dependencies
+on the same server*/
+-- create the very simplest of tables
+CREATE TABLE dbo.TheFirstTable (TheFirstColumn INT);
 GO
-CREATE TABLE dbo.ThirdTable
+-- and a second one with an index
+CREATE TABLE dbo.TheSecondTable
   (TheFirstColumn INT IDENTITY NOT NULL,
-   CONSTRAINT pk_TheThirdTable_TheSecondColumn
+   CONSTRAINT pk_TheSecondTable_TheFirstColumn
      PRIMARY KEY CLUSTERED (TheFirstColumn),
-   TheSecondColumn Varchar(20) NOT NULL);
+   TheSecondColumn INT NOT NULL);
 GO
-IF Object_Id ('tempdb..#dummy') IS NOT NULL SET NOEXEC ON;
-CREATE TABLE #dummy (TheFirstColumn INT, TheSecondColumn INT);
+--drop the stub if it exists
+IF (Object_Id ('dbo.TheThirdTable', 'U') IS NOT NULL)
+  DROP TABLE dbo.TheThirdTable;
+-- and a third one with an index
+CREATE TABLE dbo.TheThirdTable
+  (TheFirstColumn INT IDENTITY NOT NULL,
+   CONSTRAINT pk_TheThirdTable_TheFirstColumn
+     PRIMARY KEY CLUSTERED (TheFirstColumn),
+   TheSecondColumn INT NOT NULL);
 GO
-SET NOEXEC OFF;
-CREATE SYNONYM dbo.Aristobulus_Hyrcanus_dbo_SecondTable
-FOR #dummy;
-GO
+-- and a view that references hyrcanus
 CREATE VIEW dbo.TheSecondView
 AS
-  SELECT TheSecondColumn FROM dbo.Aristobulus_Hyrcanus_dbo_SecondTable;
+  SELECT TheSecondColumn FROM Hyrcanus.dbo.TheSecondTable;
 GO
-DROP SYNONYM dbo.Aristobulus_Hyrcanus_dbo_SecondTable;
-CREATE SYNONYM dbo.Aristobulus_Hyrcanus_dbo_SecondTable
-FOR Aristobulus.Hyrcanus.dbo.TheSecondTable;
-IF Object_Id ('tempdb..#dummy') IS NOT NULL SET NOEXEC ON;
-GO
-CREATE TABLE #dummy (TheFirstColumn INT, TheSecondColumn INT);
-GO
-SET NOEXEC OFF;
-CREATE SYNONYM dbo.Aristobulus_Hyrcanus_dbo_FirstTable
-FOR #dummy;
-GO
-CREATE VIEW dbo.TheThirdView
+-- and a second view, this one referencing a view
+CREATE VIEW TheThirdView
 AS
-  SELECT TheFirstColumn FROM dbo.Aristobulus_Hyrcanus_dbo_FirstTable;
+  SELECT ThefirstColumn FROM Hyrcanus.dbo.TheFirstView;
 GO
-DROP SYNONYM dbo.Aristobulus_Hyrcanus_dbo_FirstTable;
-CREATE SYNONYM dbo.Aristobulus_Hyrcanus_dbo_FirstTable
-FOR Aristobulus.Hyrcanus.dbo.TheFirstTable;
