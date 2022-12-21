@@ -1,4 +1,8 @@
--- USE Hyrcanus  (Flyway does this for you
+-- USE Hyrcanus  (Flyway does this for you)
+/* Script to demonstrate how to deal with mutual database dependencies
+on the same server*/
+-- create the very simplest of tables
+
 /*--  start of the build script   --*/
 -- create the first table
 CREATE TABLE dbo.TheFirstTable (TheFirstColumn INT);

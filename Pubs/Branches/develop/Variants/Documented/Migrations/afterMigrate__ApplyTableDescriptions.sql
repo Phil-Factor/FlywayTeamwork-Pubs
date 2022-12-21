@@ -6,7 +6,7 @@ Flyway will produce this as a routine if you want, using
  DatabaseBuildAndMigrateTasks.ps1 
  */
 DECLARE @JSONTablesAndColumns NVARCHAR(MAX) =
-  N'[
+  N'
 [
    {
       "TableObjectName":"dbo.publications",

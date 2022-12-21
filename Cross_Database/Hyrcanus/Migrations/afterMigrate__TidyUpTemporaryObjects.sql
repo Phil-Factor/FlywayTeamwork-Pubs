@@ -1,6 +1,6 @@
-USE Antigonus
-DROP TABLE IF EXISTS #DeleteList
-CREATE  Table #DeleteList
+USE Antigonus;
+DROP TABLE IF EXISTS #DeleteList;
+CREATE TABLE #DeleteList
   (TheOrder INT IDENTITY,
    TheName sysname,
    TheType NVARCHAR(20));
@@ -16,12 +16,12 @@ SELECT @ToBeDeleted =
   FROM #DeleteList
   WHERE TheType <> 'UNSUPPORTED';
 EXECUTE (@ToBeDeleted);
-SELECT @ToBeDeleted AS "Actions executed to Temporary Objects on Antigonus" 
-DROP TABLE IF EXISTS #DeleteList
-go
-USE Hyrcanus
-DROP TABLE IF EXISTS #DeleteList
-CREATE  Table #DeleteList
+SELECT @ToBeDeleted AS "Actions executed to Temporary Objects on Antigonus";
+DROP TABLE IF EXISTS #DeleteList;
+GO
+USE Hyrcanus;
+DROP TABLE IF EXISTS #DeleteList;
+CREATE TABLE #DeleteList
   (TheOrder INT IDENTITY,
    TheName sysname,
    TheType NVARCHAR(20));
@@ -37,5 +37,5 @@ SELECT @ToBeDeleted =
   FROM #DeleteList
   WHERE TheType <> 'UNSUPPORTED';
 EXECUTE (@ToBeDeleted);
-SELECT @ToBeDeleted AS "Actions executed to Temporary Objects on Hyrcanus" 
-DROP TABLE IF EXISTS #DeleteList
+SELECT @ToBeDeleted AS "Actions executed to Temporary Objects on Hyrcanus";
+DROP TABLE IF EXISTS #DeleteList;

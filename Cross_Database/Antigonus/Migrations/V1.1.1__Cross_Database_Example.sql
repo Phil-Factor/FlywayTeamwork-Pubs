@@ -1,5 +1,5 @@
 
-
+-- USE Antigonus  (Flyway does this for you)
 /* Script to demonstrate how to deal with mutual database dependencies
 on the same server*/
 -- create the very simplest of tables
