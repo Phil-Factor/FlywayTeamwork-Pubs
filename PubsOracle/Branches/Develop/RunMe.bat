@@ -1,0 +1,1 @@
+set FLYWAY_CONFIG_FILES=%userprofile%\PubsOracle_Dev.conf

@@ -1,4 +1,4 @@
-<# These are used to help find veious tools. you need to keep them up-to-date as you upgrade apps.
+<# These are used to help find various tools. you need to keep them up-to-date as you upgrade apps.
 they are held in the project directory in a file called MyToolLocations.ps1 #>
 
 # use Remove-Item Alias:<MyAlias> whenever you change any values
