@@ -1,24 +1,3 @@
-select ind.index_name,
-       ind_col.column_name,
-       ind.index_type,
-       ind.uniqueness,
-       ind.table_owner as schema_name,
-       ind.table_name as object_name,
-       ind.table_type as object_type       
-from sys.all_indexes ind
-inner join sys.all_ind_columns ind_col on ind.owner = ind_col.index_owner
-                                    and ind.index_name = ind_col.index_name
--- excluding some Oracle maintained schemas
-where ind.owner ='DBO'
-order by ind.table_owner,
-         ind.table_name,
-         ind.index_name,
-         ind_col.column_position;
-
-
-
-
-
 -- 'Dropping foreign keys from dbo.sales'
 ALTER TABLE dbo.sales DROP CONSTRAINT FK__sales__stor_id;
 ALTER TABLE dbo.sales DROP CONSTRAINT FK__sales__title_id;
@@ -209,7 +188,7 @@ BEGIN
         GROUP BY ROLLUP( pub_id,TYPE ) ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
+/
 
 -- 'Adding constraints to dbo.authors'
 ALTER TABLE dbo.authors modify  phone CHAR(12) DEFAULT 'UNKNOWN';
@@ -218,7 +197,7 @@ ALTER TABLE dbo.authors modify  phone CHAR(12) DEFAULT 'UNKNOWN';
 ALTER TABLE dbo.publishers modify country VARCHAR2(30 CHAR) DEFAULT 'USA';
 
 -- 'Adding constraints to dbo.titles'
-ALTER TABLE dbo.titles modify ( type CHAR(12 CHAR) DEFAULT ('UNDECIDED'));
+ALTER TABLE dbo.titles modify type  character varying(80) DEFAULT ('UNDECIDED');
 
 -- 'Adding foreign keys to dbo.sales'
 -- 'Adding foreign keys to dbo.sales'

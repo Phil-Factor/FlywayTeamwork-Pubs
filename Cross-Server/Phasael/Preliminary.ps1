@@ -75,11 +75,11 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
 	$ii = $ii - 1;
 }
 if ($dir -eq '') { throw "no resources directory found" }
-#if no directory  names
+#if no test directory 
 if ($TestsLocations.count -eq 0)
     {
     $TestsLocations+="$dir\$Project\$TestsPath";
-    New-Item -ItemType Directory -Path "$TestsLocations" -Force 
+    $null=New-Item -ItemType Directory -Path "$TestsLocations" -Force 
     }
 
 $VersionsPath= $FileLocations.VersionsPath
@@ -112,6 +112,8 @@ Now we check that the directories and files that we need are there #>
 	if (-not (Test-Path $_.path -PathType $_.type))
 	{ throw "Sorry, but I couldn't find a $($_.desc) at the $($pwd.Path) location" }
 }
+
+
 # is there an extra file
 if (Test-Path 'flywayTeamworks.conf' -PathType Leaf)
     {if ($env:FLYWAY_CONFIG_FILES -eq $null)
@@ -132,6 +134,7 @@ else #make sure that the env reflects the removal of the file
 <# now we read in the contents of every config files we can get hold of reading them 
 in order of precedence and only adding a value if there is none there.#>
 $FlywayConfContent=@{}
+#we read them in precendence order. 
 #is there a list of extra config files specified 
 if ($env:FLYWAY_CONFIG_FILES -ne $null)
       {$FlywayConfContent=$env:FLYWAY_CONFIG_FILES -split ',' | foreach {
@@ -181,11 +184,13 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
+$Wallet=$FlywayConfContent.'flyway.oracle.walletLocation'; #extract this so we can use it for oracle
+$Service=$FlywayConfContent.'flyway.placeholders.service'; #extract this placeholder so we can use it for oracle
 $migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_ -like 'filesystem:*'}|foreach {
    resolve-path $_.Replace('filesystem:','') -ErrorAction Ignore}
 # the directory of the first one
 $migrationsPath=split-path -Leaf -path $migrationsLocation[0]
-
+$Thepassword=$FlywayConfContent.'flyway.Password';
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 $DBDetails = @{
     'RDBMS'= $RDBMS; 
@@ -194,6 +199,8 @@ $DBDetails = @{
     'filterpath'=$filterpath;
     'variant'='default';
 	'database' = $database; #The Database
+    'wallet'=$Wallet; #oracle only
+    'service'=$Service; #oracle only
 	'migrationsPath' = $migrationsPath; #where the migration scripts are stored- default to Migrations
 	'migrationsLocation' = $migrationsLocation; #where the migration scripts are stored- default to Migrations
     'TestsLocations'=$TestsLocations;#where the tests are held
@@ -208,12 +215,12 @@ $DBDetails = @{
     'reportLocation'="$pwd\$($FileLocations.VersionsPath)"; # part of path from user area to project artefacts folder location 
 	'Port' = $port
 	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
-	'pwd' = ''; # The password. This gets filled in
+	'pwd' = $Thepassword; # The password. This gets filled in
 	'version' = ''; # TheCurrent Version. This gets filled in if you request it
     'previous'=''; # The previous Version. This gets filled in if you request it
 	'flywayTable' = 'dbo.flyway_schema_history';#this gets filled in later
 	'branch' = $branch;
-	'schemas' = 'dbo,classic,people';
+	'schemas' = '';
 	'project' = $project; #Just the simple name of the project
 	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
 	'projectFolder' = $FlywayConfContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
@@ -225,17 +232,16 @@ $DBDetails = @{
 }
 if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null))) #if there is a UID then it needs credentials
     {
-    if ($Server -ne ''-and $RDBMS -ne '')
+    if ($Server -ne ''-and $RDBMS -ne '' -and [string]::IsNullOrEmpty($DBDetails.pwd) )
         {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
     }
 
-$FlywayConfContent.GetEnumerator() |
-    foreach{
-	    $what = $_;
-	    $variable = $what.Name;
-	    $Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
-	    $value = $what.Value
-	    $dbDetails."$variable" = $value;
+$FlywayConfContent| foreach{
+        $what=$_
+	    $ThisKey = $what.Keys;
+	    $ThisValue = "$($what.Values[0])";
+	    $Variable =  $ThisKey -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
+	    $dbDetails."$variable" = $ThisValue;
     }
 
 if (($pwd.Path|split-path -Parent|split-path -leaf) -eq 'variants')
@@ -275,6 +281,7 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
+#add the password as an environment variable
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
 #if we added defaults to the naming preferences we write them back so the user can change them
 $OldFileLocations=($FileLocationsJson|convertfrom-json)

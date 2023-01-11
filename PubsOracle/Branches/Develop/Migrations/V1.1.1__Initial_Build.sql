@@ -548,7 +548,7 @@ ENABLE
 
 -- PROMPT Creating Foreign Key Constraint FK_salesStores on TABLE dbo.stores...
 ALTER TABLE dbo.sales
-ADD CONSTRAINT FK_salesStores FOREIGN KEY
+ADD CONSTRAINT FK__sales__stor_id FOREIGN KEY
 (
   stor_id
 )
@@ -574,7 +574,7 @@ ENABLE
 
 -- PROMPT Creating Foreign Key Constraint FK_salesTitles on TABLE dbo.titles...
 ALTER TABLE dbo.sales
-ADD CONSTRAINT FK_salesTitles FOREIGN KEY
+ADD CONSTRAINT FK__sales__title_id FOREIGN KEY
 (
   title_id
 )
