@@ -1,0 +1,6 @@
+set sqlformat json
+SET TERMOUT OFF 
+spool result.json
+@oracle.sql 
+spool off
+exit 

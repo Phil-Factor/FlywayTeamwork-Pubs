@@ -276,11 +276,11 @@ catch
     { 
     write-warning "$($PSItem.Exception.Message) getting environment variables at line $($_.InvocationInfo.ScriptLineNumber)"
     }
-$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
-                     {($DBDetails.schemas -split ','|select -First 1)} 
+$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) #they haven't specified one
+                     {($DBDetails.schemas -split ','|select -First 1)} #get the first in the list
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
-$DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
+$DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})`"$($defaultTable)`""
 #add the password as an environment variable
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
 #if we added defaults to the naming preferences we write them back so the user can change them

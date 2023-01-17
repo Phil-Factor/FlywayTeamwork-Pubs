@@ -1,0 +1,7 @@
+
+Error starting at line : 1 File @ S:\work\Github\FlywayTeamwork\PubsOracle\oracle.sql
+In command -
+﻿Select * from dbo."flyway_schema_history" where "version" is not null
+Error report -
+Unknown Command
+

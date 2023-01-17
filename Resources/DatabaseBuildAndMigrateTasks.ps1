@@ -19,11 +19,11 @@ As well as being run in a series, they can be used individually. If one of them 
 The reason for using this design was to make it easy to choose what gets run and in what order. 
 
 **$CheckCodeInDatabase** *(SQL Server only)*
-This scriptblock checks the code in the database for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard  and saves the report in a subdirectory the version directory of your project artefacts. It also reports back in the **$param1** Hashtable. It checks the current database, not the scripts
+This scriptblock checks the code in the database for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard  and saves the report in a subdirectory the version directory of your project artefacts. It also reports back in the **$dbDetails** Hashtable. It checks the current database, not the scripts
 
 **$CheckCodeInMigrationFiles** *(SQL Server only)*
 This scriptblock checks the code in the migration files for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard and saves the report in a subdirectory the version directory of your 
-project artefacts. It also reports back in the **$param1** Hashtable. It checks the scripts not the current database.
+project artefacts. It also reports back in the **$dbDetails** Hashtable. It checks the scripts not the current database.
 
 **$CreateScriptFoldersIfNecessary**: *(SQL Server, SQLite, MySQL, MariaDB, PostgreSQL)*
 this task checks to see if a Source folder already exists for this version of the database and, if not, it will create one and fill it with subdirectories for each type of object. A tables folder will, for example, have a file for every table each containing a build script to create that object. When this exists, it allows SQL Compare
@@ -45,12 +45,12 @@ This checks the hash table to see if there is a username without a password. If 
 **$ExecuteTableSmellReport** *(SQL Server only)*
 This scriptblock executes SQL that produces a report in XML or JSON from the database
 
-**$GetCurrentVersion** *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
+**$GetCurrentVersion** *(PostgreSQL, Oracle, MySQL, MariaDB,SQL Server, SQLite)*
 This contacts the database and determines its current version, and previous version by interrogating the flyway_schema_history data table in the database. If it is an empty database,or there is just no Flyway data, then it returns a version of 0.0.0.
 
 **$GetCurrentServerVersion** *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
 This scriptblock gets the current version of the RDBMS on the server and is used mainly to check that the migration doesn't use any functionality that can't be supported on that server version. It updates
-the $Param1.ServerVersion 
+the $dbDetails.ServerVersion 
 
 **$IsDatabaseIdenticalToSource:** *(SQL Server only)*
 This uses SQL Compare to check that a version of a database is correct and hasn't been changed. To do this, the $CreateScriptFoldersIfNecessary task must have been run first. It compares the database to the associated source folder, for that version, and returns, in the hash table, the comparison equal to true if it was the same, or false if there has been drift, with a list of objects that have changed. If the comparison returns $null, then it means there has been an error. To access the right source folder for this database version, it needs $GetCurrentVersion to have been run beforehand in the chain of tasks
@@ -111,7 +111,7 @@ Here are several being done together
     `#save the information from the history table about when all the changes were made and by whom
 ‹    `$SaveFlywaySchemaHistoryIfNecessary`
 `)`
-`Process-FlywayTasks $param1 $PostMigrationTasks`
+`Process-FlywayTasks $dbDetails $PostMigrationTasks`
 ‹	`}`
 `}`
 ```
@@ -119,7 +119,7 @@ Here are several being done together
 here is one scriptblock being done
 
 ``` 
-Process-FlywayTasks $param1 $GetCurrentServerVersion 
+Process-FlywayTasks $dbDetails $GetCurrentServerVersion 
 ```
 
 Some scriptblocks have extra parameters that allow them to be used more freely. 
@@ -586,6 +586,96 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromPsql' += $problems }
 }
 
+$GetdataFromOracle = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get JSON results without having to 
+explicitly open a connection. it will take SQL files and queries. 
+#>
+	Param ($Theargs,
+		#this is the same ubiquitous hashtable 
+
+		$query,
+		#either a query that returns JSON, or a simple expression
+
+		$fileBasedQuery = $null,
+		#if you specify input from a file
+
+		$simpleText = $false,
+		#do you return timing information
+
+		$timing = $false,
+		#do we just want the timing information?
+
+		$muted = $false #do you return the data
+	) # $GetdataFromOracle: (Don't delete this)
+	$problems = @();
+	#check to see that we have the requisites
+	$TheWallet = $TheArgs.ZippedWalletLocation;
+	$Theservice = $TheArgs.service
+	$TheUID = $TheArgs.uid
+	$ThePassword = $TheArgs.password
+	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
+	{
+		$Problems += "Cannot continue because name of either service ('$TheService'
+    )  User ('$TheUID'), Password ('$ThePassword') or wallet ('$TheWallet') is not provided";
+	}
+	else
+	{
+		#the alias must be set to the path of your installed version of SQL Cmd
+	    if ($OracleCmdAlias -eq $null -or (!(Test-Path -Path $OracleCmdAlias)) )
+	    {
+		    $problems += "'$OracleCmdAlias' is not a valid path. You must have provided a path to Oracle''s sqlcl.exe as OracleCmdAlias in the ToolLocations.ps1 file in the resources folder"
+	    }
+	}
+	if ($problems.count -eq 0)
+	{
+		$TempSpoolOutputFile = "TempOutput$(Get-Random -Minimum 1 -Maximum 900).json"
+		$TempQueryFile = "TempInput$(Get-Random -Minimum 1 -Maximum 900).SQL"
+		$MaybeTiming = if ($timing) { "SET TIMING ON`n" }
+		else { '' };
+		$MaybeJSON = if ($simpleText) { '' }
+		else { "set sqlformat json`n" };
+		#do a command to set the output to JSON
+				<# the CLI picks up its commands from a local file called login.sql rather
+        than doing it at the command-line., and it reads its query from file too  #>
+		[System.IO.File]::WriteAllLines("$pwd\login.sql",@"
+$($MaybeJSON)SET TERMOUT OFF 
+set linesize 4000
+set long 4000
+set longchunksize 4000
+spool $TempSpoolOutputFile
+@$TempQueryFile
+spool off
+exit
+"@)
+		
+		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
+		{ $query = [System.IO.File]::ReadAllLines($FileBasedQuery) }
+		[System.IO.File]::WriteAllLines("$pwd\$TempQueryFile", $Query)
+		$env:SQLPATH = "$pwd"
+		cmd.exe /c @"
+`"$OracleCmdAlias`" -noupdates -S -L  -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice
+"@
+		#we can't pass a query string directly so we have a file ...
+		If (Test-Path -Path "$pwd/$TempQueryFile")
+		{ Remove-Item "$pwd/$TempQueryFile" }
+		
+		#we have a file for the output too which we read in ...
+		If (Test-Path -Path "$pwd/$TempSpoolOutputFile")
+		{
+			#make it easier for the caller to read the error
+			$response = [IO.File]::ReadAllText("$pwd\$TempSpoolOutputFile") -ireplace '\d+? rows selected\.', '';
+			Remove-Item "$pwd/$TempSpoolOutputFile"
+		}
+		
+		if ($response -like '*Error*')
+		{ $Problems += " When connecting to oracle, we  had error $Response" }
+		if ($problems.count -gt 0)
+		{ @{ Error = $problems } | convertTo-json }
+		elseif ($response -like 'NULL*')
+		{ '' }
+		else
+		{ if (!($muted)) { ($response|convertfrom-json).results.items|convertTo-json } }
+	}
+}
 
 <# 
 Note: now deprecated!
@@ -1008,7 +1098,10 @@ Find the description
 			'tsql'
 		}
 		'postgresql'    {
-			'Postgres'
+			'postgres'
+		}
+		'oracle'    {
+			'oracle'
 		}
 		'sqlite'	    {
 			'sqlite'
@@ -1045,7 +1138,7 @@ Find the description
 			$The_warning = '';
 			$TheVersion = $_.version; # the versio attached to the file
 			# we'll put each file into the version folder. You might want them in a different plce
-			$ReportLocation = "$($dbDetails.reportLocation)\$TheVersion\reports"
+			$ReportLocation = "$($param1.reportLocation)\$TheVersion\reports"
 			if (-not (Test-Path "$ReportLocation"))
 			{ New-Item -ItemType Directory -Path "$ReportLocation" -Force }
             <# you might need to provide other configuration information here
@@ -1189,7 +1282,24 @@ $GetCurrentVersion = {
         (SELECT Max(installed_rank) FROM $($param1.flywayTable)
            WHERE success = true);
     " | convertfrom-json
-	} 
+	}
+    elseif ($param1.RDBMS -eq 'oracle')
+	{
+		# Do it the oracle way
+		$AllVersions = Execute-SQL $param1  "
+        SELECT DISTINCT `"version`"
+        FROM $($param1.flywayTable)
+      WHERE `"version`" IS NOT NULL;          
+    " | convertfrom-json
+        $LastAction = Execute-SQL $param1 "
+      SELECT `"version`", `"type`"
+      FROM $($param1.flywayTable)
+      WHERE
+      `"installed_rank`" =
+        (SELECT Max(`"installed_rank`") FROM $($param1.flywayTable)
+           WHERE `"success`" = 1);
+    " | convertfrom-json 
+    }
 	else { $problems += "$($param1.RDBMS) is not supported yet. " }
 	if ($AllVersions.error -ne $null) { $problems += $AllVersions.error }
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
@@ -1651,6 +1761,66 @@ $CreateScriptFoldersIfNecessary = {
 					$_.script > "$SchemaToStoreIt\$($_.name).sql"; #pop it into the file
 				}
 			}
+            'oracle'
+            {
+            
+            $TheListOfSchemas=($dbdetails.schemas.split(',')|foreach  {"`"$_`" "}) -join ','
+            $TheJsonMetadata = Execute-SQL $dbdetails  "
+select Object_type, owner||'.'||object_name as TheName, dbms_metadata.get_ddl(object_type, object_name, owner) as Thesource
+from
+(
+    select
+        owner,
+        --Java object names may need to be converted with DBMS_JAVA.LONGNAME.
+        --That code is not included since many database don't have Java installed.
+        object_name,
+        decode(object_type,
+            'DATABASE LINK',      'DB_LINK',
+            'JOB',                'PROCOBJ',
+            'RULE SET',           'PROCOBJ',
+            'RULE',               'PROCOBJ',
+            'EVALUATION CONTEXT', 'PROCOBJ',
+            'CREDENTIAL',         'PROCOBJ',
+            'CHAIN',              'PROCOBJ',
+            'PROGRAM',            'PROCOBJ',
+            'PACKAGE',            'PACKAGE_SPEC',
+            'PACKAGE BODY',       'PACKAGE_BODY',
+            'TYPE',               'TYPE_SPEC',
+            'TYPE BODY',          'TYPE_BODY',
+            'MATERIALIZED VIEW',  'MATERIALIZED_VIEW',
+            'QUEUE',              'AQ_QUEUE',
+            'JAVA CLASS',         'JAVA_CLASS',
+            'JAVA TYPE',          'JAVA_TYPE',
+            'JAVA SOURCE',        'JAVA_SOURCE',
+            'JAVA RESOURCE',      'JAVA_RESOURCE',
+            'XML SCHEMA',         'XMLSCHEMA',
+            object_type
+        ) object_type
+    from dba_objects 
+    where owner in ($TheListOfSchemas)
+        --These objects are included with other object types.
+        and object_type not in ('INDEX PARTITION','INDEX SUBPARTITION','SEQUENCE',
+            'LOB','LOB PARTITION','TABLE PARTITION','TABLE SUBPARTITION')
+        --Ignore system-generated types that support collection processing.
+        and not (object_type = 'TYPE' and object_name like 'SYS_PLSQL_%')
+        --Exclude nested tables, their DDL is part of their parent table.
+        and (owner, object_name) not in (select owner, table_name from dba_nested_tables)
+        --Exclude overflow segments, their DDL is part of their parent table.
+        and (owner, object_name) not in (select owner, table_name from dba_tables where iot_type = 'IOT_OVERFLOW')
+);
+            "
+#end
+            $scripts = $TheJsonMetadata | convertFrom-json
+            $MyDatabasePath = "$env:temp"
+            $scripts[1] | foreach{
+	            $object = $_;
+	            $SchemaToStoreIt = "$MyDatabasePath\$($object.object_type.ToLower())" #store it according to type
+	            if (-not (Test-Path "$SchemaToStoreIt" -PathType Container)) #make sure exzists
+	            { $null = New-Item -ItemType directory -Path "$SchemaToStoreIt" -Force }
+	            [System.IO.File]::WriteAllLines("$SchemaToStoreIt\$($object.thename).sql", $object.thesource);
+                }
+            }
+
 			default
 			{ $problems += "Sorry but a script folder isn''t supported from your RDBMS $($param1.RDBMS)" }
 		}
@@ -4432,6 +4602,7 @@ function Execute-SQL
 	$Scriptblock = switch ($DatabaseDetails.RDBMS)
 	{
 		'postgresql'   { $GetdataFromPsql }
+		'oracle'   { $GetdataFromOracle }
 		'sqlserver'  { $GetdataFromSQLCMD }
 		'sqlite' { $GetdataFromSqlite }
         'mariadb' { $GetdataFromMySQL }
@@ -4483,6 +4654,7 @@ function Execute-SQLStatement
 	$Scriptblock = switch ($DatabaseDetails.RDBMS)
 	{
 		'postgresql'   { $GetdataFromPsql }
+		'oracle'   { $GetdataFromOracle }
 		'sqlserver'  { $GetdataFromSQLCMD }
 		'sqlite' { $GetdataFromSqlite }
         'mariadb' { $GetdataFromMySQL }
@@ -4513,6 +4685,7 @@ function Execute-SQLTimedStatement
 	$Scriptblock = switch ($DatabaseDetails.RDBMS)
 	{
 		'postgresql'   { $GetdataFromPsql }
+		'oracle'   { $GetdataFromOracle }
 		'sqlserver'  { $GetdataFromSQLCMD }
 		'sqlite' { $GetdataFromSqlite }
         'mariadb' { $GetdataFromMySQL }
@@ -4606,6 +4779,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.215'
+'FlywayTeamwork framework  loaded. V1.2.254'
 
 

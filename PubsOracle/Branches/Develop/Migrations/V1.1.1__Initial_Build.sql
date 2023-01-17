@@ -334,9 +334,9 @@ AS
     WHERE  authors.au_id = titleauthor.au_id
              AND titles.title_id = titleauthor.title_id;
 
-CREATE OR REPLACE PROCEDURE dbo.byroyalty
+create or replace PROCEDURE     dbo.byroyalty
 (
-  v_percentage IN NUMBER
+  v_percentage NUMBER
 )
 AS
    v_cursor SYS_REFCURSOR;
@@ -345,13 +345,13 @@ BEGIN
 
    OPEN  v_cursor FOR
       SELECT au_id 
-        FROM titleauthor 
+        FROM dbo.titleauthor 
        WHERE  titleauthor.royaltyper = v_percentage ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
 
 
-CREATE OR REPLACE PROCEDURE dbo.reptq1
+create or replace PROCEDURE     dbo.reptq1
 AS
    v_cursor SYS_REFCURSOR;
 
@@ -363,14 +363,14 @@ BEGIN
              ELSE pub_id
                 END pub_id  ,
              AVG(price)  avg_price  
-        FROM titles 
+        FROM dbo.titles 
        WHERE  price IS NOT NULL
         GROUP BY ROLLUP( pub_id )
         ORDER BY pub_id ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
 
-CREATE OR REPLACE PROCEDURE dbo.reptq2
+create or replace PROCEDURE     dbo.reptq2
 AS
    v_cursor SYS_REFCURSOR;
 
@@ -386,12 +386,13 @@ BEGIN
              ELSE pub_id
                 END pub_id  ,
              AVG(ytd_sales)  avg_ytd_sales  
-        FROM titles 
+        FROM dbo.titles 
        WHERE  pub_id IS NOT NULL
         GROUP BY ROLLUP( pub_id,TYPE ) ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-CREATE OR REPLACE PROCEDURE dbo.reptq3
+
+create or replace PROCEDURE     dbo.reptq3
 (
   v_lolimit IN NUMBER,
   v_hilimit IN NUMBER,
@@ -412,7 +413,7 @@ BEGIN
              ELSE TYPE
                 END TYPE  ,
              COUNT(title_id)  cnt  
-        FROM titles 
+        FROM dbo.titles 
        WHERE  price > v_lolimit
                 AND price < v_hilimit
                 AND TYPE = v_type
