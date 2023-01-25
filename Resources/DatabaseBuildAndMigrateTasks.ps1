@@ -25,7 +25,7 @@ This scriptblock checks the code in the database for any issues, using SQL Code 
 This scriptblock checks the code in the migration files for any issues, using SQL Code Guard to do all the work. This runs SQL Codeguard and saves the report in a subdirectory the version directory of your 
 project artefacts. It also reports back in the **$dbDetails** Hashtable. It checks the scripts not the current database.
 
-**$CreateScriptFoldersIfNecessary**: *(SQL Server, SQLite, MySQL, MariaDB, PostgreSQL)*
+**$CreateScriptFoldersIfNecessary**: *(SQL Server, Oracle, SQLite, MySQL, MariaDB, PostgreSQL)*
 this task checks to see if a Source folder already exists for this version of the database and, if not, it will create one and fill it with subdirectories for each type of object. A tables folder will, for example, have a file for every table each containing a build script to create that object. When this exists, it allows SQL Compare
 to do comparisons and check that a version has not drifted. It saves the Source folder as a subfolder for the supplied version, so it needs **$GetCurrentVersion** to have been run beforehand in the chain of tasks.
 
@@ -48,14 +48,14 @@ This scriptblock executes SQL that produces a report in XML or JSON from the dat
 **$GetCurrentVersion** *(PostgreSQL, Oracle, MySQL, MariaDB,SQL Server, SQLite)*
 This contacts the database and determines its current version, and previous version by interrogating the flyway_schema_history data table in the database. If it is an empty database,or there is just no Flyway data, then it returns a version of 0.0.0.
 
-**$GetCurrentServerVersion** *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
+**$GetCurrentServerVersion** *(PostgreSQL, Oracle, MySQL, MariaDB,SQL Server, SQLite)*
 This scriptblock gets the current version of the RDBMS on the server and is used mainly to check that the migration doesn't use any functionality that can't be supported on that server version. It updates
 the $dbDetails.ServerVersion 
 
 **$IsDatabaseIdenticalToSource:** *(SQL Server only)*
 This uses SQL Compare to check that a version of a database is correct and hasn't been changed. To do this, the $CreateScriptFoldersIfNecessary task must have been run first. It compares the database to the associated source folder, for that version, and returns, in the hash table, the comparison equal to true if it was the same, or false if there has been drift, with a list of objects that have changed. If the comparison returns $null, then it means there has been an error. To access the right source folder for this database version, it needs $GetCurrentVersion to have been run beforehand in the chain of tasks
 
-**$SaveDatabaseModelIfNecessary** *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
+**$SaveDatabaseModelIfNecessary** *(PostgreSQL,  Oracle, MySQL, MariaDB,SQL Server, SQLite)*
 This writes a JSON model of the database to a file that can be used subsequently to check for database version-drift or to create a narrative of changes for the flyway project between versions.
 
 **$BulkCopyIn** *(SQL Server only)*
@@ -79,13 +79,13 @@ This creates a forward migration that scripts out all the changes made to the da
 **$SaveFlywaySchemaHistoryIfNecessary** *(all RDBMSs)*
 This reads the flyway history table, and uses the information to annotate the directories containing the various reports and scripts for that version
 
-**$CreateVersionNarrativeIfNecessary** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+**$CreateVersionNarrativeIfNecessary** *(PostgreSQL, Oracle, MySQL, MariaDB, SQL Server, SQLite)*
 This aims to tell you what has changed between each version of the database. 
 
-**$WriteOutERDiagramCode** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+**$WriteOutERDiagramCode** *(PostgreSQL,  Oracle, MySQL, MariaDB, SQL Server, SQLite)*
 This creates a simple entity diagram for the current version. You only need two files to do this and you don't need to contact the database. The ER diagram has all objects that are either added, removed or changed colour-coded so you can see immediately what has changed. The idea of this is to be able to paste the resulting SVG file or other image file of the diagram, produced by PlantUMLc.exe.
 
-**$CheckFluffInPendingFiles** *(PostgreSQL, MySQL, MariaDB, SQL Server, SQLite)*
+**$CheckFluffInPendingFiles** *(PostgreSQL,  Oracle, MySQL, MariaDB, SQL Server, SQLite)*
 This scriptblock checks the code in the pending files for any issues,using SQL Fluff to do all the work. It saves the report in a subdirectory 
 of the version directory of your project artefacts. It also reports back in the $DatabaseDetails Hashtable. 
 
@@ -1515,6 +1515,16 @@ FOR JSON PATH
 '@ | Convertfrom-json
 			$Param1.ServerVersion = $Version.version
 		}
+        'oracle'
+        {
+        
+			# Do it the oracle way
+			$Version = Execute-SQL $param1 'SELECT BANNER FROM v$version;' | Convertfrom-json
+			$Param1.ServerVersion =  $Version[1].banner
+
+        }    
+
+
 		'postgresql'
 		{
 			# Do it the PostgreSQL way
@@ -5178,6 +5188,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.259'
+'FlywayTeamwork framework  loaded. V1.2.600'
 
 
