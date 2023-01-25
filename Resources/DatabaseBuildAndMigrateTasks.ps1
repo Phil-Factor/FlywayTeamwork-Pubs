@@ -637,7 +637,9 @@ explicitly open a connection. it will take SQL files and queries.
 				<# the CLI picks up its commands from a local file called login.sql rather
         than doing it at the command-line., and it reads its query from file too  #>
 		[System.IO.File]::WriteAllLines("$pwd\login.sql",@"
-$($MaybeJSON)SET TERMOUT OFF 
+$($MaybeJSON)$($MaybeTimingSET)SET TERMOUT OFF 
+SET VERIFY OFF
+SET FEEDBACK OFF
 set linesize 4000
 set long 4000
 set longchunksize 4000
@@ -663,9 +665,10 @@ exit
 		{
 			#make it easier for the caller to read the error
 			$response = [IO.File]::ReadAllText("$pwd\$TempSpoolOutputFile") -ireplace '\d+? rows selected\.', '';
-			Remove-Item "$pwd/$TempSpoolOutputFile"
+			# Remove-Item "$pwd/$TempSpoolOutputFile"
 		}
-		
+	    If (Test-Path -Path "$pwd\login.sql")
+            {Remove-Item "$pwd\login.sql"}
 		if ($response -like '*Error*')
 		{ $Problems += " When connecting to oracle, we  had error $Response" }
 		if ($problems.count -gt 0)
@@ -674,9 +677,118 @@ exit
 		{ '' }
 		else
 		{ if (!($muted)) { ($response|convertfrom-json).results.items|convertTo-json } }
+	If (Test-Path -Path "$pwd\login.sql")
+        {Remove-Item "$pwd\login.sql"}
 	}
 }
 
+$ExecutePLSQLScript = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get a set of
+ JSON results without having to explicitly open a connection. it will take SQL files and queries 
+ and also take an array of queries and filenames for the results. 
+#>
+	Param ($Theargs,
+		#this is the same ubiquitous hashtable 
+
+		$Script = $null,
+		#a valid SqlCl script or a valid file path 
+
+		$Multiple = @()
+		
+	) # $ExecutePLSQLScript: (Don't delete this)
+	$problems = @();
+    $FilesToCleanUp = @()
+	#check to see that we have the requisites
+	$TheWallet = $TheArgs.ZippedWalletLocation;
+	$Theservice = $TheArgs.service
+	$TheUID = $TheArgs.uid
+	$ThePassword = $TheArgs.password
+	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
+	{
+		$Problems += "Cannot continue because name of either service ('$TheService'
+    )  User ('$TheUID'), Password ('$ThePassword') or wallet ('$TheWallet') is not provided";
+	}
+	else
+	{
+		if ([string]::IsNullOrEmpty($OracleCmdAlias))
+		{
+			$OracleSqlPath = Get-Command 'sql.exe' -ErrorAction Ignore
+			if ($OracleSqlPath -eq $null) #have you set the path
+			{
+				$problems += " please either provide a path for SqlCl or provide a OracleCmdAlias in the ToolLocations.ps1 file in the resources folder"
+			}
+			else
+			{
+				$OracleCmdAlias = $OracleSqlPath.Source #use the path 
+			}
+		}
+	}
+	if ($Multiple.count -gt 0)
+	{
+		$plSQLScript = $multiple | foreach -begin {
+			$FilesToCleanUp = @(); $Workfile =@"
+SET SQLFORMAT json
+SET PAGESIZE 0
+SET ECHO OFF
+SET TERMOUT OFF 
+SET VERIFY OFF
+SET FEEDBACK OFF
+set linesize 4000
+set long 4000
+set longchunksize 4000
+
+"@
+		} {
+			$eachQueryFile = "$env:Tmp\TempInput$(Get-Random -Minimum 1 -Maximum 900).SQL"
+			[System.IO.File]::writeAllLines($eachQueryFile, $_.SQL)
+			$FilesToCleanUp += $eachQueryFile
+			$Workfile = $Workfile + "spool $($_.ResultFile)`n@$eachQueryFile`nspool off`n"
+		} -End { $Workfile + "`nexit`n" }
+		
+		$TempQueryFile = "TempMultipleInput$(Get-Random -Minimum 1 -Maximum 900).SQL"
+        # write-warning " writing $plSQLScript to  $pwd\$TempQueryFile"
+		[System.IO.File]::writeAllLines("$pwd\$TempQueryFile", $plSQLScript)
+        $FinalscriptFile = "$pwd\$TempQueryFile"
+        $FilesToCleanUp+= "$pwd\$TempQueryFile"
+	}
+	
+	else #it is a simple string
+	{
+		if ([string]::IsNullOrEmpty($script))
+		{
+			$problems += "We need a script, please"
+		}
+		
+		else
+		{
+			if (!(Test-Path -Path $script -PathType Leaf -ErrorAction Ignore))
+			#if we've been not been passed a file ....
+			{
+				#we can't pass a query string directly so we have a file ...
+				$TempQueryFile = "TempInput$(Get-Random -Minimum 1 -Maximum 900).SQL"
+				[System.IO.File]::writeAllLines($TempQueryFile, $script)
+				$FinalscriptFile = $TempQueryFile;
+                $FilesToCleanUp+=$TempQueryFile
+			}
+			else { $FinalscriptFile = $script }
+			
+		}
+	}
+
+	if ($problems.count -eq 0)
+	{
+		$env:SQLPATH = "$pwd" #Use any local configuration you need
+		$cmd = "`"$OracleCmdAlias`"  -S -L  -noupdates  -cloudconfig $TheWallet $TheUID/$ThePassword@$Theservice @$FinalscriptFile`n"
+	    cmd.exe /c $cmd
+        
+ 	}
+
+    $FilesToCleanUp|foreach{
+        If (Test-Path -Path "$_")
+	        {
+                Remove-Item "$_"
+            }
+        }
+}
 <# 
 Note: now deprecated!
 This scriptblock allows you to save and load the shared parameters for all these 
@@ -1210,6 +1322,9 @@ $GetCurrentVersion = {
 	if ($flywayTable -eq $null)
 	{ $flywayTable = 'dbo.flyway_schema_history' }
 	$Version = 'unknown'
+    $AllVersions=@{}
+    $LastAction=@{}
+
 	if ($param1.RDBMS -eq 'sqlserver')
 	{
 		# Do it the SQL Server way.
@@ -1245,7 +1360,7 @@ $GetCurrentVersion = {
       FROM $($param1.flywayTable)
       WHERE
       installed_rank =
-        (SELECT Max (installed_rank) FROM $($param1.flywayTable)
+        (SELECT Max (installed_rank) FROM $flywayTable
            WHERE success = true))e;
     " | convertfrom-json
 	} ## OK, lets do it the SQLite way.
@@ -1262,7 +1377,7 @@ $GetCurrentVersion = {
       FROM $($param1.flywayTable)
       WHERE
       installed_rank =
-        (SELECT Max (installed_rank) FROM $($param1.flywayTable)
+        (SELECT Max (installed_rank) FROM $flywayTable
            WHERE success = 1)
     ") | convertfrom-json
 	}
@@ -1279,27 +1394,49 @@ $GetCurrentVersion = {
       FROM $($param1.flywayTable)
       WHERE
       installed_rank =
-        (SELECT Max(installed_rank) FROM $($param1.flywayTable)
+        (SELECT Max(installed_rank) FROM $flywayTable
            WHERE success = true);
     " | convertfrom-json
 	}
     elseif ($param1.RDBMS -eq 'oracle')
 	{
-		# Do it the oracle way
-		$AllVersions = Execute-SQL $param1  "
-        SELECT DISTINCT `"version`"
-        FROM $($param1.flywayTable)
-      WHERE `"version`" IS NOT NULL;          
-    " | convertfrom-json
-        $LastAction = Execute-SQL $param1 "
-      SELECT `"version`", `"type`"
-      FROM $($param1.flywayTable)
+    $ExecutePLSQLScript.invoke($param1, $null, @(
+		@{
+			ResultFile = 'AllVersions.json';
+			SQL =@"
+SELECT DISTINCT `"version`"
+        FROM $flywayTable
+      WHERE `"version`" IS NOT NULL;
+"@
+		},
+		@{
+			ResultFile = 'LastAction.json';
+			SQL =@"
+SELECT `"version`", `"type`"
+      FROM $flywayTable
       WHERE
       `"installed_rank`" =
-        (SELECT Max(`"installed_rank`") FROM $($param1.flywayTable)
+        (SELECT Max(`"installed_rank`") FROM $flywayTable
            WHERE `"success`" = 1);
-    " | convertfrom-json 
-    }
+"@
+		 }))
+        $response = get-content allversions.json
+        if (($Response -join '') -like 'error*')
+        { $allversions.error=$Response -join ' ' }
+        else
+        { $allversions = ($response | convertfrom-json).results.items }
+        $response = get-content LastAction.json
+        if (($Response -join '') -like 'error*')
+        { $LastAction.error= $Response -join ' ' }
+        else
+        { $LastAction = ($response | convertfrom-json).results.items }
+        @('allversions.json', 'LastAction.json') | foreach{
+	        If (Test-Path -Path "$_")
+	        {
+		        Remove-Item "$_"
+	        }
+        }
+	}
 	else { $problems += "$($param1.RDBMS) is not supported yet. " }
 	if ($AllVersions.error -ne $null) { $problems += $AllVersions.error }
 	if ($LastAction.error -ne $null) { $problems += $LastAction.error }
@@ -1764,8 +1901,8 @@ $CreateScriptFoldersIfNecessary = {
             'oracle'
             {
             
-            $TheListOfSchemas=($dbdetails.schemas.split(',')|foreach  {"`"$_`" "}) -join ','
-            $TheJsonMetadata = Execute-SQL $dbdetails  "
+            $TheListOfSchemas=($param1.schemas.split(',')|foreach  {"`"$_`" "}) -join ','
+            $TheJsonMetadata = Execute-SQL $param1  "
 select Object_type, owner||'.'||object_name as TheName, dbms_metadata.get_ddl(object_type, object_name, owner) as Thesource
 from
 (
@@ -1811,7 +1948,6 @@ from
             "
 #end
             $scripts = $TheJsonMetadata | convertFrom-json
-            $MyDatabasePath = "$env:temp"
             $scripts[1] | foreach{
 	            $object = $_;
 	            $SchemaToStoreIt = "$MyDatabasePath\$($object.object_type.ToLower())" #store it according to type
@@ -2581,7 +2717,7 @@ $SaveDatabaseModelIfNecessary = {
 	$ListOfSchemas = ($param1.schemas -split ',' | foreach{ "'$_'" }) -join ',';
     
 	if ($param1.flywayTable -ne $null)
-	{ $FlywayTableName = ($param1.flywayTable -split '\.')[1] }
+	{ $FlywayTableName = (($param1.flywayTable -split '\.')[1]).Trim('"') }
 	else
 	{ $FlywayTableName = 'flyway_schema_history' }
 
@@ -3100,6 +3236,269 @@ UNION ALL
 					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
 				}
+<# start of the oracle section #> 
+                'oracle'
+                {
+                	$ScriptsToExecute = @(
+		                @{
+			                ResultFile = 'Objects.json';
+			                SQL =@"
+                /*--- get list of objects ---*/
+                select obj.OBJECT_TYPE as "type", obj.OWNER as "schema"
+                from sys.all_objects obj
+                where obj.owner in ($ListOfSchemas)  
+                and object_type not in ('INDEX','SEQUENCE')
+                group by obj.object_type,obj.owner;
+"@
+		                }
+		                @{
+			                ResultFile = 'columns.json';
+			                SQL =@"
+                /*--- get all columns and their definitions ---*/
+                select col.column_id as "ordinal_position", col.owner as "schema",  type.The_Type as "type",
+                       col.table_name as "object", col.column_name as "column", 
+                       data_type||
+                case
+                when col.data_precision is not null and nvl(col.data_scale,0)>0 
+                    then '('||col.data_precision||','||col.data_scale||')'
+                when col.data_precision is not null and nvl(col.data_scale,0)=0 
+                    then '('||col.data_precision||')'
+                when col.data_precision is null and col.data_scale is not null 
+                    then '(*,'||col.data_scale||')'
+                when col.char_length>0 
+                    then '('||col.char_length|| 
+                        case col.char_used 
+                             when 'B' then ' Byte'
+                             when 'C' then ' Char'
+                             else null 
+                        end||')'
+                end||decode(nullable, 'N', ' NOT NULL') as "coltype"
+                from sys.all_tab_columns col
+                inner join 
+                    (Select Table_name, 'Table' as The_Type, owner
+                    from sys.all_tables
+                    union all 
+                    Select view_name, 'View',owner
+                    from sys.all_views)type
+                on col.owner = type.owner 
+                and col.table_name = type.table_name
+                where type.owner  in ('DBO','PEOPLE','ACCOUNTING') 
+                and  type.table_name <> '$FlywayTableName'
+                order by "schema", "object", "type", "ordinal_position";
+"@
+		                }
+		                @{
+			                ResultFile = 'routines.json';
+			                SQL =@"
+                /*--- get all routines ---*/
+                Select f.schema, f.name, f.type, f.definition, '' as "comment", 0 as "hash",
+                 LISTAGG(args.in_out || ' ' || args.data_type, '; ')
+                              WITHIN GROUP (ORDER BY position) as arguments
+                from (
+                select obj.owner as schema,
+                       obj.object_id,
+                       obj.object_name as name,
+                       obj.object_type as type,
+                       listagg(text) within group (order by line) as definition
+                from sys.all_objects obj
+                inner join sys.all_source source 
+                  on  source.owner=obj.owner 
+                  and source.name=obj.object_name and source.type=object_type
+                where obj.object_type in ('PROCEDURE','FUNCTION')
+                      and obj.owner in ($ListOfSchemas)  
+                      group by obj.owner, obj.object_id, obj.object_type, obj.object_name)f
+                left outer join sys.all_arguments args on args.object_id = f.object_id
+                left outer join (
+                      select object_id,
+                             object_name,
+                             data_type
+                      from sys.all_arguments
+                      where position = 1
+                ) ret on ret.object_id = f.object_id
+                       and ret.object_name = f.name
+                group by f.schema, f.name, f.type, f.definition;
+
+"@
+		                }
+		                @{
+			                ResultFile = 'constraints.json';
+			                SQL =@"
+                /* get all constraints and foreign key constraint targets */
+                Select cols.position as "ordinal_position", source.owner as "schema",source.table_name as "table_name", case source.constraint_type  when 'C' then 'check constraint' when 'P' then 'primary key' when 'F' then 'foreign key' when 'U' then 'unique key' 
+                        when 'R' then 'foreign_key' when 'V' then 'View Check option'  when 'O' then 'With read only' else source.constraint_type end  as "type", source.constraint_name, 
+                source.owner || '.' || source.table_name as Source_Table,cols.column_name as "column_name",
+                source.search_condition as "condition", 
+                case when source.constraint_type = 'R' then source.R_constraint_name else null end as target_Constraint, 
+                case when target.table_name is not null then target.owner || '.' || target.table_name else null end  as "referenced_table",
+                FKcols.column_name as "referenced_column_name"
+                from all_cons_columns cols
+                inner join  all_constraints source
+                on cols.TABLE_Name=source.table_name and cols.owner=source.owner  and source.constraint_name=cols.constraint_name
+                left outer join all_constraints target
+                on source.R_constraint_name =target.constraint_name and source.owner=target.owner 
+                left outer join all_cons_columns FKcols
+                on FKcols.TABLE_Name=target.table_name and FKcols.owner=target.owner and target.constraint_name=fkcols.constraint_name
+                where source.owner in ($ListOfSchemas)  
+                and source.table_name not like 'BIN$%'
+                and source.table_name not like '$FlywayTableName'
+                and source.constraint_name not like 'SYS%';
+"@
+		                }
+		                @{
+			                ResultFile = 'triggers.json';
+			                SQL =@"
+                /*--- get all Triggers ---*/
+                select trig.table_owner as "schema", trig.table_name as "Name", trig.owner as "triggerSchema",
+                       trig.trigger_name as "triggerName",  trig.trigger_type as "triggerType",
+                       trig.base_object_type as "baseObjectType", trig.triggering_event as "event", 
+                       trig.status as "status", trig.trigger_body as "script"       
+                from sys.all_triggers trig
+                inner join sys.all_tables tab on trig.table_owner = tab.owner
+                                                and trig.table_name = tab.table_name
+                where trig.owner in ($ListOfSchemas);
+"@
+		                }
+		                @{
+			                ResultFile = 'Indexes.json';
+			                SQL =@"
+                /*--- get all Indexes ---*/
+                select ind.index_name,
+                       ind_col.column_name,
+                       ind.index_type,
+                       ind.uniqueness as definition,
+                       ind.table_owner as schema,
+                       ind.table_name as table_name,
+                       ind.table_type as object_type,
+                       f.column_expression
+                from sys.all_indexes ind
+                inner join sys.all_ind_columns ind_col on ind.owner = ind_col.index_owner
+                                                    and ind.index_name = ind_col.index_name
+                LEFT JOIN all_ind_expressions f
+                 ON   ind_col.index_owner     = f.index_owner
+                 AND  ind_col.index_name      = f.index_name
+                 AND  ind_col.table_owner     = f.table_owner
+                 AND  ind_col.table_name      = f.table_name
+                 AND  ind_col.column_position = f.column_position
+                where ind.table_owner like 'DBO'
+                and ind.table_name not like '$FlywayTableName'
+                order by ind.table_owner,
+                         ind.table_name,
+                         ind.index_name,
+                         ind_col.column_position;
+"@
+		                }
+	                )
+	                $ExecutePLSQLScript.invoke($param1, $null, $ScriptsToExecute)
+	                $TheTypes = ([IO.File]::ReadAllText("$pwd/objects.json") | convertfrom-json).results.items
+	                $TheRelationMetadata = ([IO.File]::ReadAllText("$pwd/columns.json") | convertfrom-json).results.items
+	                $constraints = ([IO.File]::ReadAllText("$pwd/constraints.json") | convertfrom-json).results.items
+	                $indexes = ([IO.File]::ReadAllText("$pwd/indexes.json") | convertfrom-json).results.items
+	                $routines = ([IO.File]::ReadAllText("$pwd/routines.json") | convertfrom-json).results.items
+
+                    @("$pwd\objects.json","$pwd\columns.json","$pwd\constraints.json",
+                    "$pwd\indexes.json","$pwd\routines.json","$pwd\triggers.json") | foreach{
+	                    If (Test-Path -Path "$_")
+	                    {
+		                    Remove-Item "$_"
+	                    }
+                    }	
+                           <# RDBMS  #>
+                            <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
+	                $SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
+                            all the types of relations  #>
+	
+	
+	                $TheTypes | Select -ExpandProperty schema -Unique | foreach{
+		                $TheSchema = $_;
+		                $ourtypes = @{ }
+		                $TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
+		                $SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
+		
+	                }
+	
+                            <# now inject all the objects into the schema tree. First we get all the relations  #>
+	                $TheRelationMetadata | Select schema, type, object -Unique | foreach{
+		                $schema = $_.schema;
+		                $type = $_.type;
+		                $object = $_.object;
+		                $TheColumnList = $TheRelationMetadata |
+		                where { $_.schema -eq $schema -and $_.type -eq $type -and $_.object -eq $object } -OutVariable pk |
+		                Sort-Object -Property ordinal_position |
+		                foreach{ "$($_.column) $($_.coltype)" }
+		                $SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+	                }
+	
+                            <# now stitch in the constraints with their columns  #>
+	                $constraints | Select schema, table_name, Type, constraint_name, referenced_table -Unique | foreach{
+		                $constraintSchema = $_.schema;
+		                $constrainedTable = $_.table_name;
+		                $constraintName = $_.constraint_name;
+		                $ConstraintType = $_.type;
+		                $referenced_table = $_.referenced_table;
+		                # get the original object
+		                $OriginalConstraint = $constraints |
+		                where{
+			                $_.schema -eq $constraintSchema -and
+			                $_.table_name -eq $constrainedTable -and
+			                $_.Type -eq $ConstraintType -and
+			                $_.constraint_name -eq $constraintName
+		                } | Select -first 1
+		                $Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
+		                Select -ExpandProperty column_name
+		                if ($ConstraintType -eq 'foreign key')
+		                {
+			                $Referencing = $OriginalConstraint | Sort-Object -Property ordinal_position |
+			                Select -ExpandProperty referenced_column_name
+			                $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{
+				                $constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
+			                }
+		                }
+		                else
+		                {
+			                $SchemaTree.$constraintSchema.table.$constrainedTable."$ConstraintType" += @{ $constraintName = $columns }
+		                }
+		
+	                }
+	
+                            <# now stitch in the indexes with their columns  #>
+	                $indexes | Select schema, table_name, Type, index_name, definition -Unique | foreach{
+		                $indexSchema = $_.schema;
+		                $indexedTable = $_.table_name;
+		                $indexName = $_.index_name;
+		                $definition = $_.definition;
+		                $columns = $indexes |
+		                where{
+			                $_.schema -eq $indexSchema -and
+			                $_.table_name -eq $indexedTable -and
+			                $_.index_name -eq $indexName
+		                } |
+		                Select -ExpandProperty column_name
+		                $SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns; 'def' = "$definition" } }
+	                }
+	                $routines | Foreach {
+		                $TheSchema = $_.schema;
+		                $TheName = $_.name;
+		                $TheType = $_.type;
+		                $TheHash = $_.hash;
+		                $Arguments = $_.arguments;
+		                $Thecomment = $_.comment;
+		                $TheDefinition = $_.definition;
+		                $Contents = @{ }
+		                if (!([string]::IsNullOrEmpty($TheDefinition))) { $Contents.'definition' = $TheDefinition }
+		                if ($TheType -ne 'table') { $Contents.'hash' = $Thehash }
+		                if (!([string]::IsNullOrEmpty($Thecomment))) { $Contents.'comment' = $TheComment }
+		                if ($SchemaTree.$TheSchema.$TheType.$TheName -eq $null)
+		                { $SchemaTree.$TheSchema.$TheType.$TheName = $Contents }
+		                else
+		                { $SchemaTree.$TheSchema.$TheType.$TheName += $Contents }
+		
+	                }
+	
+	
+	
+	                $SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
+	                $SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
+                }
 				
 <# this is the section that creates a SQL Server Database Model based where
 possible on information schema #>
@@ -4779,6 +5178,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.254'
+'FlywayTeamwork framework  loaded. V1.2.259'
 
 

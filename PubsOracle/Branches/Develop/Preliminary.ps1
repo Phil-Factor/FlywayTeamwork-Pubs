@@ -6,6 +6,7 @@ Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible 
 #>
+$structure='branch';
 $FileLocations=@{}; #these can be specified in a JSON file
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)

@@ -48,3 +48,4 @@ MySQLAlias = $null;
 $ourLocation= (. $LocationOfPaths);
 $ourLocation.GetEnumerator()| where {$_.Key -in @('SQLCmdAlias', 'CodeGuardAlias', 'SQLCompareAlias', 'SQLDataCompareAlias', 'PGDumpAlias',
 	'psqlAlias', 'sqliteAlias', 'OracleCmdAlias', 'MySQLDumpAlias', 'MySQLAlias')}|foreach{Set-Variable -Name $_.Key -Value $_.Value}
+
