@@ -6,9 +6,11 @@ Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible 
 #>
+$structure='branch'; #we use branching by default
 $FileLocations=@{}; #these can be specified in a JSON file
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
+
 if ($null -eq $FlywayCommand)
 {
 	write-error "This script requires Flyway to be installed and available on a PATH or via an alias" -ErrorAction Stop
@@ -90,10 +92,9 @@ $sourcePath= $FileLocations.SourcePath
 $dataPath= $FileLocations.SourcePath
 $Reportdirectory=$FileLocations.Reportdirectory
 
-#Read in shared resources
-if (Test-path "$Dir\$ResourcesPath\Preliminary.ps1" -PathType Leaf)
-    {Throw "Expecting resources in $Dir\$ResourcesPath- instead found preliminary.ps1"}
-dir "$Dir\$ResourcesPath\*.ps1" | foreach{write-verbose $_.FullName;  . "$($_.FullName)" }
+#Read in shared resources (don't execute preliminary. It ends badly.
+dir "$Dir\$ResourcesPath\*.ps1" | where {$_.name -ne 'Preliminary.ps1'}| 
+         foreach{write-verbose $_.FullName;  . "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
 
@@ -112,6 +113,35 @@ Now we check that the directories and files that we need are there #>
 	if (-not (Test-Path $_.path -PathType $_.type))
 	{ throw "Sorry, but I couldn't find a $($_.desc) at the $($pwd.Path) location" }
 }
+<# we no have to check whether the user has changed to a different setting for the database
+connections #>
+
+if (Test-Path "RunMe.bat" -PathType leaf)# we may be in a different branch 
+    {$setting = [IO.File]::ReadAllText("$pwd\RunMe.bat") #what is there?
+    $currentEnvValue=$env:FLYWAY_CONFIG_FILES; # Save the current setting
+    #now get the actual filename in the path from the batch file
+    $Conffilename = $setting -ireplace 'set\s+?FLYWAY_CONFIG_FILES\s*?=\s*?%userprofile%(\\|/)(?<value>\w{2,}.conf)', '${value}'
+    if (Test-Path "$env:userProfile\$Conffilename" -PathType leaf) #does it exist
+    #it it our settings?
+        {
+        $regex='((?<rdbms>\w+)_(?<project>\w+)_(?<branch>\w+).conf|(?<project>\w+)_(?<branch>\w+).conf)'
+        #now we see if there is a change
+        if ($currentEnvValue -notlike "*$Conffilename*")
+            {#Hmm. We need to set the value to get the config
+            #it is not there already so we need to delete any current setting
+            Remove-Item Env:FLYWAY_CONFIG_FILES
+            #take the offending key/value pair out
+            [array]$NewValue = ($currentEnvValue -split ',' | where { !($_ -match $regex)}) 
+            $NewValue+="$env:userProfile\$Conffilename";
+            $TheListOfLocations=$NewValue -join ','
+            $env:FLYWAY_CONFIG_FILES=$TheListOfLocations #put the env back with the correct value
+            }
+        }
+    else
+        {
+        write-warning "location .conf file '$env:userProfile\$Conffilename' in 'RunMe.bat' doesnt exist"
+        }
+    }
 
 
 # is there an extra file
@@ -162,7 +192,7 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing
 	$ConnectionInfo = $FlywayConfContent.'flyway.url' #get the environment variable
-	
+
 	if ($ConnectionInfo -imatch $FlywayURLRegex) #This copes with having no port.
 	{
 		#we can extract all the info we need
@@ -184,6 +214,7 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 		$server = 'LocalHost';
 	}
 }
+
 $Wallet=$FlywayConfContent.'flyway.oracle.walletLocation'; #extract this so we can use it for oracle
 $Service=$FlywayConfContent.'flyway.placeholders.service'; #extract this placeholder so we can use it for oracle
 $migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_ -like 'filesystem:*'}|foreach {
@@ -276,11 +307,11 @@ catch
     { 
     write-warning "$($PSItem.Exception.Message) getting environment variables at line $($_.InvocationInfo.ScriptLineNumber)"
     }
-$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
-                     {($DBDetails.schemas -split ','|select -First 1)} 
+$defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) #they haven't specified one
+                     {($DBDetails.schemas -split ','|select -First 1)} #get the first in the list
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
-$DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
+$DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})`"$($defaultTable)`""
 #add the password as an environment variable
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
 #if we added defaults to the naming preferences we write them back so the user can change them

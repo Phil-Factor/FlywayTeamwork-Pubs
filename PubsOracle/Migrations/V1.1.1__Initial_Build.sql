@@ -334,7 +334,7 @@ AS
     WHERE  authors.au_id = titleauthor.au_id
              AND titles.title_id = titleauthor.title_id;
 
-create or replace PROCEDURE     byroyalty
+create or replace PROCEDURE     dbo.byroyalty
 (
   v_percentage NUMBER
 )
@@ -349,9 +349,8 @@ BEGIN
        WHERE  titleauthor.royaltyper = v_percentage ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
-
-create or replace PROCEDURE     reptq1
+/
+create or replace PROCEDURE     dbo.reptq1
 AS
    v_cursor SYS_REFCURSOR;
 
@@ -369,8 +368,8 @@ BEGIN
         ORDER BY pub_id ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
-create or replace PROCEDURE     reptq2
+/
+create or replace PROCEDURE     dbo.reptq2
 AS
    v_cursor SYS_REFCURSOR;
 
@@ -391,8 +390,8 @@ BEGIN
         GROUP BY ROLLUP( pub_id,TYPE ) ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
-create or replace PROCEDURE     reptq3
+/
+create or replace PROCEDURE     dbo.reptq3
 (
   v_lolimit IN NUMBER,
   v_hilimit IN NUMBER,
@@ -422,7 +421,7 @@ BEGIN
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
 /
-/*
+
 CREATE OR REPLACE TRIGGER dbo.employee_insupd
    BEFORE INSERT OR UPDATE
    ON dbo.employee
@@ -468,7 +467,7 @@ BEGIN
    END IF;
 
 END;
-*/
+/
 -- PROMPT Creating Foreign Key Constraint FK_RoySchedTitles on TABLE dbo.titles...
 ALTER TABLE dbo.roysched
 ADD CONSTRAINT FK_RoySchedTitles FOREIGN KEY

@@ -665,11 +665,11 @@ exit
 		{
 			#make it easier for the caller to read the error
 			$response = [IO.File]::ReadAllText("$pwd\$TempSpoolOutputFile") -ireplace '\d+? rows selected\.', '';
-			# Remove-Item "$pwd/$TempSpoolOutputFile"
+			Remove-Item "$pwd\$TempSpoolOutputFile"
 		}
 	    If (Test-Path -Path "$pwd\login.sql")
             {Remove-Item "$pwd\login.sql"}
-		if ($response -like '*Error*')
+		if ($response -like 'Error*')
 		{ $Problems += " When connecting to oracle, we  had error $Response" }
 		if ($problems.count -gt 0)
 		{ @{ Error = $problems } | convertTo-json }
@@ -1669,7 +1669,7 @@ $IsDatabaseIdenticalToSource = {
 	if ($warnings.Count -gt 0)
 	{ $Param1.Warnings.'IsDatabaseIdenticalToSource' += $Warnings; }
 }
-
+# $param1=$dbDetails
 <#this routine checks to see if a script folder already exists for this version
 of the database and, if not, it will create one and fill it with subdirectories
 for each type of object. A tables folder will, for example, have a file for every table
@@ -1911,7 +1911,7 @@ $CreateScriptFoldersIfNecessary = {
             'oracle'
             {
             
-            $TheListOfSchemas=($param1.schemas.split(',')|foreach  {"`"$_`" "}) -join ','
+            $TheListOfSchemas=($param1.schemas.split(',')|foreach  {"'$_'"}) -join ','
             $TheJsonMetadata = Execute-SQL $param1  "
 select Object_type, owner||'.'||object_name as TheName, dbms_metadata.get_ddl(object_type, object_name, owner) as Thesource
 from
@@ -3503,8 +3503,20 @@ UNION ALL
 		                { $SchemaTree.$TheSchema.$TheType.$TheName += $Contents }
 		
 	                }
-	
-	
+		            $Triggers | Foreach {
+                        $Theschema= $_.schema;
+                        $Thename= $_.name;
+                        $Thetriggerschema= $_.triggerschema;
+                        $Thetriggername= $_.triggername;
+                        $Thetriggertype= $_.triggertype;
+                        $Thebaseobjecttype= $_.baseobjecttype;
+                        $Theevent= $_.event; 
+                        $Thestatus= $_.status; 
+                        $Thescript= $_.script;
+		                $Contents = @{'Name'=$Thetriggername; 'Type'=$Thetriggertype;
+                        'event'=$Theevent;'status'=$Thestatus; 'script'=$Thescript};
+     	                $SchemaTree.$TheSchema.$Thebaseobjecttype.$Thename.'trigger' = $Contents
+	                    }	
 	
 	                $SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 	                $SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
@@ -5188,6 +5200,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.600'
+'FlywayTeamwork framework  loaded. V1.2.604'
 
 
