@@ -116,7 +116,7 @@ BEGIN
        WHERE  titleauthor.royaltyper = v_percentage ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
+/
 
 CREATE OR REPLACE PROCEDURE dbo.reptq1
 AS
@@ -136,7 +136,7 @@ BEGIN
         ORDER BY pub_id ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
+/
 CREATE OR REPLACE PROCEDURE dbo.reptq2
 AS
    v_cursor SYS_REFCURSOR;
@@ -158,7 +158,7 @@ BEGIN
         GROUP BY ROLLUP( pub_id,TYPE ) ;
       DBMS_SQL.RETURN_RESULT(v_cursor);
 END;
-
+/
 CREATE OR REPLACE PROCEDURE dbo.reptq3
 (
   v_lolimit IN NUMBER,
