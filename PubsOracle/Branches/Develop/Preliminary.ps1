@@ -129,7 +129,7 @@ if (Test-Path "RunMe.bat" -PathType leaf)# we may be in a different branch
         if ($currentEnvValue -notlike "*$Conffilename*")
             {#Hmm. We need to set the value to get the config
             #it is not there already so we need to delete any current setting
-            Remove-Item Env:FLYWAY_CONFIG_FILES
+             [Environment]::SetEnvironmentVariable("FLYWAY_CONFIG_FILES", $null ,"User")
             #take the offending key/value pair out
             [array]$NewValue = ($currentEnvValue -split ',' | where { !($_ -match $regex)}) 
             $NewValue+="$env:userProfile\$Conffilename";
