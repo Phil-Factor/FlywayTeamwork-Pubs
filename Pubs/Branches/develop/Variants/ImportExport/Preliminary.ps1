@@ -129,9 +129,10 @@ if (Test-Path "RunMe.bat" -PathType leaf)# we may be in a different branch
         if ($currentEnvValue -notlike "*$Conffilename*")
             {#Hmm. We need to set the value to get the config
             #it is not there already so we need to delete any current setting
-             [Environment]::SetEnvironmentVariable("FLYWAY_CONFIG_FILES", $null ,"User")
+             [Environment]::SetEnvironmentVariable("FLYWAY_CONFIG_FILES", $null)
             #take the offending key/value pair out
-            [array]$NewValue = ($currentEnvValue -split ',' | where { !($_ -match $regex)}) 
+            [array]$NewValue = ($currentEnvValue -split ',' | 
+                where { (!([string]::IsNullOrEmpty($_))) -and (!($_ -match $regex))}) 
             $NewValue+="$env:userProfile\$Conffilename";
             $TheListOfLocations=$NewValue -join ','
             $env:FLYWAY_CONFIG_FILES=$TheListOfLocations #put the env back with the correct value
@@ -144,10 +145,10 @@ if (Test-Path "RunMe.bat" -PathType leaf)# we may be in a different branch
     }
 
 
-# is there an extra file
+# is there an extra config file then add it to the list in the enviromnent var
 if (Test-Path 'flywayTeamworks.conf' -PathType Leaf)
     {if ($env:FLYWAY_CONFIG_FILES -eq $null)
-        {$env:FLYWAY_CONFIG_FILES='flywayTeamworks.conf' }
+        {$env:FLYWAY_CONFIG_FILES='flywayTeamworks.conf' }#the only one in the list
         else
         {# don't add it in more than once
         if ($env:FLYWAY_CONFIG_FILES -notlike '*flywayTeamworks.conf*')
@@ -162,7 +163,7 @@ else #make sure that the env reflects the removal of the file
          
 
 <# now we read in the contents of every config files we can get hold of reading them 
-in order of precedence and only adding a value if there is none there.#>
+in order of precedence and only adding a value if there is none there already.#>
 $FlywayConfContent=@{}
 #we read them in precendence order. 
 #is there a list of extra config files specified 
