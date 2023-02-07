@@ -167,7 +167,7 @@ $FlywayConfContent=@{}
 #we read them in precendence order. 
 #is there a list of extra config files specified 
 if (!([string]::IsNullOrEmpty($env:FLYWAY_CONFIG_FILES)))
-      {$FlywayConfContent=$env:FLYWAY_CONFIG_FILES -split ',' | foreach {
+      {$FlywayConfContent=$env:FLYWAY_CONFIG_FILES -split ',' | where {-not [string]::IsNullOrEmpty($_)}| foreach {
             Get-content "$_" |where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') }|
             foreach{$_ -replace '\\','\\'}|ConvertFrom-StringData
             }        
