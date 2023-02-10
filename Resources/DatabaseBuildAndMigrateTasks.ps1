@@ -939,7 +939,7 @@ $FetchAnyRequiredPasswords = {
 				if ([string]::IsNullOrEmpty($param1.RDBMS))
 				{ $SqlEncryptedPasswordFile = "$env:USERPROFILE\$($param1.uid)-$($escapedServer).xml" }
 				else
-				{ $SqlEncryptedPasswordFile = "$env:USERPROFILE\$($param1.uid)-$($escapedServer)-$($RDBMS).xml" }
+				{ $SqlEncryptedPasswordFile = "$env:USERPROFILE\$($param1.uid)-$($escapedServer)-$($param1.RDBMS).xml" }
 				# test to see if we know about the password in a secure string stored in the user area
 				if (Test-Path -path $SqlEncryptedPasswordFile -PathType leaf)
 				{
@@ -4878,8 +4878,6 @@ Function GetorSetPassword{
 		[Parameter(Mandatory = $false,
 				   Position = 3)]
 		[string]$RDBMS =$null) #change to your  database system if you have two on the one server!
-
-
 
 
 
