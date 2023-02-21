@@ -1,21 +1,14 @@
-﻿Function ConvertFrom-AsciiTable <# this is a pipeline-aware function that takes as its
-input the pipeline input. If it is part of a table, it will parse it into a PS custom
-Object and turn the input stream into one or more arreays of pscustom objects that can
-then be turned into a JSON file or any other format you want #>
+﻿Function ConvertFrom-AsciiTable
 {
 	Begin
 	{
 		# set our variables at the start
-		$State = 'first'; $Keys = @(); $Data = @(); $Result = @(); $ResultSet = @();;
+		$State = 'first'; $Keys = @(); $Data = @(); $Result = @()
 	}
 	Process
 	{
 		#for each line passed to the component ....
-		if ($State -eq 'done')
-		{
-			$Result = @();
-			$State = 'first'
-		}
+		if ($State -eq 'done') { $State = 'first' }
 		if ($State -eq 'first') #we keep things simple via a state machine
 		{
 			$state = 'keys';
@@ -33,8 +26,6 @@ then be turned into a JSON file or any other format you want #>
 			if ($_ -like '[+]*')
 			{
 				$state = 'done';
-				$ResultSet += ,$Result;
-				$Result = @()
 			} #
 			else
 			{
@@ -46,9 +37,6 @@ then be turned into a JSON file or any other format you want #>
 			}
 		}
 	}
-	End
-	{
-		if ($Result.Count -gt 0) { $ResultSet += ,$Result }
-		$ResultSet;
-	}
+	End { $Result }
 }
+

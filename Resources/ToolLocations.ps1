@@ -40,6 +40,8 @@ OracleCmdAlias = "$($env:ProgramFiles)\sqldeveloper\sqlcl\bin\sql.exe"
 MySQLDumpAlias = $null;
 #we use MySQL.exe for doing queries to MySQL databases.
 MySQLAlias = $null;
+SQLPackageAlias="$($env:ProgramFiles)\Microsoft SQL Server\160\DAC\bin\SqlPackage.exe";
+
 }
 '@ > $LocationOfPaths
     }
@@ -47,5 +49,5 @@ MySQLAlias = $null;
 
 $ourLocation= (. $LocationOfPaths);
 $ourLocation.GetEnumerator()| where {$_.Key -in @('SQLCmdAlias', 'CodeGuardAlias', 'SQLCompareAlias', 'SQLDataCompareAlias', 'PGDumpAlias',
-	'psqlAlias', 'sqliteAlias', 'OracleCmdAlias', 'MySQLDumpAlias', 'MySQLAlias')}|foreach{Set-Variable -Name $_.Key -Value $_.Value}
+	'psqlAlias', 'sqliteAlias', 'OracleCmdAlias', 'MySQLDumpAlias', 'MySQLAlias','SQLPackageAlias')}|foreach{Set-Variable -Name $_.Key -Value $_.Value}
 

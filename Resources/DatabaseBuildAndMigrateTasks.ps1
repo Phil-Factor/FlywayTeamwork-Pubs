@@ -295,7 +295,7 @@ set 'simpleText' to true
 		}
 		else
 		{
-		$FullQuery = "Set nocount on; Declare @Json nvarchar(max) 
+		$FullQuery = "Set nocount on;SET QUOTED_IDENTIFIER ON; Declare @Json nvarchar(max) 
         Select @Json=($query) Select @JSON"
         };
 		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
@@ -1320,7 +1320,7 @@ $GetCurrentVersion = {
 	}
 	$flywayTable = $Param1.flywayTable
 	if ($flywayTable -eq $null)
-	{ $flywayTable = 'dbo.flyway_schema_history' }
+	{ $flywayTable = 'dbo.[flyway_schema_history]' }
 	$Version = 'unknown'
     $AllVersions=@{}
     $LastAction=@{}
@@ -1329,14 +1329,16 @@ $GetCurrentVersion = {
 	{
 		# Do it the SQL Server way.
 		$AllVersions = $GetdataFromSQLCMD.Invoke(
-			$param1, "SELECT DISTINCT version
+			$param1, "
+    SELECT DISTINCT version
       FROM $flywayTable
       WHERE version IS NOT NULL
     FOR JSON AUTO") |
 		convertfrom-json
 		$LastAction = $GetdataFromSQLCMD.Invoke(
-			$param1, "SELECT version, type
-      FROM $flywayTable
+			$param1, "
+    SELECT version, type
+          FROM $flywayTable
       WHERE
       installed_rank =
         (SELECT Max (installed_rank) FROM $flywayTable
@@ -3948,6 +3950,129 @@ FOR JSON auto
 	
 }
 
+$ExtractFromSQLServerIfNecessary = {
+	Param ($param1,
+		$OutputType, <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
+		$RedoIt = $false,
+		$doDiagnostics = $false
+	) # $ExtractFromSQLServerIfNecessary (Don't delete this) 
+	$problems = @(); # well, not yet
+	$feedback = @(); # well, nothing yet
+	if ($doDiagnostics -eq $null) { $doDiagnostics = $False }
+	if ($OutputType -notin ('DacPac', 'File', 'Flat', 'ObjectType', 'Schema', 'SchemaObjectType'))
+	{
+		$OutputType = 'DACPAC'; # 'DacPac'
+    }
+	#check that we have values for the necessary details
+	@('version', 'server', 'database', 'project') |
+	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
+	$command = get-command sqlpackage -ErrorAction Ignore
+	if ($command -eq $null)
+	{
+		if ($SQLPackageAlias -ne $null)
+		{ Set-Alias sqlpackage   $SQLPackageAlias }
+		else
+		{ $problems += 'You must have provided a path to $SQLPackage.exe in the ToolLocations.ps1 file in the resources folder' }
+	} #the database scripts path would be up to you to define, of course
+	$VersionsPath = if ([string]::IsNullOrEmpty($param1.VersionsPath)) { 'Versions' }
+	else { "$($param1.VersionsPath)" }
+	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+    <# The SqlPackage Extract action creates a schema of a connected database in a
+     DACPAC file (.dacpac). By default, data is not included in the .dacpac file.
+     To include data, utilize the Export action or use the Extract properties
+     ExtractAllTableData/TableData.
+     /p:ExtractTarget:File extracts a SQL File
+     Specifies alternative output formats of the database schema, default is 'DacPac'
+     to output a .dacpac single file. Additional options output one or more .sql files
+     organized by either 'SchemaObjectType' (files in folders for each schema and
+     object type), 'Schema' (files in folders for each schema), 'ObjectType'
+     (files in folders for each object type), 'Flat' (all files in the same folder),
+     or 'File' (1 single file).
+      #>
+	# objectType SchemaObjectType, schema and flat create a directory. File creates a file
+	$ReportDirectory = "$($param1.reportLocation)\$($param1.Version)\";
+	$OutputFile = "$ReportDirectory$($EscapedProject)$($param1.Version)-$OutputType.dacpac"
+	$ExtractArguments = @("/Action:Extract", <#
+         Specifies a source file to be used as the source of action instead of a
+         database. For the Publish and Script actions, SourceFile may be a .dacpac
+         file or a schema compare .scmp file. If this parameter is used, no other
+         source parameter is valid. #>
+		"/TargetFile:$Outputfile",
+    <#  Specifies a target file to be used for the dacpac #>
+		"/p:ExtractAllTableData=true",
+		"/p:ExtractTarget=$OutputType",
+		"/p:VerifyExtraction=true",
+		"/p:DacApplicationDescription=$($param1.projectDescription)",
+		"/p:DacApplicationName=$($param1.database)-[$($param1.version)]",
+		"/SourcePassword:$($param1.pwd)",
+    <#   For SQL Server Auth scenarios, defines the password to use to access the
+         Source database. (short form /sp) #>
+		"/SourceServerName:$($param1.Server)", <#
+         Defines the name of the server hosting the source database. (short form
+         /ssn) #>
+		"/SourceDatabaseName:$($param1.database)", <#
+         Specifies an override for the name of the database that is the source of
+         SqlPackage.exe Action. (short form /sdn) #>
+		"/SourceUser:$($param1.uid)"<#
+         For SQL Server Auth scenarios, defines the SQL Server user to use to
+         access the source database. (short form /su) #>
+		"/SourceTrustServerCertificate:true"
+	)
+	if ($DoDiagnostics)
+	{
+		$ExtractArguments += `
+		"/DiagnosticsFile:$ReportDirectory$($EscapedProject)$($param1.Version)$OutputType.log "
+	}
+	$ChangedOutput = $outputFile.Replace("-$OutputType.dacpac", ".$OutputType")
+    if ($ChangedOutput -eq $OutputFile){$Feedback+="$ChangedOutput is unchanged from $OutputFile"}
+	$AlreadyDone = (Test-Path $ChangedOutput)
+	if ($RedoIt -eq $false -and $AlreadyDone -eq $true)
+	{
+		$Feedback += "The $OutputType has already been created for $($EscapedProject) $($param1.Version)"
+	}
+	else
+	{
+		
+		if ($problems.Count -eq 0)
+		{
+			if (-not (Test-Path "$ReportDirectory" -PathType Container))
+			{ New-Item -ItemType directory -Path "$ReportDirectory" -Force }
+			else
+			{
+				if (Test-Path $OutputFile)
+				{ Remove-item $OutputFile }
+			}
+			
+			$console = sqlpackage $ExtractArguments | foreach{ "$_ `n" }
+			$Feedback += "$console"
+			if ($?) # if no errors then simple message, otherwise...
+			{
+				$NewOutputType = switch ($OutputType)
+				{
+					'File' { 'SQL' }
+					default { $OutputType }
+				}
+				$ChangedOutput = $outputFile.Replace("-$OutputType.dacpac", ".$NewOutputType")
+				if (Test-Path $ChangedOutput)
+				{ Remove-item $ChangedOutput }
+				
+				rename-item $outputFile $ChangedOutput
+				$Feedback += "Written $OutputType for $EscapedProject $($param1.Version) to $ChangedOutput"
+			}
+			else
+			{
+				#report a problem and send back the args for diagnosis (hint, only for script development)
+				$Problems += "SQLpackage Went badly. (code $LASTEXITCODE) with paramaters $ExtractArguments"
+			}
+		}
+	}
+	if ($problems.count -gt 0)
+	{ $Param1.Problems.'ExtractFromSQLServerIfNecessary' += $problems; }
+	if ($feedback.count -gt 0)
+	{ $Param1.feedback.'ExtractFromSQLServerIfNecessary' = $feedback }
+	
+}
+
 
 <# this creates a first-cut UNDO script for the metadata (not the data) which can
 be adjusted and modified quickly to produce an UNDO Script. It does this by using
@@ -3963,7 +4088,7 @@ $CreateUndoScriptIfNecessary = {
 	foreach{ if ($param1.$_ -in @($null,'')) { $Problems += "no value for '$($_)'" } }
     $command=$null;
     $command = get-command SQLCompare -ErrorAction Ignore
-    f ($command -eq $null) 
+    if ($command -eq $null) 
         {
     	if ($SQLCompareAlias-ne $null)
             {Set-Alias SQLCompare $SQLCompareAlias}
