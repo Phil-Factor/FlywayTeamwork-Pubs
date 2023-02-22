@@ -219,9 +219,15 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 $Wallet=$FlywayConfContent.'flyway.oracle.walletLocation'; #extract this so we can use it for oracle
 $Service=$FlywayConfContent.'flyway.placeholders.service'; #extract this placeholder so we can use it for oracle
 $migrationsLocation = $FlywayConfContent.'flyway.locations' -split ','|where {$_ -like 'filesystem:*'}|foreach {
-   resolve-path $_.Replace('filesystem:','') -ErrorAction Ignore}
+    $reference=$_.Replace('filesystem:','')
+    if (!([System.IO.Path]::IsPathRooted($reference)))
+         {
+         $migrationsPath=split-path -Parent $reference #-leafbase;
+         }
+     $reference
+     }
 # the directory of the first one
-$migrationsPath=split-path -Leaf -path $migrationsLocation[0]
+$common=0;
 $Thepassword=$FlywayConfContent.'flyway.Password';
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 $DBDetails = @{
@@ -268,10 +274,10 @@ if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null))) #if there is a UID
         {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
     }
 
-$FlywayConfContent| foreach{
+$FlywayConfContent.GetEnumerator()| foreach{
         $what=$_
-	    $ThisKey = $what.Keys;
-	    $ThisValue = "$($what.Values[0])";
+	    $ThisKey = $what.name;
+	    $ThisValue = $what.value;
 	    $Variable =  $ThisKey -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
 	    $dbDetails."$variable" = $ThisValue;
     }
@@ -313,6 +319,8 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema')) #they 
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})`"$($defaultTable)`""
+$DBDetails.'DefaultSchema'=$defaultSchema
+$DBDetails.'flywayTableName'=$defaultTable
 #add the password as an environment variable
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd 
 #if we added defaults to the naming preferences we write them back so the user can change them
@@ -326,5 +334,8 @@ elseif ($FileLocations -ne $null)
     {
     $FileLocations|convertto-json > "$pwd\DirectoryNames.json"
     }
-
+@('schemas','url')|foreach {
+if ([string]::IsNullOrEmpty($DBDetails.$_))
+    {Write-Warning "No flyway $($_) defined yet"}
+    }
 
