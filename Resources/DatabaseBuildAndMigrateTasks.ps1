@@ -89,9 +89,18 @@ This creates a simple entity diagram for the current version. You only need two 
 This scriptblock checks the code in the pending files for any issues,using SQL Fluff to do all the work. It saves the report in a subdirectory 
 of the version directory of your project artefacts. It also reports back in the $DatabaseDetails Hashtable. 
 
+**$DoesTheFlywayTableExist** *(PostgreSQL,  Oracle, MySQL, MariaDB, SQL Server, SQLite)* 
+This checks to see if there is a flyway schema table 
+in the database. It sets a value in the dbDetails object (FlywayTableExists) that is true or false.
 
-
-
+**$ExtractFromSQLServerIfNecessary** *(SQL Server only)*
+This connects to the SQL Server database and will then, For the current version of the database extract either a 
+ - *'DacPac'*     (output a .dacpac single file). 
+ - *'Flat'*  (all files in a single folder),
+ - *'SchemaObjectType'* (files in folders for each schema and object type), 
+ - *'Schema'* (files in folders for each schema),
+ - *'ObjectType'*  (files in folders for each object type), 'Flat' (all files in the same folder)
+ - *'File'* (1 single file). 
 ## examples of usage
 
 Tasks can be executed one at a time or stacked up and executed one after another. 
@@ -378,7 +387,7 @@ set 'simpleText' to true
             }
 
     		if ($response -like 'Msg*' -or !($succeeded))
-			{ $Problems += " When connecting to $($TheArgs.server); $($TheArgs.database) as $($TheArgs.uid) had error $Response" }
+			{ $Problems += " When connecting to $($TheArgs.server); $($TheArgs.database) as $($TheArgs.uid) had, in response to $FullQuery the error $Response" }
 			elseif ($response -like 'SqlCmd*')
 			{ $problems += "SQLCMD says $Response" }
 			
@@ -973,6 +982,87 @@ $FetchAnyRequiredPasswords = {
     if (!([string]::IsNullOrEmpty($param1.uid)) -and [string]::IsNullOrEmpty($param1.Pwd))
          {Write-warning "returned no password"}
 }
+
+$DoesTheFlywayTableExist = { <#This checks to see if there is a flyway schema table 
+in the database. It sets a value in the dbDetails object (FlywayTableExists) that is true or false #>
+	Param ($param1) # $DoesTheFlywayTableExist parameter is a hashtable 
+	$problems = @();
+	$doit = $true;
+	@('server', 'rdbms') | foreach{
+		if ($param1.$_ -in @($null, ''))
+		{
+			$Problems += "no value for '$($_)'";
+			$DoIt = $False;
+		}
+	}
+	switch -Regex ($param1.RDBMS)
+	{
+		'sqlserver'   {
+			$Exists = Execute-SQL $param1 @"
+SELECT CASE WHEN (EXISTS
+    (SELECT 1
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE  TABLE_NAME LIKE '$($param1.flywayTableName)'
+        AND TABLE_SCHEMA = '$($param1.DefaultSchema)')) 
+            THEN 1 ELSE 0 END AS ItExists
+FOR JSON PATH
+"@ | Convertfrom-json
+		}
+        'oracle'
+        {
+$Exists = Execute-SQL $param1 @"
+select count(*) as ItExists
+        FROM ALL_TABLES
+        WHERE  TABLE_NAME LIKE '$($param1.flywayTableName)'
+        AND OWNER = '$($param1.DefaultSchema)')) 
+"@ | Convertfrom-json        }    
+
+
+		'postgresql'
+		{
+			# Do it the PostgreSQL way
+$Exists = Execute-SQL $param1 @"
+SELECT CASE WHEN (EXISTS
+    (SELECT 1
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE  TABLE_NAME LIKE '$($param1.flywayTableName)'
+        AND TABLE_SCHEMA = '$($param1.DefaultSchema)')) 
+            THEN 1 ELSE 0 END AS ItExists;
+"@ | Convertfrom-json
+		}
+		'sqlite'
+		{
+			## OK, lets do it the SQLite way.
+			$Version = Execute-SQL $param1 @"
+SELECT count(*) as ItExists FROM sqlite_master 
+WHERE type='table' AND name='$($param1.flywayTableName)
+"@ | Convertfrom-json
+			$Param1.ServerVersion = $Version.version
+		}
+		'mysql|mariadb'
+		{
+			#get MariaDB version
+$Exists = Execute-SQL $param1 @"
+SELECT count()
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE  TABLE_NAME LIKE '$($param1.flywayTableName)'
+        AND TABLE_SCHEMA = '$($param1.DefaultSchema)'; 
+"@ | Convertfrom-json
+		}
+		Default { $problems += "$($param1.RDBMS) is not supported yet. " }
+	}
+    $param1.'FlywayTableExists'=if ($Exists.ItExists -gt 0) {$true} else {$False};
+	if ($problems.Count -gt 0)
+	{
+		$Param1.Problems.'$GetCurrentServerVersion' += $problems;
+	}
+	else
+	{
+		$Param1.feedback.'$GetCurrentServerVersion' = "current $($param1.RDBMS) version is $($Param1.ServerVersion)."
+	}
+}
+
+
 
 <#This scriptblock checks the code in the database for any issues,
 using SQL Code Guard to do all the work. This runs SQL Codeguard 
@@ -1671,7 +1761,7 @@ $IsDatabaseIdenticalToSource = {
 	if ($warnings.Count -gt 0)
 	{ $Param1.Warnings.'IsDatabaseIdenticalToSource' += $Warnings; }
 }
-# $param1=$dbDetails
+
 <#this routine checks to see if a script folder already exists for this version
 of the database and, if not, it will create one and fill it with subdirectories
 for each type of object. A tables folder will, for example, have a file for every table
@@ -3950,7 +4040,14 @@ FOR JSON auto
 	
 }
 
-$ExtractFromSQLServerIfNecessary = {
+$ExtractFromSQLServerIfNecessary = { <# this connects to the SQL Serverdatabase and will then, 
+For the current version of the database extract either a 
+     'DacPac'     (output a .dacpac single file). 
+     'Flat'  (all files in a single folder),
+     'SchemaObjectType' (files in folders for each schema and object type), 
+     'Schema' (files in folders for each schema),
+     'ObjectType'  (files in folders for each object type), 'Flat' (all files in the same folder)
+     'File' (1 single file). #>
 	Param ($param1,
 		$OutputType, <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
 		$RedoIt = $false,
