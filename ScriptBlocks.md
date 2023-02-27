@@ -1,4 +1,3 @@
-
 # The Flyway Teamworks Scriptblocks.
 
 These are a collection of script blocks that are designed to run with Flyway either in the community edition or with Teams. They allow you to maintain backups or scripts for each version and make a Flyway a full participant in any source control system in use, even to the point of providing an  object-level source to allow the evolution of individual tables to be tracked.
@@ -94,7 +93,7 @@ in the database. It sets a value in the dbDetails object (FlywayTableExists) tha
 
 **$ExtractFromSQLServerIfNecessary** *(SQL Server only)*
 This connects to the SQL Server database and will then, For the current version of the database extract either a 
- - *'DacPac'*    (output a .dacpac single file). 
+ - *'DacPac'*     (output a .dacpac single file). 
  - *'Flat'*  (all files in a single folder),
  - *'SchemaObjectType'* (files in folders for each schema and object type), 
  - *'Schema'* (files in folders for each schema),
@@ -103,8 +102,21 @@ This connects to the SQL Server database and will then, For the current version 
 ## examples of usage
 
 Tasks can be executed one at a time or stacked up and executed one after another. 
+### Simple Arms-length usage
+In the framework, you'd have a $dbDetails object to store what can become a huge number of parameters, especially if you really like your placeholders. Lets start without doing that, just to demonstrate that it is possible to just run the tasks you want without getting in too deep.
 
-Here are several being done together 
+```
+Process-FlywayTasks @{
+   'version'='1.1.5'; 'server'='MyServer'; 'reportLocation'=MyDirectory; 
+   'database'=' MyDatabase '; 'pwd'='mySecretPassword'; 'uid'='MyUserID';
+   'project'='Pubs'; 'projectDescription'='A simple Demonstration';
+   'problems'=@{};'warnings'=@{};'feedback'=@{};'writeLocations'=@{}
+} $ExtractFromSQLServerIfNecessary 
+```
+### Using the shared DbDetails object.
+However if you are using the preliminary.ps1 to keep your stash of parameters in a shared $DBDetails object, it is all simpler and neater.
+
+Here are several tasks being done together 
 
 ```
 `$PostMigrationTasks = @(`
@@ -180,4 +192,65 @@ You might not want all the project array because you're just generating diagrams
 		`$null  #MyPUMLFile - The path to the PUML file`
 `);`
 ```
+
+To set off any task, all you need is a PowerShell script that is created in such a way that it can be executed by Flyway when it finishes a migration run. Although you can choose any of the significant points in any Flyway action, there are only one or two of these callback points that are useful to us.  
+
+This can be a problem if you have several chores that need to be done in the same callback or you have a stack of scripts all on the same callback, each having to gather up and process parameters, or pass parameters such as the current version from one to another. 
+
+A callback script can’t be debugged as easily as an ordinary script. In this design, the actual callback just executes a list of tasks in order, and you simply add a task to the list after you’ve debugged and tested it & placed in the DatabaseBuildAndMigrateTasks.ps1 file.
+with just one callback script
+
+Each task is passed a standard ‘parameters’ object. This keeps the ‘complexity beast’ snarling in its lair.
+The parameter object is passed by reference so each task can add value to the data in the object, such as passwords, version number, errors, warnings and log entries. 
+
+All parameters are passed by Flyway. It does so by environment variables that are visible to the script.
+You can access these directly, and this is probably best for tasks that require special informationpassed by custom placeholders, such as the version of the RDBMS, or the current variant of the version  you're building
+
+### Getting the $dbDetails object and all its values
+
+The ". '.\preliminary.ps1" line - that this callback startes with - creates a DBDetails array.
+You can dump this array for debugging so that it is displayed by Flyway
+
+   `$DBDetails|convertTo`-json
+
+these routines return the path they write to in the $DbDetails if you need it.
+You will also need to set the paths to the various commandline utilities to the correct value. 
+For SQLCMD, for example, this is set by a string that is read from MyToolLocations.ps1 in your Flyway Teamwork directory. 
+it can be set as a default in the resources directory in the toolLocations.ps1 file in the RESOURCES  directory 
+
+### Using a callback script
+Here is a worked example, with the tasks you want to execute. Some, like the on getting credentials, are essential before you execute others.
+In order to execute tasks, you just load them up in the order you want. It is like loading a revolver.
+
+``` 
+. '.\preliminary.ps1'
+
+$PostMigrationTasks = @(
+	$GetCurrentVersion, #checks the database and gets the current version number
+    #it does this by reading the Flyway schema history table. 
+	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
+    #uses SQL Compare
+	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
+    #this uses SQL Compare
+	$ExecuteTableSmellReport, #checks for table-smells
+    #This is an example of generating a SQL-based report
+	$ExecuteTableDocumentationReport, #publishes table docuentation as a json file that allows you to
+    #fill in missing documentation. 
+	$CheckCodeInDatabase, #does a code analysis of the code in the live database in its current version
+    #This uses SQL Codeguard to do this
+	$CheckCodeInMigrationFiles, #does a code analysis of the code in the migration script
+    #This uses SQL Codeguard to do this
+	$IsDatabaseIdenticalToSource, # uses SQL Compare to check that a version of a database is correct
+    #this makes sure that the target is at the version you think it is.
+    $SaveDatabaseModelIfNecessary #writes out the database model
+    #This writes out a model of the version for purposes of comparison, narrative and checking. 
+    $CreateUndoScriptIfNecessary # uses SQL Compare
+    #Creates a first-cut UNDo script. This is an idempotentic script that undoes to the previous version 
+    $GeneratePUMLforGanttChart
+    # This script creates a PUML file for a Gantt chart at the current version of the 
+    #database. This can be read into any editor that takes PlantUML files to give a Gantt
+    #chart 
+            )
+Process-FlywayTasks $DBDetails $PostMigrationTasks
 ```
+Yeah, a lot of work is being done without you getting overwhelmed by the details and complexity

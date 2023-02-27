@@ -104,8 +104,21 @@ This connects to the SQL Server database and will then, For the current version 
 ## examples of usage
 
 Tasks can be executed one at a time or stacked up and executed one after another. 
+### Simple Arms-length usage
+In the framework, you'd have a $dbDetails object to store what can become a huge number of parameters, especially if you really like your placeholders. Lets start without doing that, just to demonstrate that it is possible to just run the tasks you want without getting in too deep.
 
-Here are several being done together 
+```
+Process-FlywayTasks @{
+   'version'='1.1.5'; 'server'='MyServer'; 'reportLocation'=MyDirectory; 
+   'database'=' MyDatabase '; 'pwd'='mySecretPassword'; 'uid'='MyUserID';
+   'project'='Pubs'; 'projectDescription'='A simple Demonstration';
+   'problems'=@{};'warnings'=@{};'feedback'=@{};'writeLocations'=@{}
+} $ExtractFromSQLServerIfNecessary 
+```
+### Using the shared DbDetails object.
+However if you are using the preliminary.ps1 to keep your stash of parameters in a shared $DBDetails object, it is all simpler and neater.
+
+Here are several tasks being done together 
 
 ```
 `$PostMigrationTasks = @(`
@@ -181,6 +194,69 @@ You might not want all the project array because you're just generating diagrams
 		`$null  #MyPUMLFile - The path to the PUML file`
 `);`
 ```
+
+To set off any task, all you need is a PowerShell script that is created in such a way that it can be executed by Flyway when it finishes a migration run. Although you can choose any of the significant points in any Flyway action, there are only one or two of these callback points that are useful to us.  
+
+This can be a problem if you have several chores that need to be done in the same callback or you have a stack of scripts all on the same callback, each having to gather up and process parameters, or pass parameters such as the current version from one to another. 
+
+A callback script can’t be debugged as easily as an ordinary script. In this design, the actual callback just executes a list of tasks in order, and you simply add a task to the list after you’ve debugged and tested it & placed in the DatabaseBuildAndMigrateTasks.ps1 file.
+with just one callback script
+
+Each task is passed a standard ‘parameters’ object. This keeps the ‘complexity beast’ snarling in its lair.
+The parameter object is passed by reference so each task can add value to the data in the object, such as passwords, version number, errors, warnings and log entries. 
+
+All parameters are passed by Flyway. It does so by environment variables that are visible to the script.
+You can access these directly, and this is probably best for tasks that require special informationpassed by custom placeholders, such as the version of the RDBMS, or the current variant of the version  you're building
+
+### getting the dbDetails object and all its values
+
+The ". '.\preliminary.ps1" line - that this callback startes with - creates a DBDetails array.
+You can dump this array for debugging so that it is displayed by Flyway
+
+   `$DBDetails|convertTo-json
+
+these routines return the path they write to in the $DbDetails if you need it.
+You will also need to set the paths to the various commandline utilities to the correct value. 
+For SQLCMD, for example, this is set by a string that is read from MyToolLocations.ps1 in your Flyway Teamwork directory. 
+it can be set as a default in the resources directory in the toolLocations.ps1 file in the RESOURCES  directory 
+
+### Using a callback script
+Here is a worked example, with the tasks you want to execute. Some, like the on getting credentials, are essential before you execute others.
+In order to execute tasks, you just load them up in the order you want. It is like loading a revolver.
+
+``` 
+. '.\preliminary.ps1'
+
+$PostMigrationTasks = @(
+	$GetCurrentVersion, #checks the database and gets the current version number
+    #it does this by reading the Flyway schema history table. 
+	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
+    #uses SQL Compare
+	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
+    #this uses SQL Compare
+	$ExecuteTableSmellReport, #checks for table-smells
+    #This is an example of generating a SQL-based report
+	$ExecuteTableDocumentationReport, #publishes table docuentation as a json file that allows you to
+    #fill in missing documentation. 
+	$CheckCodeInDatabase, #does a code analysis of the code in the live database in its current version
+    #This uses SQL Codeguard to do this
+	$CheckCodeInMigrationFiles, #does a code analysis of the code in the migration script
+    #This uses SQL Codeguard to do this
+	$IsDatabaseIdenticalToSource, # uses SQL Compare to check that a version of a database is correct
+    #this makes sure that the target is at the version you think it is.
+    $SaveDatabaseModelIfNecessary #writes out the database model
+    #This writes out a model of the version for purposes of comparison, narrative and checking. 
+    $CreateUndoScriptIfNecessary # uses SQL Compare
+    #Creates a first-cut UNDo script. This is an idempotentic script that undoes to the previous version 
+    $GeneratePUMLforGanttChart
+    # This script creates a PUML file for a Gantt chart at the current version of the 
+    #database. This can be read into any editor that takes PlantUML files to give a Gantt
+    #chart 
+            )
+Process-FlywayTasks $DBDetails $PostMigrationTasks
+```
+Yeah, a lot of work is being done without you getting overwhelmed by the details and complexity
+
 
 #>
 
@@ -4040,8 +4116,9 @@ FOR JSON auto
 	
 }
 
-$ExtractFromSQLServerIfNecessary = { <# this connects to the SQL Serverdatabase and will then, 
-For the current version of the database extract either a 
+$ExtractFromSQLServerIfNecessary = { <# 
+     this connects to the SQL Serverdatabase and will then, 
+     For the current version of the database extract either a 
      'DacPac'     (output a .dacpac single file). 
      'Flat'  (all files in a single folder),
      'SchemaObjectType' (files in folders for each schema and object type), 
@@ -4050,20 +4127,21 @@ For the current version of the database extract either a
      'File' (1 single file). #>
 	Param ($param1,
 		$OutputType, <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
-		$RedoIt = $false,
-		$doDiagnostics = $false
+		$RedoIt = $false, #by default you just do it the once
+		$doDiagnostics = $false # do you want the log saved to disk to see what went wrong?
 	) # $ExtractFromSQLServerIfNecessary (Don't delete this) 
-	$problems = @(); # well, not yet
-	$feedback = @(); # well, nothing yet
+	$problems = @(); # well, not yet (all problems are returned in this array)
+	$feedback = @(); # well, nothing yet (all feedback is  returned in this array)
 	if ($doDiagnostics -eq $null) { $doDiagnostics = $False }
 	if ($OutputType -notin ('DacPac', 'File', 'Flat', 'ObjectType', 'Schema', 'SchemaObjectType'))
-	{
+	{# just assume that if the output type is wrong, the user wanted a DACPAC.
 		$OutputType = 'DACPAC'; # 'DacPac'
     }
 	#check that we have values for the necessary details
-	@('version', 'server', 'database', 'project') |
+	@('version', 'server', 'reportLocation', 'database', 'pwd', 'uid', 'project', 'projectDescription') |
 	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
-	$command = get-command sqlpackage -ErrorAction Ignore
+	<# has the user installed SQLPackage? - or specified the path as a variable#>
+    $command = get-command sqlpackage -ErrorAction Ignore
 	if ($command -eq $null)
 	{
 		if ($SQLPackageAlias -ne $null)
@@ -4078,7 +4156,7 @@ For the current version of the database extract either a
      DACPAC file (.dacpac). By default, data is not included in the .dacpac file.
      To include data, utilize the Export action or use the Extract properties
      ExtractAllTableData/TableData.
-     /p:ExtractTarget:File extracts a SQL File
+     /p:ExtractTarget
      Specifies alternative output formats of the database schema, default is 'DacPac'
      to output a .dacpac single file. Additional options output one or more .sql files
      organized by either 'SchemaObjectType' (files in folders for each schema and
@@ -4120,7 +4198,14 @@ For the current version of the database extract either a
 		$ExtractArguments += `
 		"/DiagnosticsFile:$ReportDirectory$($EscapedProject)$($param1.Version)$OutputType.log "
 	}
-	$ChangedOutput = $outputFile.Replace("-$OutputType.dacpac", ".$OutputType")
+    <# a bug in SQLPackage means that it always has a DACPAC filetype even when that isn't so.
+    We calculate what the file name should be once we execute SQL Package and will change it!  #>
+    $NewOutputType = switch ($OutputType)
+	{
+		'File' { 'SQL' }
+		default { $OutputType }
+	}
+	$ChangedOutput = $outputFile.Replace("-$OutputType.dacpac", ".$NewOutputType")
     if ($ChangedOutput -eq $OutputFile){$Feedback+="$ChangedOutput is unchanged from $OutputFile"}
 	$AlreadyDone = (Test-Path $ChangedOutput)
 	if ($RedoIt -eq $false -and $AlreadyDone -eq $true)
@@ -4128,7 +4213,7 @@ For the current version of the database extract either a
 		$Feedback += "The $OutputType has already been created for $($EscapedProject) $($param1.Version)"
 	}
 	else
-	{
+	{ <# deal with feedback #>
 		
 		if ($problems.Count -eq 0)
 		{
@@ -4139,17 +4224,11 @@ For the current version of the database extract either a
 				if (Test-Path $OutputFile)
 				{ Remove-item $OutputFile }
 			}
-			
+			#Now we cactually execute SQL Package.
 			$console = sqlpackage $ExtractArguments | foreach{ "$_ `n" }
 			$Feedback += "$console"
 			if ($?) # if no errors then simple message, otherwise...
 			{
-				$NewOutputType = switch ($OutputType)
-				{
-					'File' { 'SQL' }
-					default { $OutputType }
-				}
-				$ChangedOutput = $outputFile.Replace("-$OutputType.dacpac", ".$NewOutputType")
 				if (Test-Path $ChangedOutput)
 				{ Remove-item $ChangedOutput }
 				
@@ -5420,6 +5499,6 @@ function Run-TestsForMigration
 
 
 
-'FlywayTeamwork framework  loaded. V1.2.604'
+'FlywayTeamwork framework  loaded. V1.2.606'
 
 
