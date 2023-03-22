@@ -23,7 +23,7 @@ passed by custom placeholders, such as the version of the RDBMS, or the current 
 you're building
 
 
-The ". '.\preliminary.ps1" line that this callback startes withcreates a DBDetails array.
+The ". '.\preliminary.ps1" line - that this callback startes with - creates a DBDetails array.
 You can dump this array for debugging so that it is displayed by Flyway
 
 $DBDetails|convertTo-json
@@ -41,6 +41,7 @@ revolver.
 #>
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number
-    $ExtractFromSQLServeiIfNecessary #save this version as a dacpac if it hasn't already been done
+    $ExtractFromSQLServerIfNecessary #save this version as a dacpac if it hasn't already been done
             )
+$PostMigrationTasks|foreach -Begin{$ii=0}{$ii++; if ($_ -eq $null) {write-warning "task no. $ii is Null"}}
 Process-FlywayTasks $DBDetails $PostMigrationTasks

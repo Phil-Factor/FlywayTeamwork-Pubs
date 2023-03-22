@@ -12,3 +12,4 @@ IF  (IndexProperty(Object_Id('dbo.employee'),'pub_id_index','IndexID') IS NOT NU
 	Drop INDEX pub_id_index ON dbo.employee
 IF  (IndexProperty(Object_Id('dbo.publications'),'pubid_index','IndexID') IS NOT NULL)
 	Drop  INDEX pubid_index ON dbo.publications
+GO
