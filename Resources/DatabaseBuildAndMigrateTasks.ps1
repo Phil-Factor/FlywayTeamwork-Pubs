@@ -4123,6 +4123,72 @@ FOR JSON auto
 	
 }
 
+
+<# By default, this will take the DACPAC for the current version of the database, and will 
+   compare it with the previous version. it should, logically, work either way to do forward 
+   or UNDO migrations. Sadly it doesn't.  However, you  can use it to compare a source and target
+   version of your own choosing, simply by providing version numbers for the two parameters 
+   $TheSourceVersion and $TheTargetVersion.
+   The file is processed to remove  any CREATE SCHEMA statements,SQLCMD statements
+   and any SQLCMD parameter definitions #>
+$CreatePossibleMigrationScriptFromDacpac = { 
+	Param ($param1, # the dbDetails array where we pass all the info
+		$OutputScriptType = 'Versioned',
+        [bool]$OverWrite = $true
+	) # $CreatePossibleMigrationScriptFromDacpac  (Don't delete this) 
+	$problems = @(); # well, not yet
+	$feedback = @()
+	@('version', 'previous') |
+		foreach{
+			if ($param1.$_ -in @($null, ''))
+			{
+				Process-FlywayTasks $param1 $GetCurrentVersion;
+			}
+		}
+		
+	@('version', 'previous', 'project', 'reportLocation') | foreach{
+		if ($param1.$_ -in @($null, '')) { $WeCanDoIt = $false; $Problems += "no value for '$($_)'" }
+	}
+	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
+	$ReportDirectory = "$($param1.reportLocation)\Versions";
+	#default to undo
+	$SourceVersion = $param1.previous
+	$TargetVersion = $param1.version
+	$prefix = 'U';
+    if ($OutputScriptType -eq 'versioned')
+	{
+		$SourceVersion = $param1.version
+		$TargetVersion = $param1.previous
+        $prefix = 'V'
+	}
+	if ([version]$SourceVersion -gt [version]$TargetVersion) {$prefix = 'U'};
+	$SourceFile = "$ReportDirectory\$SourceVersion\$EscapedProject$SourceVersion.DACPAC";
+	$TargetFile = "$ReportDirectory\$TargetVersion\$EscapedProject$TargetVersion.DACPAC";
+	if ($prefix -eq 'U')
+	{ $OutputFile = "$ReportDirectory\$TargetVersion\$($prefix)_$($TargetVersion)__UndoMigration_to_$($SourceVersion).sql" }
+	else
+	{ $OutputFile = "$ReportDirectory\$SourceVersion\$($prefix)_$($SourceVersion)__ForwardMigration_from_$($TargetVersion).sql" };
+	@($SourceFile, $TargetFile) | foreach {
+		if (-not (Test-Path "$_")) { $WeCanDoIt = $false; $Feedback += "cannot find the dacpac file $_ " }
+	}
+	if ($OverWrite -eq $false -and (Test-Path "$OutputFile"))
+         { $WeCanDoIt = $false; $Feedback += "Migration file $OutputFile already exists" }
+	if ($WeCanDoIt) #if it has passed the tests
+	{
+    $Result=Export-ChangeScriptFromDACPACS `
+         -SourceDacPac $sourceFile -TargetDacPac $TargetFile -OutputFilePath $OutputFile -OverWrite $overwrite -DatabaseName $param1.project
+    $Result[0]#problems
+    if ($Result[0].count -gt 0)
+	{ $Param1.problems.'CreatePossibleMigrationScriptFromDacpac' = $Result[1] }
+    if ($Result[1].count -gt 0)
+	{ $Param1.feedback.'CreatePossibleMigrationScriptFromDacpac' = $Result[1] }
+	if ($Result[2].count -gt 0)
+	{$Param1.WriteLocations.'CreatePossibleMigrationScriptFromDacpac' = $Result[2];
+		}
+	}
+	
+}
+
 $ExtractFromSQLServerIfNecessary = { <# 
      this connects to the SQL Serverdatabase and will then, 
      For the current version of the database extract either a 
@@ -5706,6 +5772,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.610'
+'FlywayTeamwork framework  loaded. V1.2.620'
 
 
