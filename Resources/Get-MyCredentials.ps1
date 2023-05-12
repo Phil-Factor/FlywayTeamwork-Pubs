@@ -59,7 +59,13 @@ function Get-MyCredentials
 				# Save in the user area 
 				$SqlCredentials | Export-CliXml -Path $SqlEncryptedPasswordFile
         <# Export-Clixml only exports encrypted credentials on Windows.
-        otherwise it just offers some obfuscation but does not provide encryption. #>
+        otherwise it just offers some obfuscation but does not provide encryption.
+        The Export-Clixml cmdlet encrypts credential objects by using the 
+        Windows Data Protection API. The encryption ensures that only your user 
+        account on only that computer can decrypt the contents of the credential
+        object. The exported CLIXML file can't be used on a different computer or
+        by a different user.
+         #>
 			}
 			$UID = $SqlCredentials.UserName;
 			$MyPassword = $SqlCredentials.GetNetworkCredential().password

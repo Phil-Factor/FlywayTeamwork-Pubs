@@ -1,0 +1,65 @@
+
+{
+    "data":[
+        {
+            "installed_rank":0,
+            "version":"",
+            "description":"<< Flyway Schema Creation >>",
+            "type":"SCHEMA",
+            "script":"[classic],[people],[accounting]",
+            "checksum":"",
+            "installed_by":"Phil Factor",
+            "installed_on":"2023-02-21 11:07:29.68",
+            "execution_time":0,
+            "success":"1"
+        },
+        {
+            "installed_rank":1,
+            "version":"1.1.1",
+            "description":"Initial Build",
+            "type":"SQL",
+            "script":"V1.1.1__Initial_Build.sql",
+            "checksum":-658713760,
+            "installed_by":"Phil Factor",
+            "installed_on":"2023-02-21 11:07:33.57",
+            "execution_time":2968,
+            "success":"1"
+        },
+        {
+            "installed_rank":2,
+            "version":"1.1.2",
+            "description":"Pubs Original Data",
+            "type":"SQL",
+            "script":"V1.1.2__Pubs_Original_Data.sql",
+            "checksum":-694477242,
+            "installed_by":"Phil Factor",
+            "installed_on":"2023-02-21 11:08:35.4",
+            "execution_time":1749,
+            "success":"1"
+        },
+        {
+            "installed_rank":3,
+            "version":"1.1.3",
+            "description":"UseNVarcharetc",
+            "type":"SQL",
+            "script":"V1.1.3__UseNVarcharetc.sql",
+            "checksum":1488297774,
+            "installed_by":"Phil Factor",
+            "installed_on":"2023-02-21 11:10:46.533",
+            "execution_time":4409,
+            "success":"1"
+        },
+        {
+            "installed_rank":4,
+            "version":"1.1.4",
+            "description":"RenameConstraintsAdd tables",
+            "type":"SQL",
+            "script":"V1.1.4__RenameConstraintsAdd tables.sql",
+            "checksum":938953110,
+            "installed_by":"Phil Factor",
+            "installed_on":"2023-02-21 11:14:04.38",
+            "execution_time":5118,
+            "success":"1"
+        }
+    ]
+}

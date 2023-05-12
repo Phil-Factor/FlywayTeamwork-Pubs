@@ -1,0 +1,89 @@
+
+{
+    "data":[
+        {
+            "job_id":1,
+            "job_desc":"New Hire - Job not specified",
+            "min_lvl":10,
+            "max_lvl":10
+        },
+        {
+            "job_id":2,
+            "job_desc":"Chief Executive Officer",
+            "min_lvl":200,
+            "max_lvl":250
+        },
+        {
+            "job_id":3,
+            "job_desc":"Business Operations Manager",
+            "min_lvl":175,
+            "max_lvl":225
+        },
+        {
+            "job_id":4,
+            "job_desc":"Chief Financial Officier",
+            "min_lvl":175,
+            "max_lvl":250
+        },
+        {
+            "job_id":5,
+            "job_desc":"Publisher",
+            "min_lvl":150,
+            "max_lvl":250
+        },
+        {
+            "job_id":6,
+            "job_desc":"Managing Editor",
+            "min_lvl":140,
+            "max_lvl":225
+        },
+        {
+            "job_id":7,
+            "job_desc":"Marketing Manager",
+            "min_lvl":120,
+            "max_lvl":200
+        },
+        {
+            "job_id":8,
+            "job_desc":"Public Relations Manager",
+            "min_lvl":100,
+            "max_lvl":175
+        },
+        {
+            "job_id":9,
+            "job_desc":"Acquisitions Manager",
+            "min_lvl":75,
+            "max_lvl":175
+        },
+        {
+            "job_id":10,
+            "job_desc":"Productions Manager",
+            "min_lvl":75,
+            "max_lvl":165
+        },
+        {
+            "job_id":11,
+            "job_desc":"Operations Manager",
+            "min_lvl":75,
+            "max_lvl":150
+        },
+        {
+            "job_id":12,
+            "job_desc":"Editor",
+            "min_lvl":25,
+            "max_lvl":100
+        },
+        {
+            "job_id":13,
+            "job_desc":"Sales Representative",
+            "min_lvl":25,
+            "max_lvl":100
+        },
+        {
+            "job_id":14,
+            "job_desc":"Designer",
+            "min_lvl":25,
+            "max_lvl":100
+        }
+    ]
+}

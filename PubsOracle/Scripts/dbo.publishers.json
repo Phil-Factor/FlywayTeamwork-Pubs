@@ -1,0 +1,61 @@
+
+{
+    "data":[
+        {
+            "pub_id":"0736    ",
+            "pub_name":"New Moon Books",
+            "city":"Boston",
+            "state":"MA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"0877    ",
+            "pub_name":"Binnet & Hardley",
+            "city":"Washington",
+            "state":"DC",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1389    ",
+            "pub_name":"Algodata Infosystems",
+            "city":"Berkeley",
+            "state":"CA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1622    ",
+            "pub_name":"Five Lakes Publishing",
+            "city":"Chicago",
+            "state":"IL",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1756    ",
+            "pub_name":"Ramona Publishers",
+            "city":"Dallas",
+            "state":"TX",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9901    ",
+            "pub_name":"GGG&G",
+            "city":"M?nchen",
+            "state":"",
+            "country":"Germany"
+        },
+        {
+            "pub_id":"9952    ",
+            "pub_name":"Scootney Books",
+            "city":"New York",
+            "state":"NY",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9999    ",
+            "pub_name":"Lucerne Publishing",
+            "city":"Paris",
+            "state":"",
+            "country":"France"
+        }
+    ]
+}

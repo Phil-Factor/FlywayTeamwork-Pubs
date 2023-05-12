@@ -121,7 +121,8 @@ Process-FlywayTasks @{
    'project'='Pubs'; 'projectDescription'='A simple Demonstration';
    'problems'=@{};'warnings'=@{};'feedback'=@{};'writeLocations'=@{}
 } $ExtractFromSQLServerIfNecessary 
-```
+
+`
 ### Using the shared DbDetails object.
 However if you are using the preliminary.ps1 to keep your stash of parameters in a shared $DBDetails object, it is all simpler and neater.
 
@@ -2820,9 +2821,7 @@ SELECT Object_Schema_Name (tables.object_id) + '.' + tables.name AS "TableObject
 
 
 <#
-
 $SaveDatabaseModelIfNecessary
-
 
 This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
@@ -3802,7 +3801,7 @@ FOR JSON AUTO
 					$query = @'
     SELECT Replace (Lower (Replace(Replace(so.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
         so.name, Object_Schema_Name(so.object_id) AS "schema", 
-        left(definition,70)+CASE when LEN(definition)>70 THEN '...' ELSE '' END AS definition, 
+        left(definition,2000)+CASE when LEN(definition)>2000 THEN '...' ELSE '' END AS definition, 
         checksum(definition) AS hash 
         FROM sys.sql_modules ssm
         INNER JOIN sys.objects so
@@ -3892,29 +3891,31 @@ FOR JSON AUTO
 "@
 					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
 					if (!($constraints.Error -eq $null)) { $Problems += $constraints.Error }
-            <# Now get the details of all the indexes that aren't primary keys, including the columns,  #>
+            <# 
+            Now get the details of all the indexes that aren't primary keys, including the columns,  
 					$indexes = Execute-SQL $param1 @"
-    select schema_name(t.schema_id) AS "schema",
-	t.name AS table_name,
-	Replace (Lower (Replace(Replace(t.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
-        isnull(c.[name], i.[name]) as Index_name, col.name, ic.key_ordinal
-    from sys.objects t
-        left outer join sys.indexes i
-            on t.object_id = i.object_id
-        left outer join sys.key_constraints c
-            on i.object_id = c.parent_object_id 
-            and i.index_id = c.unique_index_id
-        INNER join sys.index_columns ic
-		    ON ic.object_id = t.object_id
-               and ic.index_id = i.index_id
-         inner join sys.columns col
-               on ic.object_id = col.object_id
-               and ic.column_id = col.column_id
-       where is_unique = 1
-       AND t.name <> '$FlywayTableName'
-       AND t.is_ms_shipped <> 1
+    SELECT Schema_Name (t.schema_id) AS "schema", t.name AS table_name,
+       Replace (
+         Lower (Replace (Replace (t.type_desc, 'user_', ''), 'sql_', '')),
+         '_',
+         ' ') AS type, i.type_desc AS indexType, i.[name] AS Index_name,
+       col.name, ic.key_ordinal
+      FROM
+      sys.indexes i
+        INNER JOIN sys.objects t
+          ON t.object_id = i.object_id
+        INNER JOIN sys.index_columns ic
+          ON ic.object_id = t.object_id AND ic.index_id = i.index_id
+        INNER JOIN sys.columns col
+          ON ic.object_id = col.object_id AND ic.column_id = col.column_id
+      WHERE
+      t.is_ms_shipped = 0
+    AND i.is_primary_key = 0
+    AND i.is_unique = 0
+    AND i.type IN (1, 2)
        for json path
 "@ | ConvertFrom-Json
+#>
 					
 					#now get all the triggers
 					$triggers = Execute-SQL $param1 @'
@@ -3972,7 +3973,7 @@ FOR JSON auto
 						$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
 					}
 					#display-object $schemaTree|convertto-json -depth 10
-            <# now stitch in the constraints with their columns  #>
+            <# now stitch in the constraints and indexes with their columns  #>
 					$constraints | Select schema, table_name, Type, constraint_name, referenced_table, definition -Unique | foreach{
 						$constraintSchema = $_.schema;
 						$constrainedTable = $_.table_name;
@@ -3981,7 +3982,7 @@ FOR JSON auto
 						$referenced_table = $_.referenced_table;
 						$definition = $_.definition;
 						# get the original object
-						if ($ConstraintType -notin @('Unique key', 'Primary key', 'foreign key'))
+						if ($ConstraintType -notin @('Unique key','index', 'Primary key', 'foreign key'))
 						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition } }
 						else
 						{
@@ -3992,7 +3993,7 @@ FOR JSON auto
 								$_.table_name -eq $constrainedTable -and
 								$_.Type -eq $ConstraintType -and
 								$_.constraint_name -eq $constraintName
-							} | Select -first 1
+							} #| Select -first 1 --why this?
 							$Columns = $OriginalConstraint | Sort-Object -Property ordinal_position |
 							Select -ExpandProperty column_name
 							if ($ConstraintType -eq 'foreign key')
@@ -4003,7 +4004,7 @@ FOR JSON auto
 									$constraintName = @{ 'Cols' = $columns; 'Foreign Table' = $referenced_table; 'Referencing' = "$Referencing" }
 								}
 							}
-							elseif ($ConstraintType -in @('Unique key', 'Primary key'))
+							elseif ($ConstraintType -in @('Unique key', 'index', 'Primary key'))
 							{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $columns } }
 							
 						}
@@ -4011,19 +4012,21 @@ FOR JSON auto
 					}
 					
 					
-            <# now stitch in the indexes with their columns  #>
-					$indexes | Select schema, table_name, Type, index_name -Unique | foreach{
+            <# now stitch in the indexes with their columns  
+					$indexes | Select schema, table_name, Type, IndexType, index_name -Unique | foreach{
 						$indexSchema = $_.schema;
 						$indexedTable = $_.table_name;
 						$indexName = $_.index_name;
-						$columns = $indexes |
+						$indexType = $_.indexType;
+                        $columns = $indexes |
 						where{
 							$_.schema -eq $indexSchema -and
 							$_.table_name -eq $indexedTable -and
 							$_.index_name -eq $indexName
 						} | Sort-Object -Property key_ordinal | Select -ExpandProperty name
-						$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns } }
-					}
+                        Write-Warning "$indexSchema $indexedTable $indexName "
+						$SchemaTree.$indexSchema.table.$indexedTable.index += @{ $indexName = @{ 'Indexing' = $columns;'IndexType'=$indexType } }
+					} #>
 					$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 					$SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
 					$SchemaTree | convertTo-json -depth 10 > "$MycurrentReport"
@@ -4122,6 +4125,7 @@ FOR JSON auto
 	}
 	
 }
+
 
 
 <# By default, this will take the DACPAC for the current version of the database, and will 

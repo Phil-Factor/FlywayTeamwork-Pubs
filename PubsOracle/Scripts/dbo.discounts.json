@@ -1,0 +1,29 @@
+
+{
+    "data":[
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.5,
+            "Discount_id":1
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.7,
+            "Discount_id":2
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"8042",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.0,
+            "Discount_id":3
+        }
+    ]
+}

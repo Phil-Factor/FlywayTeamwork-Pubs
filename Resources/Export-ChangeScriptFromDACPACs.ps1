@@ -105,7 +105,7 @@ function Export-ChangeScriptFromDACPACS
 			#report a problem and send back the args for diagnosis (hint, only for script development)
 			$Arguments = '';
 			$Arguments += $ScriptArguments | foreach{ $_ }
-			$Problems += "Script generation Went badly. (code $LASTEXITCODE) with paramaters $Arguments"
+			$Problems += "Script generation Went badly. (code $LASTEXITCODE) with parameters $Arguments"
 		}
 		if ($problems.count -eq 0)
 		{

@@ -1,0 +1,53 @@
+
+{
+    "data":[
+        {
+            "stor_id":"6380",
+            "stor_name":"Eric the Read Books",
+            "stor_address":"788 Catamaugus Ave.",
+            "city":"Seattle",
+            "state":"WA",
+            "zip":"98056"
+        },
+        {
+            "stor_id":"7066",
+            "stor_name":"Barnum's",
+            "stor_address":"567 Pasadena Ave.",
+            "city":"Tustin",
+            "state":"CA",
+            "zip":"92789"
+        },
+        {
+            "stor_id":"7067",
+            "stor_name":"News & Brews",
+            "stor_address":"577 First St.",
+            "city":"Los Gatos",
+            "state":"CA",
+            "zip":"96745"
+        },
+        {
+            "stor_id":"7131",
+            "stor_name":"Doc-U-Mat: Quality Laundry and Books",
+            "stor_address":"24-A Avogadro Way",
+            "city":"Remulade",
+            "state":"WA",
+            "zip":"98014"
+        },
+        {
+            "stor_id":"7896",
+            "stor_name":"Fricative Bookshop",
+            "stor_address":"89 Madison St.",
+            "city":"Fremont",
+            "state":"CA",
+            "zip":"90019"
+        },
+        {
+            "stor_id":"8042",
+            "stor_name":"Bookbeat",
+            "stor_address":"679 Carson St.",
+            "city":"Portland",
+            "state":"OR",
+            "zip":"89076"
+        }
+    ]
+}
