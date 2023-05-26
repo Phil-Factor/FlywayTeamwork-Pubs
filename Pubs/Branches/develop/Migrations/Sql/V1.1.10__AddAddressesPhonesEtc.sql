@@ -341,6 +341,11 @@ INSERT INTO People.Phone (Person_id, TypeOfPhone, DiallingNumber, Start_date)
 SELECT person_ID,'Home', phone, GetDate() FROM dbo.authors
 INNER JOIN people.Person
 ON Replace(LegacyIdentifier,'au-','')=au_id
+--Add in the Employees phone numbers (these were never there so make them up)
+INSERT INTO People.Phone (Person_id, TypeOfPhone, DiallingNumber, Start_date)
+SELECT person_ID,'Home', Right('00000'+RTrim(Abs(CHECKSUM(NEWID()))),10), GetDate() FROM dbo.employee
+INNER JOIN people.Person
+ON Replace(LegacyIdentifier,'em-','')=emp_id
 
 /* Now add the publishers 
 */
