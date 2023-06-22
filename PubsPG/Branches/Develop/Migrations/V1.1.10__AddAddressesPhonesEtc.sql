@@ -292,6 +292,7 @@ SELECT person_ID,'Home', phone, Now() FROM dbo.authors
 INNER JOIN people.Person
 ON Replace(LegacyIdentifier,'au-','')=au_id;
 
+
 /* Now add the publishers 
 */
 INSERT INTO people.Address(legacyIdentifier, AddressLine2, City,Region,PostalCode,Country)

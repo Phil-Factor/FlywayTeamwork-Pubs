@@ -1,0 +1,2453 @@
+
+{
+    "data":[
+        {
+            "stor_id":"06ON",
+            "stor_name":"HotPink Stationers",
+            "stor_address":"64 East Green First Way",
+            "city":"Houston",
+            "state":"DE",
+            "zip":"42943"
+        },
+        {
+            "stor_id":"070W",
+            "stor_name":"CadetBlue Stationers",
+            "stor_address":"699 East First Way",
+            "city":"",
+            "state":"AZ",
+            "zip":"72628"
+        },
+        {
+            "stor_id":"08Q1",
+            "stor_name":"Purple distributors",
+            "stor_address":"82 West Clarendon Parkway",
+            "city":"",
+            "state":"TN",
+            "zip":"16320"
+        },
+        {
+            "stor_id":"0BJ1",
+            "stor_name":"Grey distributors",
+            "stor_address":"116 East Fabien Street",
+            "city":"Greensboro",
+            "state":"NC",
+            "zip":"24251"
+        },
+        {
+            "stor_id":"0ER6",
+            "stor_name":"Orchid Books",
+            "stor_address":"830 Second Street",
+            "city":"Hialeah",
+            "state":"OK",
+            "zip":"26425"
+        },
+        {
+            "stor_id":"0LRH",
+            "stor_name":"PaleVioletRed Academic",
+            "stor_address":"996 Fabien Drive",
+            "city":"Grand Rapids",
+            "state":"WI",
+            "zip":"84904"
+        },
+        {
+            "stor_id":"0N8E",
+            "stor_name":"DarkGreen university bookshop",
+            "stor_address":"11 Green Hague Road",
+            "city":"Las Vegas",
+            "state":"AK",
+            "zip":"19667"
+        },
+        {
+            "stor_id":"0NKQ",
+            "stor_name":"LightSkyBlue academic Bookshop",
+            "stor_address":"44 Cowley Road",
+            "city":"Long Beach",
+            "state":"PA",
+            "zip":"69842"
+        },
+        {
+            "stor_id":"12BS",
+            "stor_name":"Tomato academic Bookshop",
+            "stor_address":"591 Cowley Drive",
+            "city":"Hialeah",
+            "state":"GA",
+            "zip":"93865"
+        },
+        {
+            "stor_id":"18IR",
+            "stor_name":"PowderBlue Bookshop",
+            "stor_address":"191 Clarendon Boulevard",
+            "city":"Santa Ana",
+            "state":"CO",
+            "zip":"07932"
+        },
+        {
+            "stor_id":"1905",
+            "stor_name":"OliveDrab periodicals",
+            "stor_address":"141 North Hague Street",
+            "city":"Anaheim",
+            "state":"NE",
+            "zip":"51293"
+        },
+        {
+            "stor_id":"1QXQ",
+            "stor_name":"CadetBlue Discount Books",
+            "stor_address":"918 West White First Street",
+            "city":"Tucson",
+            "state":"IL",
+            "zip":"27814"
+        },
+        {
+            "stor_id":"2184",
+            "stor_name":"AntiqueWhite Academic",
+            "stor_address":"400 White Milton Drive",
+            "city":"Aurora",
+            "state":"MI",
+            "zip":"35369"
+        },
+        {
+            "stor_id":"21BT",
+            "stor_name":"PaleGoldenRod Bookshop",
+            "stor_address":"54 Cowley Freeway",
+            "city":"Glendale",
+            "state":"MS",
+            "zip":"47752"
+        },
+        {
+            "stor_id":"22F0",
+            "stor_name":"BlueViolet distributors",
+            "stor_address":"67 South Green Hague Way",
+            "city":"Baton Rouge",
+            "state":"MT",
+            "zip":"14940"
+        },
+        {
+            "stor_id":"22H ",
+            "stor_name":"DarkGoldenRod Discount Books",
+            "stor_address":"828 East Nobel Boulevard",
+            "city":"Los Angeles",
+            "state":"VT",
+            "zip":"79362"
+        },
+        {
+            "stor_id":"2870",
+            "stor_name":"BlueViolet Academic",
+            "stor_address":"618 West Cowley Drive",
+            "city":"New York",
+            "state":"MN",
+            "zip":"41820"
+        },
+        {
+            "stor_id":"28CN",
+            "stor_name":"Lime periodicals",
+            "stor_address":"654 White Second Parkway",
+            "city":"Jackson",
+            "state":"WA",
+            "zip":"21773"
+        },
+        {
+            "stor_id":"2NGR",
+            "stor_name":"LimeGreen periodicals",
+            "stor_address":"95 South Old Freeway",
+            "city":"Grand Rapids",
+            "state":"NY",
+            "zip":"06776"
+        },
+        {
+            "stor_id":"2R7W",
+            "stor_name":"Blue university bookshop",
+            "stor_address":"15 Hague Drive",
+            "city":"Indianapolis",
+            "state":"VA",
+            "zip":"28831"
+        },
+        {
+            "stor_id":"311X",
+            "stor_name":"Aquamarine Academic Books",
+            "stor_address":"46 Green Milton Boulevard",
+            "city":"Indianapolis",
+            "state":"NH",
+            "zip":"14215"
+        },
+        {
+            "stor_id":"38G6",
+            "stor_name":"Crimson Academic Books",
+            "stor_address":"74 White Fabien Avenue",
+            "city":"Mesa",
+            "state":"HI",
+            "zip":"04381"
+        },
+        {
+            "stor_id":"3DM9",
+            "stor_name":"PaleGoldenRod Academic Books",
+            "stor_address":"490 South Second Freeway",
+            "city":"Phoenix",
+            "state":"MA",
+            "zip":"25315"
+        },
+        {
+            "stor_id":"3GCJ",
+            "stor_name":"PaleGreen university bookshop",
+            "stor_address":"48 Green Milton Drive",
+            "city":"Nashville",
+            "state":"NJ",
+            "zip":"80833"
+        },
+        {
+            "stor_id":"3L4H",
+            "stor_name":"FireBrick Academic",
+            "stor_address":"79 West Milton St.",
+            "city":"Grand Rapids",
+            "state":"AR",
+            "zip":"76786"
+        },
+        {
+            "stor_id":"3SOG",
+            "stor_name":"DimGrey Academic",
+            "stor_address":"836 Old St.",
+            "city":"St. Louis",
+            "state":"UT",
+            "zip":"21385"
+        },
+        {
+            "stor_id":"40SM",
+            "stor_name":"SeaShell booksales",
+            "stor_address":"127 Rocky New Blvd.",
+            "city":"St. Petersburg",
+            "state":"TX",
+            "zip":"87588"
+        },
+        {
+            "stor_id":"41O9",
+            "stor_name":"Orange distributors",
+            "stor_address":"732 Rocky Fabien Avenue",
+            "city":"Tulsa",
+            "state":"MD",
+            "zip":"96360"
+        },
+        {
+            "stor_id":"46GY",
+            "stor_name":"BlueViolet Academic",
+            "stor_address":"64 White Milton Road",
+            "city":"Fort Worth",
+            "state":"MN",
+            "zip":"84465"
+        },
+        {
+            "stor_id":"4AUB",
+            "stor_name":"LightCyan distributors",
+            "stor_address":"14 Milton Road",
+            "city":"Akron",
+            "state":"GA",
+            "zip":"22739"
+        },
+        {
+            "stor_id":"4D1H",
+            "stor_name":"Teal booksales",
+            "stor_address":"35 Milton Way",
+            "city":"Glendale",
+            "state":"ME",
+            "zip":"86280"
+        },
+        {
+            "stor_id":"4Q92",
+            "stor_name":"LightSlateGray academic Bookshop",
+            "stor_address":"945 Nobel Avenue",
+            "city":"New York",
+            "state":"SD",
+            "zip":"63350"
+        },
+        {
+            "stor_id":"4S9Y",
+            "stor_name":"DodgerBlue periodicals",
+            "stor_address":"66 Green Cowley Blvd.",
+            "city":"Dayton",
+            "state":"NM",
+            "zip":"67648"
+        },
+        {
+            "stor_id":"4TOY",
+            "stor_name":"Red Bookshop",
+            "stor_address":"52 West Oak Freeway",
+            "city":"Baton Rouge",
+            "state":"AK",
+            "zip":"29742"
+        },
+        {
+            "stor_id":"4UYK",
+            "stor_name":"SeaGreen Academic Books",
+            "stor_address":"45 Second St.",
+            "city":"St. Petersburg",
+            "state":"IA",
+            "zip":"08764"
+        },
+        {
+            "stor_id":"4VFI",
+            "stor_name":"Tan Academic Books",
+            "stor_address":"76 Old Parkway",
+            "city":"Fort Worth",
+            "state":"ME",
+            "zip":"08499"
+        },
+        {
+            "stor_id":"4WJI",
+            "stor_name":"MediumOrchid Academic",
+            "stor_address":"32 First Freeway",
+            "city":"Spokane",
+            "state":"CA",
+            "zip":"40995"
+        },
+        {
+            "stor_id":"4XJQ",
+            "stor_name":"Snow distributors",
+            "stor_address":"227 Second Freeway",
+            "city":"Tacoma",
+            "state":"ME",
+            "zip":"13736"
+        },
+        {
+            "stor_id":"4Z6S",
+            "stor_name":"LightSkyBlue distributors",
+            "stor_address":"81 Fabien Road",
+            "city":"Little Rock",
+            "state":"ND",
+            "zip":"09164"
+        },
+        {
+            "stor_id":"5EX ",
+            "stor_name":"SaddleBrown Bookshop",
+            "stor_address":"506 Rocky Old Boulevard",
+            "city":"St. Paul",
+            "state":"LA",
+            "zip":"93816"
+        },
+        {
+            "stor_id":"5GRA",
+            "stor_name":"Peru Academic",
+            "stor_address":"51 Green Cowley Avenue",
+            "city":"San Francisco",
+            "state":"AR",
+            "zip":"05141"
+        },
+        {
+            "stor_id":"5HBB",
+            "stor_name":"SpringGreen university bookshop",
+            "stor_address":"957 Cowley Road",
+            "city":"Jersey",
+            "state":"AK",
+            "zip":"51225"
+        },
+        {
+            "stor_id":"5NC1",
+            "stor_name":"Grey Discount Books",
+            "stor_address":"981 North Milton Road",
+            "city":"Austin",
+            "state":"AK",
+            "zip":"65005"
+        },
+        {
+            "stor_id":"5NI6",
+            "stor_name":"Red Stationers",
+            "stor_address":"105 Fabien Avenue",
+            "city":"Seattle",
+            "state":"MI",
+            "zip":"59719"
+        },
+        {
+            "stor_id":"6380",
+            "stor_name":"Eric the Read Books",
+            "stor_address":"15 Clarendon Parkway",
+            "city":"Arlington",
+            "state":"WA",
+            "zip":"98056"
+        },
+        {
+            "stor_id":"660L",
+            "stor_name":"Orchid Books",
+            "stor_address":"63 Oak Drive",
+            "city":"Las Vegas",
+            "state":"AR",
+            "zip":"84104"
+        },
+        {
+            "stor_id":"67IH",
+            "stor_name":"MediumSeaGreen Stationers",
+            "stor_address":"671 Clarendon Blvd.",
+            "city":"Phoenix",
+            "state":"HI",
+            "zip":"20340"
+        },
+        {
+            "stor_id":"67WZ",
+            "stor_name":"PowderBlue academic Bookshop",
+            "stor_address":"444 West Rocky Milton Avenue",
+            "city":"Chicago",
+            "state":"GA",
+            "zip":"57303"
+        },
+        {
+            "stor_id":"68HH",
+            "stor_name":"LightGreen university bookshop",
+            "stor_address":"563 South New Street",
+            "city":"Richmond",
+            "state":"OR",
+            "zip":"49657"
+        },
+        {
+            "stor_id":"6DG9",
+            "stor_name":"Tomato booksales",
+            "stor_address":"908 Cowley Blvd.",
+            "city":"Garland",
+            "state":"MT",
+            "zip":"63848"
+        },
+        {
+            "stor_id":"6E2C",
+            "stor_name":"",
+            "stor_address":"702 Green Milton Blvd.",
+            "city":"Tacoma",
+            "state":"NM",
+            "zip":"43512"
+        },
+        {
+            "stor_id":"6FWY",
+            "stor_name":"Snow academic Bookshop",
+            "stor_address":"113 Hague Street",
+            "city":"Philadelphia",
+            "state":"IN",
+            "zip":"98777"
+        },
+        {
+            "stor_id":"6HGJ",
+            "stor_name":"DarkSeaGreen Discount Books",
+            "stor_address":"33 Clarendon Avenue",
+            "city":"Detroit",
+            "state":"OR",
+            "zip":"20855"
+        },
+        {
+            "stor_id":"6IZO",
+            "stor_name":"DodgerBlue Stationers",
+            "stor_address":"34 Fabien St.",
+            "city":"Richmond",
+            "state":"NC",
+            "zip":"98911"
+        },
+        {
+            "stor_id":"6J57",
+            "stor_name":"Snow Discount Books",
+            "stor_address":"98 Hague Blvd.",
+            "city":"Corpus Christi",
+            "state":"WI",
+            "zip":"05916"
+        },
+        {
+            "stor_id":"6NDJ",
+            "stor_name":"Grey periodicals",
+            "stor_address":"77 Second Boulevard",
+            "city":"Grand Rapids",
+            "state":"NM",
+            "zip":"64366"
+        },
+        {
+            "stor_id":"6YVR",
+            "stor_name":"Tomato academic Bookshop",
+            "stor_address":"24 Green Oak St.",
+            "city":"Glendale",
+            "state":"OK",
+            "zip":"87039"
+        },
+        {
+            "stor_id":"7066",
+            "stor_name":"Barnum's",
+            "stor_address":"73 Nobel Way",
+            "city":"Hialeah",
+            "state":"CA",
+            "zip":"92789"
+        },
+        {
+            "stor_id":"7067",
+            "stor_name":"News & Brews",
+            "stor_address":"143 Green Hague Avenue",
+            "city":"Fresno",
+            "state":"CA",
+            "zip":"96745"
+        },
+        {
+            "stor_id":"7131",
+            "stor_name":"Doc-U-Mat: Quality Laundry and Books",
+            "stor_address":"639 West Hague St.",
+            "city":"Mobile",
+            "state":"WA",
+            "zip":"98014"
+        },
+        {
+            "stor_id":"74I3",
+            "stor_name":"LimeGreen academic Bookshop",
+            "stor_address":"755 South Rocky Oak Avenue",
+            "city":"Tampa",
+            "state":"VA",
+            "zip":"00477"
+        },
+        {
+            "stor_id":"7896",
+            "stor_name":"Fricative Bookshop",
+            "stor_address":"115 Green Clarendon Blvd.",
+            "city":"Oakland",
+            "state":"CA",
+            "zip":"90019"
+        },
+        {
+            "stor_id":"7LJA",
+            "stor_name":"LightBlue Academic Books",
+            "stor_address":"81 Green First Avenue",
+            "city":"Glendale",
+            "state":"UT",
+            "zip":"24849"
+        },
+        {
+            "stor_id":"7OFJ",
+            "stor_name":"SaddleBrown booksales",
+            "stor_address":"417 White Nobel Freeway",
+            "city":"Aurora",
+            "state":"MT",
+            "zip":"93126"
+        },
+        {
+            "stor_id":"7TLL",
+            "stor_name":"OliveDrab Books",
+            "stor_address":"93 West White New Boulevard",
+            "city":"Sacramento",
+            "state":"DE",
+            "zip":"15439"
+        },
+        {
+            "stor_id":"7WA4",
+            "stor_name":"Sienna Books",
+            "stor_address":"82 North Old Road",
+            "city":"Des Moines",
+            "state":"NY",
+            "zip":"10500"
+        },
+        {
+            "stor_id":"7XKT",
+            "stor_name":"LightCoral Academic",
+            "stor_address":"11 Oak Drive",
+            "city":"Mobile",
+            "state":"CA",
+            "zip":"41352"
+        },
+        {
+            "stor_id":"8042",
+            "stor_name":"Bookbeat",
+            "stor_address":"43 White Fabien Drive",
+            "city":"Santa Ana",
+            "state":"OR",
+            "zip":"89076"
+        },
+        {
+            "stor_id":"81OC",
+            "stor_name":"SeaGreen Academic Books",
+            "stor_address":"94 Old Avenue",
+            "city":"Sacramento",
+            "state":"IA",
+            "zip":"16215"
+        },
+        {
+            "stor_id":"8335",
+            "stor_name":"Plum academic Bookshop",
+            "stor_address":"36 North New Blvd.",
+            "city":"Seattle",
+            "state":"SC",
+            "zip":"91908"
+        },
+        {
+            "stor_id":"83VR",
+            "stor_name":"SpringGreen newsagents",
+            "stor_address":"18 Rocky Hague Avenue",
+            "city":"Raleigh",
+            "state":"MI",
+            "zip":"74050"
+        },
+        {
+            "stor_id":"840 ",
+            "stor_name":"PowderBlue academic Bookshop",
+            "stor_address":"87 New Parkway",
+            "city":"",
+            "state":"NH",
+            "zip":"61563"
+        },
+        {
+            "stor_id":"8764",
+            "stor_name":"Tan Stationers",
+            "stor_address":"81 Nobel Avenue",
+            "city":"San Antonio",
+            "state":"MD",
+            "zip":""
+        },
+        {
+            "stor_id":"8C4N",
+            "stor_name":"LawnGreen Stationers",
+            "stor_address":"201 Oak Boulevard",
+            "city":"Dallas",
+            "state":"MN",
+            "zip":"09689"
+        },
+        {
+            "stor_id":"8K12",
+            "stor_name":"PaleTurquoise distributors",
+            "stor_address":"191 Milton Parkway",
+            "city":"Des Moines",
+            "state":"NC",
+            "zip":"24275"
+        },
+        {
+            "stor_id":"8LSR",
+            "stor_name":"LightYellow distributors",
+            "stor_address":"26 East White Cowley Way",
+            "city":"Greensboro",
+            "state":"NY",
+            "zip":"93229"
+        },
+        {
+            "stor_id":"8T64",
+            "stor_name":"Navy Academic Books",
+            "stor_address":"743 Oak Way",
+            "city":"Nashville",
+            "state":"WI",
+            "zip":"37066"
+        },
+        {
+            "stor_id":"8VKI",
+            "stor_name":"PaleGreen Academic",
+            "stor_address":"63 West Green Clarendon St.",
+            "city":"Colorado",
+            "state":"NH",
+            "zip":"46526"
+        },
+        {
+            "stor_id":"8X6F",
+            "stor_name":"Orange Academic",
+            "stor_address":"645 Rocky Second Road",
+            "city":"Los Angeles",
+            "state":"WV",
+            "zip":"53582"
+        },
+        {
+            "stor_id":"92IX",
+            "stor_name":"Peru Bookshop",
+            "stor_address":"284 East Milton Freeway",
+            "city":"Portland",
+            "state":"NV",
+            "zip":"90194"
+        },
+        {
+            "stor_id":"92UQ",
+            "stor_name":"DodgerBlue university bookshop",
+            "stor_address":"16 White Old Avenue",
+            "city":"Norfolk",
+            "state":"ME",
+            "zip":"02363"
+        },
+        {
+            "stor_id":"9411",
+            "stor_name":"Tan Stationers",
+            "stor_address":"368 White Nobel Blvd.",
+            "city":"Omaha",
+            "state":"SD",
+            "zip":"93951"
+        },
+        {
+            "stor_id":"958P",
+            "stor_name":"Beige distributors",
+            "stor_address":"55 Second Road",
+            "city":"Columbus",
+            "state":"AZ",
+            "zip":"09153"
+        },
+        {
+            "stor_id":"96FV",
+            "stor_name":"Wheat Discount Books",
+            "stor_address":"69 Green New Freeway",
+            "city":"Seattle",
+            "state":"KY",
+            "zip":"43893"
+        },
+        {
+            "stor_id":"98LP",
+            "stor_name":"GhostWhite Discount Books",
+            "stor_address":"74 Old Drive",
+            "city":"Anchorage",
+            "state":"MN",
+            "zip":"58691"
+        },
+        {
+            "stor_id":"9A6Y",
+            "stor_name":"Thistle Stationers",
+            "stor_address":"63 West Rocky Nobel Way",
+            "city":"Santa Ana",
+            "state":"NC",
+            "zip":"76167"
+        },
+        {
+            "stor_id":"9M5E",
+            "stor_name":"Snow newsagents",
+            "stor_address":"74 Second Street",
+            "city":"Raleigh",
+            "state":"MN",
+            "zip":"20100"
+        },
+        {
+            "stor_id":"9N8O",
+            "stor_name":"OldLace Academic Books",
+            "stor_address":"191 Hague Freeway",
+            "city":"Lincoln",
+            "state":"MI",
+            "zip":"38318"
+        },
+        {
+            "stor_id":"AAQB",
+            "stor_name":"Beige Academic Books",
+            "stor_address":"85 Rocky Cowley Avenue",
+            "city":"Honolulu",
+            "state":"MD",
+            "zip":"16063"
+        },
+        {
+            "stor_id":"AHWB",
+            "stor_name":"LightCoral academic Bookshop",
+            "stor_address":"16 Clarendon St.",
+            "city":"San Francisco",
+            "state":"KS",
+            "zip":"74284"
+        },
+        {
+            "stor_id":"AL4P",
+            "stor_name":"DarkKhaki Academic Books",
+            "stor_address":"873 West Green Fabien Road",
+            "city":"Lincoln",
+            "state":"SD",
+            "zip":"35336"
+        },
+        {
+            "stor_id":"ALAS",
+            "stor_name":"Orchid Bookshop",
+            "stor_address":"301 Oak Way",
+            "city":"Glendale",
+            "state":"NH",
+            "zip":"78192"
+        },
+        {
+            "stor_id":"AOJF",
+            "stor_name":"GreenYellow periodicals",
+            "stor_address":"501 Green Nobel Drive",
+            "city":"Pittsburgh",
+            "state":"NV",
+            "zip":"30502"
+        },
+        {
+            "stor_id":"AOT0",
+            "stor_name":"DarkSlateGrey Books",
+            "stor_address":"14 Green Second Road",
+            "city":"Boston",
+            "state":"OR",
+            "zip":"03473"
+        },
+        {
+            "stor_id":"AWY2",
+            "stor_name":"Orange Academic",
+            "stor_address":"65 New St.",
+            "city":"Charlotte",
+            "state":"MT",
+            "zip":"60172"
+        },
+        {
+            "stor_id":"B359",
+            "stor_name":"DarkGoldenRod newsagents",
+            "stor_address":"13 Nobel Drive",
+            "city":"Toledo",
+            "state":"IN",
+            "zip":"94003"
+        },
+        {
+            "stor_id":"B7XW",
+            "stor_name":"Snow newsagents",
+            "stor_address":"218 Cowley Freeway",
+            "city":"Lincoln",
+            "state":"MA",
+            "zip":"26241"
+        },
+        {
+            "stor_id":"BGRN",
+            "stor_name":"Sienna Bookshop",
+            "stor_address":"100 South Clarendon Street",
+            "city":"Honolulu",
+            "state":"WA",
+            "zip":"66989"
+        },
+        {
+            "stor_id":"BK6M",
+            "stor_name":"DarkMagenta Academic",
+            "stor_address":"644 Oak Freeway",
+            "city":"Charlotte",
+            "state":"MO",
+            "zip":"79717"
+        },
+        {
+            "stor_id":"BT1U",
+            "stor_name":"Sienna booksales",
+            "stor_address":"23 Clarendon Parkway",
+            "city":"Jackson",
+            "state":"DE",
+            "zip":"93988"
+        },
+        {
+            "stor_id":"BVR4",
+            "stor_name":"White university bookshop",
+            "stor_address":"278 Cowley Freeway",
+            "city":"Omaha",
+            "state":"IN",
+            "zip":"46404"
+        },
+        {
+            "stor_id":"C632",
+            "stor_name":"DarkGoldenRod newsagents",
+            "stor_address":"298 New Street",
+            "city":"Norfolk",
+            "state":"MI",
+            "zip":"26639"
+        },
+        {
+            "stor_id":"CDIP",
+            "stor_name":"Cornsilk academic Bookshop",
+            "stor_address":"43 Milton Way",
+            "city":"Detroit",
+            "state":"NY",
+            "zip":"23932"
+        },
+        {
+            "stor_id":"CLY9",
+            "stor_name":"LightSlateGray Stationers",
+            "stor_address":"950 Green Hague Street",
+            "city":"Tampa",
+            "state":"PA",
+            "zip":"21013"
+        },
+        {
+            "stor_id":"CR8Q",
+            "stor_name":"Snow newsagents",
+            "stor_address":"338 Nobel Boulevard",
+            "city":"Austin",
+            "state":"AL",
+            "zip":"43560"
+        },
+        {
+            "stor_id":"CY8K",
+            "stor_name":"Orchid Stationers",
+            "stor_address":"391 Hague St.",
+            "city":"Buffalo",
+            "state":"MD",
+            "zip":"96290"
+        },
+        {
+            "stor_id":"CYLV",
+            "stor_name":"Violet distributors",
+            "stor_address":"73 Green First Freeway",
+            "city":"Corpus Christi",
+            "state":"IA",
+            "zip":"90298"
+        },
+        {
+            "stor_id":"D75O",
+            "stor_name":"PaleGoldenRod academic Bookshop",
+            "stor_address":"644 First St.",
+            "city":"Mobile",
+            "state":"IA",
+            "zip":"76306"
+        },
+        {
+            "stor_id":"DFTA",
+            "stor_name":"GreenYellow Discount Books",
+            "stor_address":"70 West White Old St.",
+            "city":"Fort Wayne",
+            "state":"OR",
+            "zip":"85983"
+        },
+        {
+            "stor_id":"DFVP",
+            "stor_name":"Cornsilk Academic Books",
+            "stor_address":"762 West Old St.",
+            "city":"Pittsburgh",
+            "state":"SD",
+            "zip":"88871"
+        },
+        {
+            "stor_id":"DKG7",
+            "stor_name":"DarkCyan Academic Books",
+            "stor_address":"52 Clarendon Street",
+            "city":"Hialeah",
+            "state":"OH",
+            "zip":"91328"
+        },
+        {
+            "stor_id":"DO0X",
+            "stor_name":"DeepSkyBlue academic Bookshop",
+            "stor_address":"747 Green First Drive",
+            "city":"Madison",
+            "state":"IA",
+            "zip":"85691"
+        },
+        {
+            "stor_id":"DO3O",
+            "stor_name":"Yellow university bookshop",
+            "stor_address":"725 Old Street",
+            "city":"Lubbock",
+            "state":"NH",
+            "zip":"22675"
+        },
+        {
+            "stor_id":"DRRH",
+            "stor_name":"Aqua booksales",
+            "stor_address":"495 Green New Street",
+            "city":"Richmond",
+            "state":"GA",
+            "zip":"11151"
+        },
+        {
+            "stor_id":"DVEN",
+            "stor_name":"MediumTurquoise Bookshop",
+            "stor_address":"",
+            "city":"Shreveport",
+            "state":"WV",
+            "zip":"16652"
+        },
+        {
+            "stor_id":"DW6B",
+            "stor_name":"Tomato Academic",
+            "stor_address":"81 White Clarendon Road",
+            "city":"Des Moines",
+            "state":"ME",
+            "zip":"52607"
+        },
+        {
+            "stor_id":"E46L",
+            "stor_name":"MediumTurquoise distributors",
+            "stor_address":"722 Hague Way",
+            "city":"Bakersfield",
+            "state":"NE",
+            "zip":"78908"
+        },
+        {
+            "stor_id":"E9AI",
+            "stor_name":"LightSlateGrey academic Bookshop",
+            "stor_address":"67 Hague Way",
+            "city":"Louisville",
+            "state":"IL",
+            "zip":"99153"
+        },
+        {
+            "stor_id":"ECQ3",
+            "stor_name":"Magenta Academic",
+            "stor_address":"34 Old St.",
+            "city":"Tulsa",
+            "state":"MI",
+            "zip":"34715"
+        },
+        {
+            "stor_id":"EHUA",
+            "stor_name":"LightBlue university bookshop",
+            "stor_address":"96 New St.",
+            "city":"Newark",
+            "state":"CO",
+            "zip":"43936"
+        },
+        {
+            "stor_id":"EOLZ",
+            "stor_name":"LightSlateGray Academic",
+            "stor_address":"24 Oak Street",
+            "city":"Anchorage",
+            "state":"LA",
+            "zip":"17943"
+        },
+        {
+            "stor_id":"EOY3",
+            "stor_name":"Purple distributors",
+            "stor_address":"797 Nobel Boulevard",
+            "city":"Anaheim",
+            "state":"CT",
+            "zip":"02585"
+        },
+        {
+            "stor_id":"ERXE",
+            "stor_name":"Wheat Books",
+            "stor_address":"78 East First Street",
+            "city":"Arlington",
+            "state":"MS",
+            "zip":"25879"
+        },
+        {
+            "stor_id":"ESBM",
+            "stor_name":"AliceBlue newsagents",
+            "stor_address":"61 Nobel Drive",
+            "city":"Nashville",
+            "state":"TX",
+            "zip":"92179"
+        },
+        {
+            "stor_id":"EZ1A",
+            "stor_name":"LightSlateGrey distributors",
+            "stor_address":"746 Old Street",
+            "city":"San Francisco",
+            "state":"RI",
+            "zip":"71605"
+        },
+        {
+            "stor_id":"F0ZR",
+            "stor_name":"MediumVioletRed Stationers",
+            "stor_address":"991 White Old Avenue",
+            "city":"Mobile",
+            "state":"PA",
+            "zip":"46780"
+        },
+        {
+            "stor_id":"F14L",
+            "stor_name":"PaleVioletRed periodicals",
+            "stor_address":"860 South White Oak Road",
+            "city":"El Paso",
+            "state":"KY",
+            "zip":"14725"
+        },
+        {
+            "stor_id":"F1ZW",
+            "stor_name":"Sienna Academic",
+            "stor_address":"489 Green Nobel Avenue",
+            "city":"Des Moines",
+            "state":"NC",
+            "zip":"09496"
+        },
+        {
+            "stor_id":"F7Q7",
+            "stor_name":"",
+            "stor_address":"782 Hague Freeway",
+            "city":"Virginia Beach",
+            "state":"UT",
+            "zip":"22925"
+        },
+        {
+            "stor_id":"FAK5",
+            "stor_name":"LimeGreen Stationers",
+            "stor_address":"28 New Road",
+            "city":"Long Beach",
+            "state":"MS",
+            "zip":"26683"
+        },
+        {
+            "stor_id":"FE1W",
+            "stor_name":"LightCyan Discount Books",
+            "stor_address":"89 East First Boulevard",
+            "city":"Norfolk",
+            "state":"AL",
+            "zip":"50702"
+        },
+        {
+            "stor_id":"FH1X",
+            "stor_name":"BlanchedAlmond Stationers",
+            "stor_address":"882 South Second Street",
+            "city":"Spokane",
+            "state":"ME",
+            "zip":"25223"
+        },
+        {
+            "stor_id":"FPSK",
+            "stor_name":"DimGray Stationers",
+            "stor_address":"67 New St.",
+            "city":"Seattle",
+            "state":"SD",
+            "zip":"49091"
+        },
+        {
+            "stor_id":"FU99",
+            "stor_name":"DimGrey academic Bookshop",
+            "stor_address":"",
+            "city":"Arlington",
+            "state":"MS",
+            "zip":"82893"
+        },
+        {
+            "stor_id":"FVWK",
+            "stor_name":"Chartreuse booksales",
+            "stor_address":"53 Clarendon Parkway",
+            "city":"Colorado",
+            "state":"AR",
+            "zip":"57117"
+        },
+        {
+            "stor_id":"FYKF",
+            "stor_name":"FloralWhite Academic Books",
+            "stor_address":"508 West Rocky Hague Street",
+            "city":"Atlanta",
+            "state":"ID",
+            "zip":"16289"
+        },
+        {
+            "stor_id":"FZAK",
+            "stor_name":"Green Discount Books",
+            "stor_address":"87 West White Nobel St.",
+            "city":"Corpus Christi",
+            "state":"ND",
+            "zip":"42557"
+        },
+        {
+            "stor_id":"FZJX",
+            "stor_name":"Magenta university bookshop",
+            "stor_address":"",
+            "city":"Phoenix",
+            "state":"MT",
+            "zip":"87877"
+        },
+        {
+            "stor_id":"G2Q7",
+            "stor_name":"SeaShell booksales",
+            "stor_address":"787 North Hague Road",
+            "city":"Buffalo",
+            "state":"FL",
+            "zip":"50703"
+        },
+        {
+            "stor_id":"G5N2",
+            "stor_name":"FloralWhite newsagents",
+            "stor_address":"167 Second Parkway",
+            "city":"Jersey",
+            "state":"WI",
+            "zip":"74761"
+        },
+        {
+            "stor_id":"G69O",
+            "stor_name":"LightGray periodicals",
+            "stor_address":"97 Rocky Oak Street",
+            "city":"Detroit",
+            "state":"",
+            "zip":"63947"
+        },
+        {
+            "stor_id":"GDL1",
+            "stor_name":"Purple periodicals",
+            "stor_address":"152 White Nobel Road",
+            "city":"Tucson",
+            "state":"SD",
+            "zip":"85107"
+        },
+        {
+            "stor_id":"GFM ",
+            "stor_name":"",
+            "stor_address":"736 White Nobel Drive",
+            "city":"Norfolk",
+            "state":"AR",
+            "zip":"71960"
+        },
+        {
+            "stor_id":"GJI9",
+            "stor_name":"PaleGoldenRod Academic",
+            "stor_address":"780 Nobel Way",
+            "city":"Aurora",
+            "state":"IN",
+            "zip":"66246"
+        },
+        {
+            "stor_id":"GJT ",
+            "stor_name":"Fuchsia Academic Books",
+            "stor_address":"11 First Road",
+            "city":"Long Beach",
+            "state":"PA",
+            "zip":"48067"
+        },
+        {
+            "stor_id":"GONF",
+            "stor_name":"Snow academic Bookshop",
+            "stor_address":"30 East First Boulevard",
+            "city":"Shreveport",
+            "state":"FL",
+            "zip":"51156"
+        },
+        {
+            "stor_id":"GT2E",
+            "stor_name":"DeepPink Academic",
+            "stor_address":"",
+            "city":"Anchorage",
+            "state":"LA",
+            "zip":"54995"
+        },
+        {
+            "stor_id":"GV3F",
+            "stor_name":"Violet academic Bookshop",
+            "stor_address":"559 Hague Way",
+            "city":"Dayton",
+            "state":"OR",
+            "zip":"52489"
+        },
+        {
+            "stor_id":"H2BQ",
+            "stor_name":"RosyBrown Academic",
+            "stor_address":"391 Old Freeway",
+            "city":"Wichita",
+            "state":"OK",
+            "zip":"08331"
+        },
+        {
+            "stor_id":"H2GU",
+            "stor_name":"Yellow Academic Books",
+            "stor_address":"26 North Hague Avenue",
+            "city":"Fresno",
+            "state":"IA",
+            "zip":"64823"
+        },
+        {
+            "stor_id":"H2VC",
+            "stor_name":"FireBrick Academic",
+            "stor_address":"520 Rocky Fabien Freeway",
+            "city":"Boston",
+            "state":"LA",
+            "zip":"39760"
+        },
+        {
+            "stor_id":"H7GX",
+            "stor_name":"PaleTurquoise Discount Books",
+            "stor_address":"33 White Old Road",
+            "city":"Jacksonville",
+            "state":"SD",
+            "zip":"74560"
+        },
+        {
+            "stor_id":"HCS9",
+            "stor_name":"LightSteelBlue Stationers",
+            "stor_address":"616 Green Hague Boulevard",
+            "city":"Aurora",
+            "state":"KS",
+            "zip":"85575"
+        },
+        {
+            "stor_id":"HDTD",
+            "stor_name":"Beige Discount Books",
+            "stor_address":"11 Green Old St.",
+            "city":"Grand Rapids",
+            "state":"AK",
+            "zip":"65921"
+        },
+        {
+            "stor_id":"HDY1",
+            "stor_name":"DarkSlateBlue Academic",
+            "stor_address":"412 New Drive",
+            "city":"Baltimore",
+            "state":"CT",
+            "zip":"87240"
+        },
+        {
+            "stor_id":"HEBZ",
+            "stor_name":"SteelBlue distributors",
+            "stor_address":"406 North Oak Street",
+            "city":"Richmond",
+            "state":"OH",
+            "zip":"61775"
+        },
+        {
+            "stor_id":"HV5U",
+            "stor_name":"Lime university bookshop",
+            "stor_address":"712 Nobel Drive",
+            "city":"Des Moines",
+            "state":"MS",
+            "zip":"91048"
+        },
+        {
+            "stor_id":"ICSS",
+            "stor_name":"LightGreen Academic",
+            "stor_address":"639 White Oak St.",
+            "city":"Atlanta",
+            "state":"NM",
+            "zip":"34983"
+        },
+        {
+            "stor_id":"IINI",
+            "stor_name":"Gray Stationers",
+            "stor_address":"914 Second Parkway",
+            "city":"Austin",
+            "state":"GA",
+            "zip":"36188"
+        },
+        {
+            "stor_id":"IU0J",
+            "stor_name":"Coral Discount Books",
+            "stor_address":"56 East First Parkway",
+            "city":"Louisville",
+            "state":"NM",
+            "zip":"36276"
+        },
+        {
+            "stor_id":"JDA9",
+            "stor_name":"DeepSkyBlue Academic",
+            "stor_address":"880 First St.",
+            "city":"Philadelphia",
+            "state":"ND",
+            "zip":"70403"
+        },
+        {
+            "stor_id":"JE04",
+            "stor_name":"LightSeaGreen booksales",
+            "stor_address":"62 East Green Nobel Parkway",
+            "city":"Richmond",
+            "state":"ND",
+            "zip":"75227"
+        },
+        {
+            "stor_id":"JECE",
+            "stor_name":"Thistle Academic Books",
+            "stor_address":"279 Hague Drive",
+            "city":"Charlotte",
+            "state":"NY",
+            "zip":"92264"
+        },
+        {
+            "stor_id":"JITL",
+            "stor_name":"DarkGreen Academic",
+            "stor_address":"56 First Street",
+            "city":"Toledo",
+            "state":"DE",
+            "zip":"26888"
+        },
+        {
+            "stor_id":"JKYZ",
+            "stor_name":"Fuchsia academic Bookshop",
+            "stor_address":"24 Milton Drive",
+            "city":"Lincoln",
+            "state":"CO",
+            "zip":"80910"
+        },
+        {
+            "stor_id":"K01Z",
+            "stor_name":"Crimson distributors",
+            "stor_address":"127 North White Old Drive",
+            "city":"Baltimore",
+            "state":"CT",
+            "zip":"46659"
+        },
+        {
+            "stor_id":"K6MM",
+            "stor_name":"Darkorange Academic",
+            "stor_address":"86 White Second Drive",
+            "city":"Lubbock",
+            "state":"AR",
+            "zip":"07843"
+        },
+        {
+            "stor_id":"KI5L",
+            "stor_name":"OrangeRed Academic",
+            "stor_address":"934 Fabien Way",
+            "city":"Lincoln",
+            "state":"UT",
+            "zip":"68163"
+        },
+        {
+            "stor_id":"KLS7",
+            "stor_name":"DarkSlateBlue university bookshop",
+            "stor_address":"84 North White Fabien Avenue",
+            "city":"Austin",
+            "state":"NM",
+            "zip":"24044"
+        },
+        {
+            "stor_id":"KRYK",
+            "stor_name":"AliceBlue university bookshop",
+            "stor_address":"57 Rocky Hague Blvd.",
+            "city":"Newark",
+            "state":"MS",
+            "zip":"88649"
+        },
+        {
+            "stor_id":"L8K3",
+            "stor_name":"Gray periodicals",
+            "stor_address":"992 Hague Blvd.",
+            "city":"Portland",
+            "state":"AZ",
+            "zip":"29565"
+        },
+        {
+            "stor_id":"LBZA",
+            "stor_name":"BlanchedAlmond university bookshop",
+            "stor_address":"83 Hague Avenue",
+            "city":"Charlotte",
+            "state":"WV",
+            "zip":"07106"
+        },
+        {
+            "stor_id":"LK93",
+            "stor_name":"SteelBlue newsagents",
+            "stor_address":"57 White Milton Drive",
+            "city":"",
+            "state":"KS",
+            "zip":"71445"
+        },
+        {
+            "stor_id":"LQZ7",
+            "stor_name":"Beige newsagents",
+            "stor_address":"145 Second Blvd.",
+            "city":"Long Beach",
+            "state":"RI",
+            "zip":"13650"
+        },
+        {
+            "stor_id":"LUBW",
+            "stor_name":"AliceBlue Discount Books",
+            "stor_address":"26 White Fabien Drive",
+            "city":"Hialeah",
+            "state":"KS",
+            "zip":"90051"
+        },
+        {
+            "stor_id":"M1W2",
+            "stor_name":"LightCyan Books",
+            "stor_address":"39 White Milton St.",
+            "city":"Stockton",
+            "state":"AL",
+            "zip":"07496"
+        },
+        {
+            "stor_id":"M2V5",
+            "stor_name":"LightBlue Bookshop",
+            "stor_address":"88 Rocky Milton Street",
+            "city":"Yonkers",
+            "state":"AR",
+            "zip":"90919"
+        },
+        {
+            "stor_id":"M7T9",
+            "stor_name":"DarkSalmon Stationers",
+            "stor_address":"107 Green Fabien Parkway",
+            "city":"Omaha",
+            "state":"KY",
+            "zip":"77618"
+        },
+        {
+            "stor_id":"MC2W",
+            "stor_name":"DarkGrey Stationers",
+            "stor_address":"807 Cowley Street",
+            "city":"Fort Worth",
+            "state":"RI",
+            "zip":"85111"
+        },
+        {
+            "stor_id":"MECR",
+            "stor_name":"SlateGrey distributors",
+            "stor_address":"256 Green Fabien Avenue",
+            "city":"Memphis",
+            "state":"MN",
+            "zip":"34903"
+        },
+        {
+            "stor_id":"MIF6",
+            "stor_name":"SandyBrown distributors",
+            "stor_address":"294 Green Clarendon Road",
+            "city":"Mesa",
+            "state":"NE",
+            "zip":"39794"
+        },
+        {
+            "stor_id":"MIQF",
+            "stor_name":"MediumBlue Stationers",
+            "stor_address":"991 West White New Drive",
+            "city":"Colorado",
+            "state":"MS",
+            "zip":"14553"
+        },
+        {
+            "stor_id":"MJ5I",
+            "stor_name":"DimGrey university bookshop",
+            "stor_address":"314 North Milton St.",
+            "city":"Garland",
+            "state":"OK",
+            "zip":"59663"
+        },
+        {
+            "stor_id":"MTOY",
+            "stor_name":"Cornsilk periodicals",
+            "stor_address":"749 Old Boulevard",
+            "city":"Tampa",
+            "state":"WY",
+            "zip":"11417"
+        },
+        {
+            "stor_id":"MYZJ",
+            "stor_name":"CornflowerBlue Academic",
+            "stor_address":"62 South Clarendon Street",
+            "city":"Rochester",
+            "state":"NM",
+            "zip":"22838"
+        },
+        {
+            "stor_id":"MZVQ",
+            "stor_name":"DodgerBlue distributors",
+            "stor_address":"226 Hague Road",
+            "city":"Des Moines",
+            "state":"SD",
+            "zip":"01550"
+        },
+        {
+            "stor_id":"N29J",
+            "stor_name":"Lime university bookshop",
+            "stor_address":"77 North Oak Street",
+            "city":"Minneapolis",
+            "state":"IL",
+            "zip":"34876"
+        },
+        {
+            "stor_id":"N84 ",
+            "stor_name":"Maroon university bookshop",
+            "stor_address":"22 Cowley St.",
+            "city":"Toledo",
+            "state":"IL",
+            "zip":"83589"
+        },
+        {
+            "stor_id":"N8DE",
+            "stor_name":"LightPink newsagents",
+            "stor_address":"997 New St.",
+            "city":"Tacoma",
+            "state":"NM",
+            "zip":"24901"
+        },
+        {
+            "stor_id":"N8LS",
+            "stor_name":"GoldenRod newsagents",
+            "stor_address":"87 New Way",
+            "city":"Glendale",
+            "state":"NJ",
+            "zip":"66076"
+        },
+        {
+            "stor_id":"NA4G",
+            "stor_name":"FireBrick booksales",
+            "stor_address":"88 Old Way",
+            "city":"San Antonio",
+            "state":"TN",
+            "zip":"83070"
+        },
+        {
+            "stor_id":"NCLX",
+            "stor_name":"SeaGreen Academic",
+            "stor_address":"92 White Milton Way",
+            "city":"Riverside",
+            "state":"KS",
+            "zip":"23410"
+        },
+        {
+            "stor_id":"NFJQ",
+            "stor_name":"MidnightBlue distributors",
+            "stor_address":"87 Rocky Old Avenue",
+            "city":"Baltimore",
+            "state":"VT",
+            "zip":"55277"
+        },
+        {
+            "stor_id":"NHX5",
+            "stor_name":"Thistle Discount Books",
+            "stor_address":"919 Green Hague St.",
+            "city":"Jacksonville",
+            "state":"NH",
+            "zip":"12437"
+        },
+        {
+            "stor_id":"NK1X",
+            "stor_name":"ForestGreen Stationers",
+            "stor_address":"24 North Hague Way",
+            "city":"Jacksonville",
+            "state":"DE",
+            "zip":"42284"
+        },
+        {
+            "stor_id":"NO2Q",
+            "stor_name":"Snow newsagents",
+            "stor_address":"139 Rocky Hague Parkway",
+            "city":"Baton Rouge",
+            "state":"MT",
+            "zip":"29562"
+        },
+        {
+            "stor_id":"NO7B",
+            "stor_name":"Orchid Books",
+            "stor_address":"22 Nobel Drive",
+            "city":"Washington",
+            "state":"AZ",
+            "zip":"51104"
+        },
+        {
+            "stor_id":"NSVT",
+            "stor_name":"LightGrey Discount Books",
+            "stor_address":"64 Green Cowley Drive",
+            "city":"New York",
+            "state":"WV",
+            "zip":"99479"
+        },
+        {
+            "stor_id":"NYZJ",
+            "stor_name":"Navy distributors",
+            "stor_address":"547 Second Blvd.",
+            "city":"Indianapolis",
+            "state":"OH",
+            "zip":"15135"
+        },
+        {
+            "stor_id":"O09B",
+            "stor_name":"Orchid periodicals",
+            "stor_address":"928 Fabien Street",
+            "city":"Mobile",
+            "state":"OR",
+            "zip":"59998"
+        },
+        {
+            "stor_id":"O1MX",
+            "stor_name":"SpringGreen distributors",
+            "stor_address":"90 West Rocky Milton Drive",
+            "city":"Oakland",
+            "state":"NC",
+            "zip":"92402"
+        },
+        {
+            "stor_id":"OHJH",
+            "stor_name":"LavenderBlush Discount Books",
+            "stor_address":"32 White Hague Blvd.",
+            "city":"Chicago",
+            "state":"AR",
+            "zip":"70964"
+        },
+        {
+            "stor_id":"OOPR",
+            "stor_name":"",
+            "stor_address":"30 South Second Way",
+            "city":"Columbus",
+            "state":"AR",
+            "zip":"12207"
+        },
+        {
+            "stor_id":"OT3N",
+            "stor_name":"Brown Bookshop",
+            "stor_address":"932 Old St.",
+            "city":"Tacoma",
+            "state":"CO",
+            "zip":"95006"
+        },
+        {
+            "stor_id":"OTBQ",
+            "stor_name":"DeepSkyBlue Books",
+            "stor_address":"587 East Green Cowley Boulevard",
+            "city":"Tacoma",
+            "state":"KY",
+            "zip":"75922"
+        },
+        {
+            "stor_id":"OTHR",
+            "stor_name":"DarkBlue university bookshop",
+            "stor_address":"39 Rocky Clarendon St.",
+            "city":"Las Vegas",
+            "state":"HI",
+            "zip":"06175"
+        },
+        {
+            "stor_id":"P1OM",
+            "stor_name":"Red Discount Books",
+            "stor_address":"72 Clarendon Freeway",
+            "city":"Detroit",
+            "state":"TN",
+            "zip":"34483"
+        },
+        {
+            "stor_id":"P30F",
+            "stor_name":"Darkorange newsagents",
+            "stor_address":"21 White Milton Boulevard",
+            "city":"Cincinnati",
+            "state":"CA",
+            "zip":"01041"
+        },
+        {
+            "stor_id":"P38X",
+            "stor_name":"OrangeRed university bookshop",
+            "stor_address":"44 White Cowley Way",
+            "city":"Norfolk",
+            "state":"CA",
+            "zip":"25001"
+        },
+        {
+            "stor_id":"P4DN",
+            "stor_name":"HoneyDew university bookshop",
+            "stor_address":"524 Old Street",
+            "city":"Grand Rapids",
+            "state":"OR",
+            "zip":"35165"
+        },
+        {
+            "stor_id":"P5DZ",
+            "stor_name":"Pink Books",
+            "stor_address":"895 White Second Blvd.",
+            "city":"New York",
+            "state":"SC",
+            "zip":"60117"
+        },
+        {
+            "stor_id":"P9SB",
+            "stor_name":"LightYellow university bookshop",
+            "stor_address":"",
+            "city":"St. Louis",
+            "state":"CO",
+            "zip":"82724"
+        },
+        {
+            "stor_id":"PCKE",
+            "stor_name":"Linen periodicals",
+            "stor_address":"36 West Rocky Clarendon Avenue",
+            "city":"Hialeah",
+            "state":"IL",
+            "zip":"78568"
+        },
+        {
+            "stor_id":"POJ1",
+            "stor_name":"SeaGreen newsagents",
+            "stor_address":"26 Second Boulevard",
+            "city":"Jacksonville",
+            "state":"GA",
+            "zip":"39669"
+        },
+        {
+            "stor_id":"PSIJ",
+            "stor_name":"Black Books",
+            "stor_address":"42 Fabien Blvd.",
+            "city":"Rochester",
+            "state":"CO",
+            "zip":"03100"
+        },
+        {
+            "stor_id":"Q43Y",
+            "stor_name":"LightSlateGrey distributors",
+            "stor_address":"766 White Oak Avenue",
+            "city":"Hialeah",
+            "state":"OK",
+            "zip":"35715"
+        },
+        {
+            "stor_id":"Q89Z",
+            "stor_name":"DarkGoldenRod Books",
+            "stor_address":"41 Green Second Parkway",
+            "city":"Arlington",
+            "state":"KY",
+            "zip":"10412"
+        },
+        {
+            "stor_id":"Q9FS",
+            "stor_name":"LightSeaGreen Stationers",
+            "stor_address":"69 White Fabien Boulevard",
+            "city":"Anaheim",
+            "state":"IN",
+            "zip":"28952"
+        },
+        {
+            "stor_id":"QE5Q",
+            "stor_name":"GoldenRod Stationers",
+            "stor_address":"121 East Rocky Second Drive",
+            "city":"Grand Rapids",
+            "state":"ME",
+            "zip":"48034"
+        },
+        {
+            "stor_id":"QHD5",
+            "stor_name":"Purple Academic Books",
+            "stor_address":"246 Clarendon St.",
+            "city":"Nashville",
+            "state":"WV",
+            "zip":"64063"
+        },
+        {
+            "stor_id":"QT3Z",
+            "stor_name":"OldLace Books",
+            "stor_address":"27 Old St.",
+            "city":"Los Angeles",
+            "state":"AL",
+            "zip":"09613"
+        },
+        {
+            "stor_id":"QT4Q",
+            "stor_name":"IndianRed newsagents",
+            "stor_address":"46 Oak Street",
+            "city":"Corpus Christi",
+            "state":"MI",
+            "zip":"43144"
+        },
+        {
+            "stor_id":"R1AB",
+            "stor_name":"",
+            "stor_address":"56 White Oak Way",
+            "city":"Glendale",
+            "state":"WI",
+            "zip":"12394"
+        },
+        {
+            "stor_id":"R8W5",
+            "stor_name":"DarkCyan Academic",
+            "stor_address":"54 White Oak Avenue",
+            "city":"Louisville",
+            "state":"AL",
+            "zip":"36659"
+        },
+        {
+            "stor_id":"RHH9",
+            "stor_name":"Olive periodicals",
+            "stor_address":"72 East Milton Street",
+            "city":"Richmond",
+            "state":"MD",
+            "zip":"52550"
+        },
+        {
+            "stor_id":"RJCS",
+            "stor_name":"FloralWhite Books",
+            "stor_address":"54 Cowley Street",
+            "city":"Sacramento",
+            "state":"MN",
+            "zip":"11815"
+        },
+        {
+            "stor_id":"RJF2",
+            "stor_name":"LightSeaGreen academic Bookshop",
+            "stor_address":"318 White Cowley St.",
+            "city":"Fresno",
+            "state":"OH",
+            "zip":"34575"
+        },
+        {
+            "stor_id":"RKTW",
+            "stor_name":"LightSeaGreen distributors",
+            "stor_address":"288 East Rocky Milton Drive",
+            "city":"Richmond",
+            "state":"KY",
+            "zip":"95508"
+        },
+        {
+            "stor_id":"RQ3J",
+            "stor_name":"LightGrey Books",
+            "stor_address":"152 Cowley Street",
+            "city":"San Jose",
+            "state":"WY",
+            "zip":"20687"
+        },
+        {
+            "stor_id":"S0BB",
+            "stor_name":"DarkMagenta academic Bookshop",
+            "stor_address":"798 Rocky New Avenue",
+            "city":"Hialeah",
+            "state":"HI",
+            "zip":"31141"
+        },
+        {
+            "stor_id":"S6CZ",
+            "stor_name":"SteelBlue Books",
+            "stor_address":"518 White New St.",
+            "city":"Richmond",
+            "state":"WV",
+            "zip":"73438"
+        },
+        {
+            "stor_id":"SCEJ",
+            "stor_name":"MistyRose Books",
+            "stor_address":"574 Old Parkway",
+            "city":"San Antonio",
+            "state":"WY",
+            "zip":"65300"
+        },
+        {
+            "stor_id":"SD4R",
+            "stor_name":"SandyBrown university bookshop",
+            "stor_address":"98 Rocky First Drive",
+            "city":"Wichita",
+            "state":"KY",
+            "zip":"73949"
+        },
+        {
+            "stor_id":"SDCF",
+            "stor_name":"Fuchsia periodicals",
+            "stor_address":"71 West Old Road",
+            "city":"Columbus",
+            "state":"SC",
+            "zip":"65849"
+        },
+        {
+            "stor_id":"SKQN",
+            "stor_name":"FloralWhite booksales",
+            "stor_address":"486 West Old Boulevard",
+            "city":"Miami",
+            "state":"",
+            "zip":"12038"
+        },
+        {
+            "stor_id":"SMW1",
+            "stor_name":"SpringGreen Bookshop",
+            "stor_address":"880 Fabien Way",
+            "city":"Anaheim",
+            "state":"PA",
+            "zip":"76239"
+        },
+        {
+            "stor_id":"SNF6",
+            "stor_name":"DarkGrey Stationers",
+            "stor_address":"28 Second Way",
+            "city":"Oakland",
+            "state":"TN",
+            "zip":"17950"
+        },
+        {
+            "stor_id":"SZLU",
+            "stor_name":"Ivory distributors",
+            "stor_address":"831 Nobel Parkway",
+            "city":"Memphis",
+            "state":"ME",
+            "zip":"48389"
+        },
+        {
+            "stor_id":"T5IE",
+            "stor_name":"MediumVioletRed booksales",
+            "stor_address":"781 South Hague Avenue",
+            "city":"Arlington",
+            "state":"NC",
+            "zip":"51390"
+        },
+        {
+            "stor_id":"TBAB",
+            "stor_name":"Lavender periodicals",
+            "stor_address":"533 North Rocky Milton Blvd.",
+            "city":"Akron",
+            "state":"MO",
+            "zip":"80748"
+        },
+        {
+            "stor_id":"TE8J",
+            "stor_name":"Teal Bookshop",
+            "stor_address":"492 Oak Road",
+            "city":"Buffalo",
+            "state":"NJ",
+            "zip":"55730"
+        },
+        {
+            "stor_id":"TGZI",
+            "stor_name":"AntiqueWhite periodicals",
+            "stor_address":"36 Green Old Blvd.",
+            "city":"Arlington",
+            "state":"CT",
+            "zip":"19160"
+        },
+        {
+            "stor_id":"TKWO",
+            "stor_name":"LightCyan distributors",
+            "stor_address":"49 Rocky Oak Parkway",
+            "city":"Indianapolis",
+            "state":"AL",
+            "zip":"88515"
+        },
+        {
+            "stor_id":"TO8N",
+            "stor_name":"Coral Books",
+            "stor_address":"20 Oak Blvd.",
+            "city":"Jacksonville",
+            "state":"NC",
+            "zip":"01269"
+        },
+        {
+            "stor_id":"TUQ8",
+            "stor_name":"SeaShell Academic Books",
+            "stor_address":"382 Hague Avenue",
+            "city":"Glendale",
+            "state":"OR",
+            "zip":"03485"
+        },
+        {
+            "stor_id":"TZL2",
+            "stor_name":"PaleGreen Books",
+            "stor_address":"816 East Fabien Road",
+            "city":"Aurora",
+            "state":"MI",
+            "zip":"76405"
+        },
+        {
+            "stor_id":"U7PD",
+            "stor_name":"GoldenRod booksales",
+            "stor_address":"610 Clarendon Freeway",
+            "city":"Minneapolis",
+            "state":"NJ",
+            "zip":"89012"
+        },
+        {
+            "stor_id":"U8ZR",
+            "stor_name":"HotPink academic Bookshop",
+            "stor_address":"34 White Nobel Road",
+            "city":"Shreveport",
+            "state":"AK",
+            "zip":"17328"
+        },
+        {
+            "stor_id":"UCCP",
+            "stor_name":"MediumBlue newsagents",
+            "stor_address":"263 Second Blvd.",
+            "city":"New York",
+            "state":"CO",
+            "zip":"58854"
+        },
+        {
+            "stor_id":"UEFE",
+            "stor_name":"LightYellow newsagents",
+            "stor_address":"49 Green Hague Road",
+            "city":"Spokane",
+            "state":"FL",
+            "zip":"68356"
+        },
+        {
+            "stor_id":"UGP ",
+            "stor_name":"Aqua Books",
+            "stor_address":"67 Rocky Hague Road",
+            "city":"Chicago",
+            "state":"IN",
+            "zip":"73044"
+        },
+        {
+            "stor_id":"UH2R",
+            "stor_name":"OrangeRed university bookshop",
+            "stor_address":"10 Clarendon Way",
+            "city":"Kansas",
+            "state":"TN",
+            "zip":"62944"
+        },
+        {
+            "stor_id":"UIOM",
+            "stor_name":"LightSlateGray newsagents",
+            "stor_address":"61 Green Cowley Street",
+            "city":"Tulsa",
+            "state":"NY",
+            "zip":"70749"
+        },
+        {
+            "stor_id":"UJ9O",
+            "stor_name":"Salmon academic Bookshop",
+            "stor_address":"31 Hague Way",
+            "city":"Austin",
+            "state":"IL",
+            "zip":"16594"
+        },
+        {
+            "stor_id":"UUEX",
+            "stor_name":"HotPink university bookshop",
+            "stor_address":"767 Green Milton Parkway",
+            "city":"Minneapolis",
+            "state":"VT",
+            "zip":"76974"
+        },
+        {
+            "stor_id":"UV7Q",
+            "stor_name":"LightPink periodicals",
+            "stor_address":"812 East Green Clarendon St.",
+            "city":"Arlington",
+            "state":"NH",
+            "zip":"62538"
+        },
+        {
+            "stor_id":"UVFL",
+            "stor_name":"DarkSlateGray academic Bookshop",
+            "stor_address":"22 North Rocky Milton St.",
+            "city":"Tampa",
+            "state":"WV",
+            "zip":"79373"
+        },
+        {
+            "stor_id":"V09G",
+            "stor_name":"Chocolate academic Bookshop",
+            "stor_address":"80 Green New St.",
+            "city":"Grand Rapids",
+            "state":"MN",
+            "zip":"97281"
+        },
+        {
+            "stor_id":"V0L2",
+            "stor_name":"LightSeaGreen university bookshop",
+            "stor_address":"398 White Old Drive",
+            "city":"Tampa",
+            "state":"UT",
+            "zip":"18231"
+        },
+        {
+            "stor_id":"V0Z1",
+            "stor_name":"DeepPink Academic",
+            "stor_address":"17 First Street",
+            "city":"Santa Ana",
+            "state":"WI",
+            "zip":"84656"
+        },
+        {
+            "stor_id":"V1IW",
+            "stor_name":"ForestGreen newsagents",
+            "stor_address":"32 Fabien Drive",
+            "city":"Birmingham",
+            "state":"HI",
+            "zip":"45686"
+        },
+        {
+            "stor_id":"V85I",
+            "stor_name":"Cyan Academic Books",
+            "stor_address":"295 North Rocky Milton Avenue",
+            "city":"Corpus Christi",
+            "state":"NH",
+            "zip":"44620"
+        },
+        {
+            "stor_id":"VCDU",
+            "stor_name":"Fuchsia Discount Books",
+            "stor_address":"810 Second Parkway",
+            "city":"Fort Wayne",
+            "state":"NV",
+            "zip":"31632"
+        },
+        {
+            "stor_id":"VDDG",
+            "stor_name":"Fuchsia academic Bookshop",
+            "stor_address":"75 East Milton Street",
+            "city":"Yonkers",
+            "state":"WV",
+            "zip":"72056"
+        },
+        {
+            "stor_id":"VH9S",
+            "stor_name":"MediumOrchid periodicals",
+            "stor_address":"765 Rocky Hague Drive",
+            "city":"Miami",
+            "state":"AL",
+            "zip":"64286"
+        },
+        {
+            "stor_id":"VKH1",
+            "stor_name":"DeepPink newsagents",
+            "stor_address":"13 East Hague Street",
+            "city":"Washington",
+            "state":"KS",
+            "zip":"66838"
+        },
+        {
+            "stor_id":"VQH1",
+            "stor_name":"Gold academic Bookshop",
+            "stor_address":"670 East Old Way",
+            "city":"Little Rock",
+            "state":"IN",
+            "zip":"85993"
+        },
+        {
+            "stor_id":"VWW2",
+            "stor_name":"Khaki Discount Books",
+            "stor_address":"84 Cowley Street",
+            "city":"Albuquerque",
+            "state":"NY",
+            "zip":"14403"
+        },
+        {
+            "stor_id":"W89H",
+            "stor_name":"Aqua booksales",
+            "stor_address":"638 East White Milton Parkway",
+            "city":"Kansas",
+            "state":"PA",
+            "zip":"06948"
+        },
+        {
+            "stor_id":"W8V1",
+            "stor_name":"IndianRed university bookshop",
+            "stor_address":"293 Milton Blvd.",
+            "city":"Garland",
+            "state":"CO",
+            "zip":"10947"
+        },
+        {
+            "stor_id":"WBXY",
+            "stor_name":"DarkSlateGray university bookshop",
+            "stor_address":"724 Oak St.",
+            "city":"Riverside",
+            "state":"MO",
+            "zip":"77569"
+        },
+        {
+            "stor_id":"WJ99",
+            "stor_name":"Green university bookshop",
+            "stor_address":"78 Fabien Drive",
+            "city":"Austin",
+            "state":"AR",
+            "zip":"65640"
+        },
+        {
+            "stor_id":"WM04",
+            "stor_name":"Linen periodicals",
+            "stor_address":"38 Hague St.",
+            "city":"Grand Rapids",
+            "state":"TX",
+            "zip":"88628"
+        },
+        {
+            "stor_id":"WNUC",
+            "stor_name":"Sienna Bookshop",
+            "stor_address":"57 Second Avenue",
+            "city":"Mesa",
+            "state":"OK",
+            "zip":"63471"
+        },
+        {
+            "stor_id":"WQN7",
+            "stor_name":"DarkOliveGreen Discount Books",
+            "stor_address":"620 Fabien Way",
+            "city":"Columbus",
+            "state":"AR",
+            "zip":"98862"
+        },
+        {
+            "stor_id":"XF6K",
+            "stor_name":"Tan distributors",
+            "stor_address":"38 Second Parkway",
+            "city":"Sacramento",
+            "state":"MO",
+            "zip":"71058"
+        },
+        {
+            "stor_id":"XKPN",
+            "stor_name":"IndianRed Discount Books",
+            "stor_address":"62 Milton St.",
+            "city":"Bakersfield",
+            "state":"NV",
+            "zip":"88349"
+        },
+        {
+            "stor_id":"XLVK",
+            "stor_name":"Purple booksales",
+            "stor_address":"98 Hague St.",
+            "city":"Austin",
+            "state":"MA",
+            "zip":"27266"
+        },
+        {
+            "stor_id":"XMDF",
+            "stor_name":"DimGray academic Bookshop",
+            "stor_address":"435 Fabien Boulevard",
+            "city":"Fort Worth",
+            "state":"CO",
+            "zip":"79325"
+        },
+        {
+            "stor_id":"XNTX",
+            "stor_name":"PaleGreen Academic Books",
+            "stor_address":"78 White Cowley Avenue",
+            "city":"Colorado",
+            "state":"MT",
+            "zip":"14736"
+        },
+        {
+            "stor_id":"XOMA",
+            "stor_name":"HoneyDew Bookshop",
+            "stor_address":"877 White First Boulevard",
+            "city":"San Francisco",
+            "state":"WA",
+            "zip":"12480"
+        },
+        {
+            "stor_id":"XOVC",
+            "stor_name":"DarkSeaGreen Bookshop",
+            "stor_address":"99 Green Second St.",
+            "city":"Detroit",
+            "state":"MD",
+            "zip":"85440"
+        },
+        {
+            "stor_id":"XP4E",
+            "stor_name":"PaleGreen Discount Books",
+            "stor_address":"310 Green Clarendon Way",
+            "city":"Grand Rapids",
+            "state":"OK",
+            "zip":"74598"
+        },
+        {
+            "stor_id":"XPG3",
+            "stor_name":"DarkMagenta booksales",
+            "stor_address":"64 Nobel Parkway",
+            "city":"St. Petersburg",
+            "state":"OR",
+            "zip":"13823"
+        },
+        {
+            "stor_id":"XQ0E",
+            "stor_name":"Navy distributors",
+            "stor_address":"381 White Oak Avenue",
+            "city":"Portland",
+            "state":"HI",
+            "zip":"08899"
+        },
+        {
+            "stor_id":"XR3O",
+            "stor_name":"DarkCyan distributors",
+            "stor_address":"55 First Boulevard",
+            "city":"Birmingham",
+            "state":"FL",
+            "zip":"42292"
+        },
+        {
+            "stor_id":"XZEP",
+            "stor_name":"OldLace Bookshop",
+            "stor_address":"17 Clarendon Street",
+            "city":"Toledo",
+            "state":"AK",
+            "zip":"34642"
+        },
+        {
+            "stor_id":"Y3T3",
+            "stor_name":"MediumSlateBlue university bookshop",
+            "stor_address":"824 West Green Old Drive",
+            "city":"Montgomery",
+            "state":"MD",
+            "zip":"91864"
+        },
+        {
+            "stor_id":"Y629",
+            "stor_name":"PowderBlue periodicals",
+            "stor_address":"80 North Milton Drive",
+            "city":"Phoenix",
+            "state":"AR",
+            "zip":"57524"
+        },
+        {
+            "stor_id":"Y7GD",
+            "stor_name":"ForestGreen periodicals",
+            "stor_address":"982 South Hague Avenue",
+            "city":"San Francisco",
+            "state":"NM",
+            "zip":"81718"
+        },
+        {
+            "stor_id":"Y90L",
+            "stor_name":"HotPink Academic Books",
+            "stor_address":"49 West White Oak Avenue",
+            "city":"Denver",
+            "state":"",
+            "zip":"46503"
+        },
+        {
+            "stor_id":"YB0H",
+            "stor_name":"DarkSlateGrey Stationers",
+            "stor_address":"59 White Cowley Freeway",
+            "city":"",
+            "state":"TN",
+            "zip":"83754"
+        },
+        {
+            "stor_id":"YH8A",
+            "stor_name":"Violet Books",
+            "stor_address":"71 Green Hague Freeway",
+            "city":"Tacoma",
+            "state":"DE",
+            "zip":"07885"
+        },
+        {
+            "stor_id":"YSXF",
+            "stor_name":"SteelBlue Discount Books",
+            "stor_address":"704 Clarendon Street",
+            "city":"Portland",
+            "state":"AR",
+            "zip":"28595"
+        },
+        {
+            "stor_id":"YVCX",
+            "stor_name":"Purple Stationers",
+            "stor_address":"175 Oak Avenue",
+            "city":"Sacramento",
+            "state":"NM",
+            "zip":"23211"
+        },
+        {
+            "stor_id":"YVQO",
+            "stor_name":"PaleTurquoise Stationers",
+            "stor_address":"104 South Hague Freeway",
+            "city":"Indianapolis",
+            "state":"RI",
+            "zip":"22088"
+        },
+        {
+            "stor_id":"Z7RB",
+            "stor_name":"LightCoral Discount Books",
+            "stor_address":"795 White Milton Street",
+            "city":"Jackson",
+            "state":"AK",
+            "zip":"97465"
+        },
+        {
+            "stor_id":"ZLPO",
+            "stor_name":"BurlyWood Stationers",
+            "stor_address":"40 Rocky Milton Blvd.",
+            "city":"Corpus Christi",
+            "state":"NY",
+            "zip":"59529"
+        },
+        {
+            "stor_id":"ZLTH",
+            "stor_name":"YellowGreen Books",
+            "stor_address":"676 Green Fabien Avenue",
+            "city":"Arlington",
+            "state":"RI",
+            "zip":"73871"
+        },
+        {
+            "stor_id":"ZO30",
+            "stor_name":"White Stationers",
+            "stor_address":"709 Hague Parkway",
+            "city":"",
+            "state":"DE",
+            "zip":"43715"
+        },
+        {
+            "stor_id":"ZOC1",
+            "stor_name":"Blue distributors",
+            "stor_address":"54 Rocky First Parkway",
+            "city":"El Paso",
+            "state":"RI",
+            "zip":"03212"
+        },
+        {
+            "stor_id":"ZOLS",
+            "stor_name":"Thistle newsagents",
+            "stor_address":"973 New Freeway",
+            "city":"Lubbock",
+            "state":"NM",
+            "zip":"15195"
+        },
+        {
+            "stor_id":"ZOQ ",
+            "stor_name":"PeachPuff Academic Books",
+            "stor_address":"92 Fabien Way",
+            "city":"Washington",
+            "state":"OK",
+            "zip":"99414"
+        },
+        {
+            "stor_id":"ZUO9",
+            "stor_name":"LightGray Bookshop",
+            "stor_address":"727 Hague Blvd.",
+            "city":"Arlington",
+            "state":"SD",
+            "zip":"58001"
+        },
+        {
+            "stor_id":"ZXUK",
+            "stor_name":"HoneyDew Academic",
+            "stor_address":"15 White Hague Road",
+            "city":"Raleigh",
+            "state":"AZ",
+            "zip":"68645"
+        },
+        {
+            "stor_id":"ZZVT",
+            "stor_name":"CadetBlue periodicals",
+            "stor_address":"752 Rocky Oak Street",
+            "city":"Dayton",
+            "state":"AL",
+            "zip":"86623"
+        }
+    ]
+}

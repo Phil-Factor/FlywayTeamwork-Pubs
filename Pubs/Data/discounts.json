@@ -1,0 +1,2429 @@
+
+{
+    "data":[
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"7896",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.5,
+            "Discount_id":1
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"7131",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.7,
+            "Discount_id":2
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"7131",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.0,
+            "Discount_id":3
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"UGP ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.05,
+            "Discount_id":4
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"L8K3",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.4,
+            "Discount_id":5
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"LBZA",
+            "lowqty":100,
+            "highqty":"",
+            "discount":7.56,
+            "Discount_id":6
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"FYKF",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.3,
+            "Discount_id":7
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"96FV",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.12,
+            "Discount_id":8
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"GFM ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.53,
+            "Discount_id":9
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"GJI9",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.39,
+            "Discount_id":10
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"18IR",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.97,
+            "Discount_id":11
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"ZXUK",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.75,
+            "Discount_id":12
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"B7XW",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.64,
+            "Discount_id":13
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"V0Z1",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.07,
+            "Discount_id":14
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"18IR",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.13,
+            "Discount_id":15
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"JE04",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":11.81,
+            "Discount_id":16
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"P5DZ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.31,
+            "Discount_id":17
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"3L4H",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.79,
+            "Discount_id":18
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"G2Q7",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.6,
+            "Discount_id":19
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"ZOQ ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.12,
+            "Discount_id":20
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"SDCF",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.86,
+            "Discount_id":21
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"E46L",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.67,
+            "Discount_id":22
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"YH8A",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.33,
+            "Discount_id":23
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"QHD5",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.8,
+            "Discount_id":24
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"96FV",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":14.77,
+            "Discount_id":25
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"TO8N",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.24,
+            "Discount_id":26
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"G5N2",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.53,
+            "Discount_id":27
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"8042",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.01,
+            "Discount_id":28
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"QHD5",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.71,
+            "Discount_id":29
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"H2GU",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.64,
+            "Discount_id":30
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"W89H",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.66,
+            "Discount_id":31
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"RJCS",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.41,
+            "Discount_id":32
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"P38X",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.38,
+            "Discount_id":33
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"7XKT",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.96,
+            "Discount_id":34
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"WQN7",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":12.07,
+            "Discount_id":35
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"UVFL",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.55,
+            "Discount_id":36
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"NSVT",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.01,
+            "Discount_id":37
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"8042",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.65,
+            "Discount_id":38
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"GV3F",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.3,
+            "Discount_id":39
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"QT3Z",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.6,
+            "Discount_id":40
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"4D1H",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.74,
+            "Discount_id":41
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"QHD5",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.95,
+            "Discount_id":42
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XKPN",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.53,
+            "Discount_id":43
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"GONF",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":7.65,
+            "Discount_id":44
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"BT1U",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.1,
+            "Discount_id":45
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"GJI9",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.03,
+            "Discount_id":46
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"U8ZR",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.45,
+            "Discount_id":47
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"SDCF",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.71,
+            "Discount_id":48
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"AL4P",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.71,
+            "Discount_id":49
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"OOPR",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.11,
+            "Discount_id":50
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"9N8O",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.06,
+            "Discount_id":51
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"81OC",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.74,
+            "Discount_id":52
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"311X",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.3,
+            "Discount_id":53
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"PCKE",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.22,
+            "Discount_id":54
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XPG3",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.64,
+            "Discount_id":55
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XQ0E",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.23,
+            "Discount_id":56
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"XF6K",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.32,
+            "Discount_id":57
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"46GY",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.88,
+            "Discount_id":58
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"4S9Y",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.29,
+            "Discount_id":59
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"YB0H",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.17,
+            "Discount_id":60
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"660L",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":11.03,
+            "Discount_id":61
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"LUBW",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":7.28,
+            "Discount_id":62
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"N8LS",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.41,
+            "Discount_id":63
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.9,
+            "Discount_id":64
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"V1IW",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.73,
+            "Discount_id":65
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"9M5E",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.55,
+            "Discount_id":66
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"YSXF",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.37,
+            "Discount_id":67
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ECQ3",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.69,
+            "Discount_id":68
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"9A6Y",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.0,
+            "Discount_id":69
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"JECE",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.57,
+            "Discount_id":70
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"9A6Y",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.79,
+            "Discount_id":71
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"V0Z1",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.65,
+            "Discount_id":72
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4Q92",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.48,
+            "Discount_id":73
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ERXE",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.0,
+            "Discount_id":74
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"5EX ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.38,
+            "Discount_id":75
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"N8DE",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.9,
+            "Discount_id":76
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"P4DN",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.13,
+            "Discount_id":77
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"6HGJ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.68,
+            "Discount_id":78
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"N29J",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.71,
+            "Discount_id":79
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"ZZVT",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":7.73,
+            "Discount_id":80
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"2R7W",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.79,
+            "Discount_id":81
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"V09G",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.81,
+            "Discount_id":82
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"NSVT",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":14.31,
+            "Discount_id":83
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"Z7RB",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.6,
+            "Discount_id":84
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"HV5U",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.58,
+            "Discount_id":85
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"UCCP",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.91,
+            "Discount_id":86
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"M2V5",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.11,
+            "Discount_id":87
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"OTHR",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.15,
+            "Discount_id":88
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"AOJF",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.33,
+            "Discount_id":89
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"GFM ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.84,
+            "Discount_id":90
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"7XKT",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":13.23,
+            "Discount_id":91
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"83VR",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.13,
+            "Discount_id":92
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"FZAK",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.35,
+            "Discount_id":93
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"0N8E",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.13,
+            "Discount_id":94
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"UEFE",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.57,
+            "Discount_id":95
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XNTX",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.46,
+            "Discount_id":96
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"HEBZ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.54,
+            "Discount_id":97
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ZXUK",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.64,
+            "Discount_id":98
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"O09B",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.91,
+            "Discount_id":99
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"YVQO",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.55,
+            "Discount_id":100
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"SNF6",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.65,
+            "Discount_id":101
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"F7Q7",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.76,
+            "Discount_id":102
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"WJ99",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.7,
+            "Discount_id":103
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"8X6F",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.13,
+            "Discount_id":104
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"WQN7",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.32,
+            "Discount_id":105
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"WBXY",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.4,
+            "Discount_id":106
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"TE8J",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.26,
+            "Discount_id":107
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"D75O",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.29,
+            "Discount_id":108
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"1905",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.85,
+            "Discount_id":109
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"4XJQ",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.73,
+            "Discount_id":110
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"H7GX",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.1,
+            "Discount_id":111
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"92UQ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.64,
+            "Discount_id":112
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"8K12",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.17,
+            "Discount_id":113
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"5GRA",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.55,
+            "Discount_id":114
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"LBZA",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.38,
+            "Discount_id":115
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"CR8Q",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.22,
+            "Discount_id":116
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4AUB",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":7.97,
+            "Discount_id":117
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"Q9FS",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.81,
+            "Discount_id":118
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"O09B",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.32,
+            "Discount_id":119
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"9411",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.82,
+            "Discount_id":120
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"7131",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.44,
+            "Discount_id":121
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"H2VC",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.22,
+            "Discount_id":122
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"BGRN",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.36,
+            "Discount_id":123
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"8K12",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":14.17,
+            "Discount_id":124
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"N29J",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.34,
+            "Discount_id":125
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.66,
+            "Discount_id":126
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"YVCX",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.31,
+            "Discount_id":127
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"SNF6",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.35,
+            "Discount_id":128
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"7067",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.44,
+            "Discount_id":129
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"4TOY",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":13.92,
+            "Discount_id":130
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4Q92",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":8.35,
+            "Discount_id":131
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"NO7B",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.49,
+            "Discount_id":132
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"8C4N",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":9.76,
+            "Discount_id":133
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"VDDG",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":14.17,
+            "Discount_id":134
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"XLVK",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.09,
+            "Discount_id":135
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"G69O",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.02,
+            "Discount_id":136
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"T5IE",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.11,
+            "Discount_id":137
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"NYZJ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.17,
+            "Discount_id":138
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"N29J",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.28,
+            "Discount_id":139
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"NA4G",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":13.18,
+            "Discount_id":140
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"VWW2",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.65,
+            "Discount_id":141
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"5NC1",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.82,
+            "Discount_id":142
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.31,
+            "Discount_id":143
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"OTHR",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.6,
+            "Discount_id":144
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"VKH1",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":11.75,
+            "Discount_id":145
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"TE8J",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.59,
+            "Discount_id":146
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"UJ9O",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":14.96,
+            "Discount_id":147
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"IU0J",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.8,
+            "Discount_id":148
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"NK1X",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.76,
+            "Discount_id":149
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"B7XW",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.34,
+            "Discount_id":150
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"TUQ8",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.49,
+            "Discount_id":151
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XP4E",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.73,
+            "Discount_id":152
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"7067",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.31,
+            "Discount_id":153
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"OOPR",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.1,
+            "Discount_id":154
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"JITL",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.1,
+            "Discount_id":155
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"SNF6",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.44,
+            "Discount_id":156
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"4D1H",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.41,
+            "Discount_id":157
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4WJI",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":7.54,
+            "Discount_id":158
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"LK93",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":11.79,
+            "Discount_id":159
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"NO7B",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":12.65,
+            "Discount_id":160
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"LUBW",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.1,
+            "Discount_id":161
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ZUO9",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.91,
+            "Discount_id":162
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"4WJI",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":7.85,
+            "Discount_id":163
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"NFJQ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.94,
+            "Discount_id":164
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"8X6F",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.38,
+            "Discount_id":165
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"0BJ1",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.6,
+            "Discount_id":166
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"AL4P",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.89,
+            "Discount_id":167
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"UH2R",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.01,
+            "Discount_id":168
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"YB0H",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.47,
+            "Discount_id":169
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"Y7GD",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.36,
+            "Discount_id":170
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"WQN7",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.11,
+            "Discount_id":171
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"V0L2",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.81,
+            "Discount_id":172
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"KLS7",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":8.53,
+            "Discount_id":173
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"F7Q7",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.15,
+            "Discount_id":174
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"FAK5",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.17,
+            "Discount_id":175
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"MTOY",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.63,
+            "Discount_id":176
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XNTX",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.92,
+            "Discount_id":177
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"P38X",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.76,
+            "Discount_id":178
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"GFM ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.41,
+            "Discount_id":179
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"7XKT",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.76,
+            "Discount_id":180
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"IU0J",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.71,
+            "Discount_id":181
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"Y90L",
+            "lowqty":100,
+            "highqty":"",
+            "discount":5.5,
+            "Discount_id":182
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"HCS9",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.59,
+            "Discount_id":183
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"7066",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.1,
+            "Discount_id":184
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"N8DE",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.42,
+            "Discount_id":185
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"XLVK",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.62,
+            "Discount_id":186
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"SCEJ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.17,
+            "Discount_id":187
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"4WJI",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":12.67,
+            "Discount_id":188
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"N84 ",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":11.06,
+            "Discount_id":189
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"LUBW",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.65,
+            "Discount_id":190
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"VH9S",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.61,
+            "Discount_id":191
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"DW6B",
+            "lowqty":100,
+            "highqty":"",
+            "discount":12.57,
+            "Discount_id":192
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"OT3N",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":7.37,
+            "Discount_id":193
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"JITL",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.64,
+            "Discount_id":194
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"68HH",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":8.08,
+            "Discount_id":195
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"2R7W",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.74,
+            "Discount_id":196
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"ZOLS",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.96,
+            "Discount_id":197
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"C632",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.37,
+            "Discount_id":198
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"IINI",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.22,
+            "Discount_id":199
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"VCDU",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":11.14,
+            "Discount_id":200
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4VFI",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.7,
+            "Discount_id":201
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"SZLU",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":13.94,
+            "Discount_id":202
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"S6CZ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.33,
+            "Discount_id":203
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"6IZO",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.4,
+            "Discount_id":204
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"6J57",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.23,
+            "Discount_id":205
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"R8W5",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.67,
+            "Discount_id":206
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"8335",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.2,
+            "Discount_id":207
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"21BT",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.17,
+            "Discount_id":208
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"H2BQ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.92,
+            "Discount_id":209
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"MZVQ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.48,
+            "Discount_id":210
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"TO8N",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.52,
+            "Discount_id":211
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"4Q92",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":8.65,
+            "Discount_id":212
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"JDA9",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.12,
+            "Discount_id":213
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"DVEN",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.04,
+            "Discount_id":214
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"G5N2",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.94,
+            "Discount_id":215
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"MECR",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.59,
+            "Discount_id":216
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"T5IE",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.32,
+            "Discount_id":217
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"PSIJ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":11.75,
+            "Discount_id":218
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"GFM ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.51,
+            "Discount_id":219
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"UVFL",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.75,
+            "Discount_id":220
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XLVK",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":14.43,
+            "Discount_id":221
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"UEFE",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.22,
+            "Discount_id":222
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"S0BB",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.96,
+            "Discount_id":223
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"XP4E",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.82,
+            "Discount_id":224
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"ZUO9",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.75,
+            "Discount_id":225
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"KLS7",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.54,
+            "Discount_id":226
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"YVQO",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.43,
+            "Discount_id":227
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"FH1X",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.9,
+            "Discount_id":228
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"2870",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.07,
+            "Discount_id":229
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"AWY2",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":14.43,
+            "Discount_id":230
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"VH9S",
+            "lowqty":"",
+            "highqty":"",
+            "discount":10.66,
+            "Discount_id":231
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"OTBQ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.54,
+            "Discount_id":232
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ZUO9",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.54,
+            "Discount_id":233
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"22H ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.28,
+            "Discount_id":234
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"PSIJ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.05,
+            "Discount_id":235
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"UEFE",
+            "lowqty":100,
+            "highqty":"",
+            "discount":7.77,
+            "Discount_id":236
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"IINI",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.18,
+            "Discount_id":237
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"HV5U",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.2,
+            "Discount_id":238
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"DW6B",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.86,
+            "Discount_id":239
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"E9AI",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":6.75,
+            "Discount_id":240
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"UUEX",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.42,
+            "Discount_id":241
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"R1AB",
+            "lowqty":100,
+            "highqty":"",
+            "discount":7.01,
+            "Discount_id":242
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"JITL",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.74,
+            "Discount_id":243
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"3DM9",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.58,
+            "Discount_id":244
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XOMA",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.13,
+            "Discount_id":245
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"O09B",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.96,
+            "Discount_id":246
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"8764",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":12.44,
+            "Discount_id":247
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"L8K3",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.34,
+            "Discount_id":248
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"RKTW",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.69,
+            "Discount_id":249
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"MIF6",
+            "lowqty":"",
+            "highqty":"",
+            "discount":13.49,
+            "Discount_id":250
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"6NDJ",
+            "lowqty":100,
+            "highqty":"",
+            "discount":13.43,
+            "Discount_id":251
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"WBXY",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.21,
+            "Discount_id":252
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"8764",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.86,
+            "Discount_id":253
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"NO7B",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.47,
+            "Discount_id":254
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"XR3O",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.71,
+            "Discount_id":255
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"KI5L",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.48,
+            "Discount_id":256
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"8X6F",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.98,
+            "Discount_id":257
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"6FWY",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.52,
+            "Discount_id":258
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"R1AB",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.64,
+            "Discount_id":259
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"L8K3",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.7,
+            "Discount_id":260
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"N8DE",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.24,
+            "Discount_id":261
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"YVQO",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.3,
+            "Discount_id":262
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"P4DN",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.09,
+            "Discount_id":263
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"Q43Y",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.49,
+            "Discount_id":264
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"NCLX",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.82,
+            "Discount_id":265
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"NO7B",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.98,
+            "Discount_id":266
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XR3O",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":13.11,
+            "Discount_id":267
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"4TOY",
+            "lowqty":100,
+            "highqty":"",
+            "discount":8.85,
+            "Discount_id":268
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XLVK",
+            "lowqty":"",
+            "highqty":"",
+            "discount":9.98,
+            "Discount_id":269
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"6FWY",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.16,
+            "Discount_id":270
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"TBAB",
+            "lowqty":100,
+            "highqty":"",
+            "discount":10.41,
+            "Discount_id":271
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"ERXE",
+            "lowqty":100,
+            "highqty":"",
+            "discount":7.11,
+            "Discount_id":272
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"83VR",
+            "lowqty":100,
+            "highqty":"",
+            "discount":6.89,
+            "Discount_id":273
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"LQZ7",
+            "lowqty":"",
+            "highqty":"",
+            "discount":7.76,
+            "Discount_id":274
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"OTHR",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":10.33,
+            "Discount_id":275
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"QT4Q",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.42,
+            "Discount_id":276
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"6DG9",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":12.48,
+            "Discount_id":277
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"FZJX",
+            "lowqty":100,
+            "highqty":"",
+            "discount":9.37,
+            "Discount_id":278
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"3DM9",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.69,
+            "Discount_id":279
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"Z7RB",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.79,
+            "Discount_id":280
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"XLVK",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":14.1,
+            "Discount_id":281
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"67WZ",
+            "lowqty":"",
+            "highqty":"",
+            "discount":12.1,
+            "Discount_id":282
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"ESBM",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.21,
+            "Discount_id":283
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"MYZJ",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":9.58,
+            "Discount_id":284
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"XMDF",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.0,
+            "Discount_id":285
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"6FWY",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":5.44,
+            "Discount_id":286
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"46GY",
+            "lowqty":"",
+            "highqty":"",
+            "discount":6.68,
+            "Discount_id":287
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"TBAB",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":11.07,
+            "Discount_id":288
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"B7XW",
+            "lowqty":100,
+            "highqty":"",
+            "discount":14.58,
+            "Discount_id":289
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"PCKE",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":13.58,
+            "Discount_id":290
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"FE1W",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":13.79,
+            "Discount_id":291
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"08Q1",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":8.66,
+            "Discount_id":292
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"CDIP",
+            "lowqty":100,
+            "highqty":"",
+            "discount":11.56,
+            "Discount_id":293
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"H7GX",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":5.16,
+            "Discount_id":294
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"VWW2",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":6.5,
+            "Discount_id":295
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"QHD5",
+            "lowqty":"",
+            "highqty":"",
+            "discount":11.13,
+            "Discount_id":296
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"4S9Y",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":10.93,
+            "Discount_id":297
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"0N8E",
+            "lowqty":100,
+            "highqty":1000,
+            "discount":14.25,
+            "Discount_id":298
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"5NC1",
+            "lowqty":"",
+            "highqty":"",
+            "discount":5.77,
+            "Discount_id":299
+        },
+        {
+            "discounttype":"Volume Discount",
+            "stor_id":"GJI9",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":7.15,
+            "Discount_id":300
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"ICSS",
+            "lowqty":"",
+            "highqty":1000,
+            "discount":11.86,
+            "Discount_id":301
+        },
+        {
+            "discounttype":"Initial Customer",
+            "stor_id":"B359",
+            "lowqty":"",
+            "highqty":"",
+            "discount":8.59,
+            "Discount_id":302
+        },
+        {
+            "discounttype":"Customer Discount",
+            "stor_id":"B7XW",
+            "lowqty":"",
+            "highqty":"",
+            "discount":14.37,
+            "Discount_id":303
+        }
+    ]
+}

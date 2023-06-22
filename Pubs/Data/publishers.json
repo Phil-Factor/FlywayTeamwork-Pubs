@@ -1,0 +1,201 @@
+
+{
+    "data":[
+        {
+            "pub_id":"0736    ",
+            "pub_name":"Livre Academic support ",
+            "city":"Jersey",
+            "state":"MA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"0877    ",
+            "pub_name":"Biblio Medical Promotions Corporation",
+            "city":"Greensboro",
+            "state":"DC",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1389    ",
+            "pub_name":"Kirja Technical Publications International",
+            "city":"Jackson",
+            "state":"CA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1622    ",
+            "pub_name":"Kirja Medical Services Products",
+            "city":"",
+            "state":"IL",
+            "country":"USA"
+        },
+        {
+            "pub_id":"1756    ",
+            "pub_name":"Biblio Technical Guides ",
+            "city":"Rochester",
+            "state":"TX",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9901    ",
+            "pub_name":"Pustaka Medical Communications ",
+            "city":"Santa Ana",
+            "state":"",
+            "country":"Germany"
+        },
+        {
+            "pub_id":"9902    ",
+            "pub_name":"Firefly Books",
+            "city":"Honolulu",
+            "state":"HI",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9904    ",
+            "pub_name":"Ashford House Press",
+            "city":"Portland",
+            "state":"OR",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9912    ",
+            "pub_name":"Birchwood Books",
+            "city":"Kansas City",
+            "state":"MO",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9918    ",
+            "pub_name":"Willowbrook Publishing",
+            "city":"Seattle",
+            "state":"WA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9919    ",
+            "pub_name":"Cobblestone Publishing",
+            "city":"Indianapolis",
+            "state":"IN",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9928    ",
+            "pub_name":"Emerald Hill Books",
+            "city":"Salt Lake City",
+            "state":"UT",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9930    ",
+            "pub_name":"Silverstone Press",
+            "city":"Boston",
+            "state":"MA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9947    ",
+            "pub_name":"Stonegate Publications",
+            "city":"New Orleans",
+            "state":"LA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9950    ",
+            "pub_name":"Amberleaf Publishing",
+            "city":"Austin",
+            "state":"TX",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9952    ",
+            "pub_name":"Pustaka Technical Editions ",
+            "city":"Columbus",
+            "state":"NY",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9954    ",
+            "pub_name":"Moonrise Publishing",
+            "city":"Philadelphia",
+            "state":"PA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9965    ",
+            "pub_name":"Quill & Page Books",
+            "city":"Chicago",
+            "state":"IL",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9969    ",
+            "pub_name":"Azure Sky Press",
+            "city":" Detroit",
+            "state":"MI",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9981    ",
+            "pub_name":"Velvet Quill Publishing",
+            "city":"Atlanta",
+            "state":"GA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9982    ",
+            "pub_name":"Goldenleaf Publishers",
+            "city":"Charlotte",
+            "state":"NC",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9985    ",
+            "pub_name":"Penman Press",
+            "city":"Denver",
+            "state":"CO",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9988    ",
+            "pub_name":"Crimson Ink Publishing",
+            "city":"Phoenix",
+            "state":"AZ",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9991    ",
+            "pub_name":"Skylark Books",
+            "city":"Nashville",
+            "state":"TN",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9992    ",
+            "pub_name":"Sapphire Books",
+            "city":"San Francisco",
+            "state":"CA",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9993    ",
+            "pub_name":"Whispering Willow Press",
+            "city":"Albuquerque",
+            "state":"NM",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9998    ",
+            "pub_name":"Oakwood House Publishers",
+            "city":"Miami",
+            "state":"FL",
+            "country":"USA"
+        },
+        {
+            "pub_id":"9999    ",
+            "pub_name":"Kirja Technical Guides ",
+            "city":"Corpus Christi",
+            "state":"",
+            "country":"France"
+        }
+    ]
+}

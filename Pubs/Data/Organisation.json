@@ -1,0 +1,61 @@
+
+{
+    "data":[
+        {
+            "organisation_ID":1,
+            "OrganisationName":"Livre Academic support ",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-0736 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":2,
+            "OrganisationName":"Biblio Medical Promotions Corporation",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-0877 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":3,
+            "OrganisationName":"Kirja Technical Publications International",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-1389 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":4,
+            "OrganisationName":"Kirja Medical Services Products",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-1622 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":5,
+            "OrganisationName":"Biblio Technical Guides ",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-1756 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":6,
+            "OrganisationName":"Pustaka Medical Communications ",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-9901 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":7,
+            "OrganisationName":"Pustaka Technical Editions ",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-9952 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        },
+        {
+            "organisation_ID":8,
+            "OrganisationName":"Kirja Technical Guides ",
+            "LineOfBusiness":"Publisher",
+            "LegacyIdentifier":"pub-9999 ",
+            "ModifiedDate":"2021-10-21 11:42:41.8"
+        }
+    ]
+}

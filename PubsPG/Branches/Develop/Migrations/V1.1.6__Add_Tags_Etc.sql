@@ -11,10 +11,11 @@ PriceStartDate, PriceEndDate)
       INNER JOIN editions
         ON t.title_id = editions.publication_id;
 
+
 CREATE TABLE Newsales (
 	stor_id char(4) NOT NULL,
 	ord_num varchar(20) NOT NULL,
-	ord_date varchar(50) NOT NULL,
+	ord_date DATE NOT NULL,
 	qty int NOT NULL,
 	payterms varchar(12) NOT NULL,
 	title_id dbo.tid NOT NULL REFERENCES  publications (publication_id),

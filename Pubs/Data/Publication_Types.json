@@ -1,0 +1,17 @@
+
+{
+    "data":[
+        {
+            "Publication_Type":"audiobook"
+        },
+        {
+            "Publication_Type":"book"
+        },
+        {
+            "Publication_Type":"ebook"
+        },
+        {
+            "Publication_Type":"paperback"
+        }
+    ]
+}

@@ -4961,7 +4961,7 @@ $CreateVersionNarrativeIfNecessary = {
                 $Narrative+="### Alterations to project $($param1.projectName), database $($param1.database), in version $($param1.version)`n"
 				$narrative+=$Comparison | foreach{
 					$current = $_;
-                    $objectList=$current.Ref -split '.'
+                    $objectList=$current.Ref.split( '.')
                     switch ($current.Match)
 					{
 						'->' {

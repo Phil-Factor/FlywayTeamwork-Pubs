@@ -1,0 +1,145 @@
+
+{
+    "data":[
+        {
+            "TagName_ID":34,
+            "Tag":"Architecture"
+        },
+        {
+            "TagName_ID":27,
+            "Tag":"Art and Design"
+        },
+        {
+            "TagName_ID":22,
+            "Tag":"Arts"
+        },
+        {
+            "TagName_ID":7,
+            "Tag":"Biography"
+        },
+        {
+            "TagName_ID":26,
+            "Tag":"Biomedical Sciences"
+        },
+        {
+            "TagName_ID":24,
+            "Tag":"Business"
+        },
+        {
+            "TagName_ID":28,
+            "Tag":"Business, Economics and Law"
+        },
+        {
+            "TagName_ID":29,
+            "Tag":"Cognitive Sciences"
+        },
+        {
+            "TagName_ID":11,
+            "Tag":"Computer Science"
+        },
+        {
+            "TagName_ID":12,
+            "Tag":"Crime and Thrillers"
+        },
+        {
+            "TagName_ID":1,
+            "Tag":"Cultural Studies"
+        },
+        {
+            "TagName_ID":33,
+            "Tag":"Design"
+        },
+        {
+            "TagName_ID":14,
+            "Tag":"Digital Humanities & New Media"
+        },
+        {
+            "TagName_ID":35,
+            "Tag":"Economics"
+        },
+        {
+            "TagName_ID":2,
+            "Tag":"Education"
+        },
+        {
+            "TagName_ID":10,
+            "Tag":"Engineering"
+        },
+        {
+            "TagName_ID":25,
+            "Tag":"Environment"
+        },
+        {
+            "TagName_ID":8,
+            "Tag":"Fiction"
+        },
+        {
+            "TagName_ID":17,
+            "Tag":"Food and Drink"
+        },
+        {
+            "TagName_ID":31,
+            "Tag":"Game Studies"
+        },
+        {
+            "TagName_ID":18,
+            "Tag":"Graphic Novels"
+        },
+        {
+            "TagName_ID":3,
+            "Tag":"Health and Wellbeing"
+        },
+        {
+            "TagName_ID":19,
+            "Tag":"History"
+        },
+        {
+            "TagName_ID":20,
+            "Tag":"Humanities"
+        },
+        {
+            "TagName_ID":13,
+            "Tag":"Information Science"
+        },
+        {
+            "TagName_ID":4,
+            "Tag":"Linguistics & Language"
+        },
+        {
+            "TagName_ID":6,
+            "Tag":"Mathematics & Statistics"
+        },
+        {
+            "TagName_ID":15,
+            "Tag":"Medical and Nursing"
+        },
+        {
+            "TagName_ID":32,
+            "Tag":"Neuroscience"
+        },
+        {
+            "TagName_ID":5,
+            "Tag":"Philosophy"
+        },
+        {
+            "TagName_ID":21,
+            "Tag":"Science, Technology & Society"
+        },
+        {
+            "TagName_ID":9,
+            "Tag":"Social Sciences"
+        },
+        {
+            "TagName_ID":16,
+            "Tag":"Technology and Transport"
+        },
+        {
+            "TagName_ID":23,
+            "Tag":"Travel"
+        },
+        {
+            "TagName_ID":30,
+            "Tag":"Urbanism"
+        }
+    ]
+}

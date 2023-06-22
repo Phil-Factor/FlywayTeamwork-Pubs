@@ -77,7 +77,7 @@ if ($FileLocations.MigrationsPath -ieq 'Unknown')
 
 if ($dir -eq '') { throw "no resources directory found" }
 #Read in shared resources
-dir "$Dir\$ResourcesPath\*.ps1" | foreach{ . "$($_.FullName)" }
+dir "$Dir\$ResourcesPath\*.ps1" | foreach{. "$($_.FullName)" }
 if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
     {Throw "The Flyway library wan't read in from $("$Dir\$ResourcesPath")"}
 

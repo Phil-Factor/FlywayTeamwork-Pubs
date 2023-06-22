@@ -1,0 +1,29 @@
+
+{
+    "data":[
+        {
+            "TypeOfPhone":"Business",
+            "ModifiedDate":"2016-01-27 06:55:11.52"
+        },
+        {
+            "TypeOfPhone":"Home",
+            "ModifiedDate":"2021-10-21 11:42:41.753"
+        },
+        {
+            "TypeOfPhone":"Home Office",
+            "ModifiedDate":"2010-02-04 03:04:01.33"
+        },
+        {
+            "TypeOfPhone":"Hotel",
+            "ModifiedDate":"2016-07-25 10:15:04.67"
+        },
+        {
+            "TypeOfPhone":"Mobile",
+            "ModifiedDate":"2018-07-03 19:25:41.45"
+        },
+        {
+            "TypeOfPhone":"Temporary",
+            "ModifiedDate":"2012-04-09 18:55:16.17"
+        }
+    ]
+}
