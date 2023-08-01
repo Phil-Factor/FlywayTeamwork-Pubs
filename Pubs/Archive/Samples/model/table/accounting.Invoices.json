@@ -1,0 +1,35 @@
+﻿{
+    "primary key":  {
+                        "PK__Invoices__3213E83F4046A87F":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Invoices__custom__321755AF":  {
+                                                               "Cols":  "customer_id",
+                                                               "Foreign Table":  "accounting.customer",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Invoices__Chart___33FF9E21":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Invoices__invoic__330B79E8":  {
+                                                               "Cols":  "invoice_payment_id",
+                                                               "Foreign Table":  "accounting.Invoice_Payments",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "due_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(10,2) -- ",
+                    "status smallint -- ",
+                    "customer_id int -- ",
+                    "invoice_payment_id int -- ",
+                    "Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  ""
+}

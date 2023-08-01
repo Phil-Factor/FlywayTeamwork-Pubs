@@ -1,0 +1,18 @@
+﻿{
+    "primary key":  {
+                        "UPKCL_pubinfo":  "pub_id"
+                    },
+    "Foreign Key":  {
+                        "FK__pub_info__pub_id":  {
+                                                     "Cols":  "pub_id",
+                                                     "Foreign Table":  "dbo.publishers",
+                                                     "Referencing":  "pub_id"
+                                                 }
+                    },
+    "columns":  [
+                    "pub_id char(8) -- The foreign key to the publisher",
+                    "logo varbinary -- the publisher\u0027s logo",
+                    "pr_info nvarchar(MAX) -- The blurb of this publisher"
+                ],
+    "documentation":  "this holds the special information about every publisher"
+}

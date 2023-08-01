@@ -1,0 +1,12 @@
+﻿{
+    "columns":  [
+                    "title nvarchar(255)",
+                    "au_ord tinyint",
+                    "au_lname nvarchar(80)",
+                    "price money",
+                    "ytd_sales int",
+                    "pub_id char(8)"
+                ],
+    "Definition":  "CREATE VIEW [dbo].[titleview]\r\nAS\r\nSELECT title, au_ord, au_lname, price, ytd_sales, pub_id\r\n  FROM authors, titles, titleauthor\r\n  WHERE authors.au_id = titleauthor.au_id\r\n    AND titles.title_id = titleauthor.title_id;",
+    "documentation":  ""
+}

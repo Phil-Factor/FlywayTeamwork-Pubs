@@ -1,0 +1,35 @@
+﻿{
+    "primary key":  {
+                        "AbodePK":  "Abode_ID"
+                    },
+    "Foreign Key":  {
+                        "Abode_AddressFK":  {
+                                                "Cols":  "Address_id",
+                                                "Foreign Table":  "people.Address",
+                                                "Referencing":  "Address_ID"
+                                            },
+                        "Abode_AddressTypeFK":  {
+                                                    "Cols":  "TypeOfAddress",
+                                                    "Foreign Table":  "people.AddressType",
+                                                    "Referencing":  "TypeOfAddress"
+                                                },
+                        "Abode_PersonFK":  {
+                                               "Cols":  "Person_id",
+                                               "Foreign Table":  "people.Person",
+                                               "Referencing":  "person_ID"
+                                           }
+                    },
+    "columns":  [
+                    "Abode_ID int IDENTITY(1,1) -- the surrogate key for the place to which the person is associated",
+                    "Person_id int -- the id of the person",
+                    "Address_id int -- the id of the address",
+                    "TypeOfAddress nvarchar(40) -- the type of address",
+                    "Start_date datetime -- when this relationship started ",
+                    "End_date datetime -- when this relationship ended",
+                    "ModifiedDate datetime -- when this record was last modified"
+                ],
+    "Default constraint":  {
+                               "AbodeModifiedD":  "ModifiedDate = (getdate())"
+                           },
+    "documentation":  " an abode describes the association has with an address and the period of time when the person had that association"
+}

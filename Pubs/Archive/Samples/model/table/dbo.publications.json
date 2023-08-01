@@ -1,0 +1,26 @@
+﻿{
+    "Default constraint":  {
+                               "pub_NowDefault":  "pubdate = (getdate())"
+                           },
+    "columns":  [
+                    "Publication_id dbo.tid -- The surrogate key to the Publications Table",
+                    "title nvarchar(255) -- the title of the publicxation",
+                    "pub_id char(8) -- the legacy publication key",
+                    "notes nvarchar(4000) -- any notes about this publication",
+                    "pubdate datetime -- the date that it was published"
+                ],
+    "index":  {
+                  "pubid_index":  "pub_id"
+              },
+    "documentation":  "This lists every publication marketed by the distributor",
+    "Foreign Key":  {
+                        "fkPublishers":  {
+                                             "Cols":  "pub_id",
+                                             "Foreign Table":  "dbo.publishers",
+                                             "Referencing":  "pub_id"
+                                         }
+                    },
+    "primary key":  {
+                        "PK_Publication":  "Publication_id"
+                    }
+}

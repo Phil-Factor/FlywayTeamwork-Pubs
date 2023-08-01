@@ -1,0 +1,11 @@
+﻿{
+    "columns":  [
+                    "pub_id nvarchar(4000)",
+                    "pub_name nvarchar(100)",
+                    "City people.PersonalLocation",
+                    "state people.PersonalLocation",
+                    "country nvarchar(50)"
+                ],
+    "Definition":  "CREATE VIEW People.publishers\r\nas\r\nSELECT Replace (Address.LegacyIdentifier, \u0027pub-\u0027, \u0027\u0027) AS pub_id,\r\n  OrganisationName AS pub_name, City, Region AS state, country\r\n  FROM People.Organisation\r\n    INNER JOIN People.Location\r\n      ON Location.organisation_id = Organisation.organisation_ID\r\n    INNER JOIN People.Address\r\n      ON Address.Address_ID = Location.Address_id\r\n  WHERE LineOfBusiness = \u0027Publisher\u0027 AND End_date IS NULL;",
+    "documentation":  ""
+}

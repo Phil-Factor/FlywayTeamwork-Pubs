@@ -1,0 +1,14 @@
+﻿{
+    "columns":  [
+                    "au_id nvarchar(4000)",
+                    "au_lname people.PersonalName",
+                    "au_fname people.PersonalName",
+                    "phone people.PersonalPhoneNumber",
+                    "address varchar(121)",
+                    "City people.PersonalLocation",
+                    "state people.PersonalLocation",
+                    "zip people.PersonalPostalCode"
+                ],
+    "Definition":  "CREATE VIEW People.authors\r\nAS\r\nSELECT Replace (Address.LegacyIdentifier, \u0027au-\u0027, \u0027\u0027) AS au_id,\r\n  LastName AS au_lname, FirstName AS au_fname, DiallingNumber AS phone,\r\n  Coalesce (AddressLine1, \u0027\u0027) + Coalesce (\u0027 \u0027 + AddressLine2, \u0027\u0027) AS address,\r\n  City, Region AS state, PostalCode AS zip\r\n  FROM People.Person\r\n    INNER JOIN People.Abode\r\n      ON Abode.Person_id = Person.person_ID\r\n    INNER JOIN People.Address\r\n      ON Address.Address_ID = Abode.Address_id\r\n    LEFT OUTER JOIN People.Phone\r\n\t ON Phone.Person_id = Person.person_ID\r\n  WHERE People.Abode.End_date IS NULL \r\n  AND phone.End_date IS null\r\n  AND Person.LegacyIdentifier LIKE \u0027au-%\u0027;",
+    "documentation":  ""
+}

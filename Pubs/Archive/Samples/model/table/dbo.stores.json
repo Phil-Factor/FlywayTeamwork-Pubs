@@ -1,0 +1,14 @@
+﻿{
+    "primary key":  {
+                        "UPK_storeid":  "stor_id"
+                    },
+    "columns":  [
+                    "stor_id char(4) -- The primary key to the Store Table",
+                    "stor_name nvarchar(80) -- The name of the store",
+                    "stor_address nvarchar(80) -- The first-line address of the store",
+                    "city nvarchar(40) -- The city in which the store is based",
+                    "state char(2) -- The state where the store is base",
+                    "zip char(5) -- The zipt code for the store"
+                ],
+    "documentation":  "these are all the stores who are our customers"
+}

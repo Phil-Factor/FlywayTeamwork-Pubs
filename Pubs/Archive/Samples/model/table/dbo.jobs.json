@@ -1,0 +1,19 @@
+﻿{
+    "Check constraint":  {
+                             "CK__jobs__max_lvl":  "([max_lvl]\u003c=(250))",
+                             "CK__jobs__min_lvl":  "([min_lvl]\u003e=(10))"
+                         },
+    "primary key":  {
+                        "PK__jobs__6E32B6A51A14E395":  "job_id"
+                    },
+    "Default constraint":  {
+                               "AssumeANewPosition":  "job_desc = (\u0027New Position - title not formalized yet\u0027)"
+                           },
+    "columns":  [
+                    "job_id smallint IDENTITY(1,1) -- The surrogate key to the Jobs Table",
+                    "job_desc varchar(50) -- The description of the job",
+                    "min_lvl tinyint -- the minimum pay level appropriate for the job",
+                    "max_lvl tinyint -- the maximum pay level appropriate for the job"
+                ],
+    "documentation":  "These are the job descriptions and min/max salary level"
+}

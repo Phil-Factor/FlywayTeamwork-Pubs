@@ -1,0 +1,33 @@
+﻿{
+    "primary key":  {
+                        "UPKCL_sales":  [
+                                            "stor_id",
+                                            "ord_num",
+                                            "title_id"
+                                        ]
+                    },
+    "Foreign Key":  {
+                        "FK_Sales_Stores":  {
+                                                "Cols":  "stor_id",
+                                                "Foreign Table":  "dbo.stores",
+                                                "Referencing":  "stor_id"
+                                            },
+                        "FK_Sales_Title":  {
+                                               "Cols":  "title_id",
+                                               "Foreign Table":  "dbo.publications",
+                                               "Referencing":  "Publication_id"
+                                           }
+                    },
+    "columns":  [
+                    "stor_id char(4) -- The store for which the sales apply",
+                    "ord_num nvarchar(40) -- the reference to the order",
+                    "ord_date datetime -- the date of the order",
+                    "qty smallint -- the quantity ordered",
+                    "payterms nvarchar(40) -- the pay terms",
+                    "title_id dbo.tid -- foreign key to the title"
+                ],
+    "index":  {
+                  "titleidind":  "title_id"
+              },
+    "documentation":  "these are the sales of every edition of every publication"
+}

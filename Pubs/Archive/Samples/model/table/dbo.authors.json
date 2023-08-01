@@ -1,0 +1,30 @@
+﻿{
+    "Default constraint":  {
+                               "AssumeUnknown":  "phone = (\u0027UNKNOWN\u0027)"
+                           },
+    "columns":  [
+                    "au_id dbo.id -- The key to the Authors Table",
+                    "au_lname nvarchar(80) -- last name of the author",
+                    "au_fname nvarchar(80) -- first name of the author",
+                    "phone nvarchar(40) -- the author\u0027s phone number",
+                    "address nvarchar(80) -- the author=s firest line address",
+                    "city nvarchar(40) -- the city where the author lives",
+                    "state char(2) -- the state where the author lives",
+                    "zip char(5) -- the zip of the address where the author lives",
+                    "contract bit -- had the author agreed a contract?"
+                ],
+    "index":  {
+                  "aunmind":  [
+                                  "au_lname",
+                                  "au_fname"
+                              ]
+              },
+    "documentation":  "The authors of the publications. a publication can have one or more author",
+    "Check constraint":  {
+                             "CK__authors__au_id":  "([au_id] like \u0027[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]\u0027)",
+                             "CK__authors__zip":  "([zip] like \u0027[0-9][0-9][0-9][0-9][0-9]\u0027)"
+                         },
+    "primary key":  {
+                        "UPKCL_auidind":  "au_id"
+                    }
+}

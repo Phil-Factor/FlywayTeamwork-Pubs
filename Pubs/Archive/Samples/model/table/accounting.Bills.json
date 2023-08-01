@@ -1,0 +1,35 @@
+﻿{
+    "primary key":  {
+                        "PK__Bills__3213E83FA09F8C93":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Bills__supplier___2B6A5820":  {
+                                                               "Cols":  "supplier_id",
+                                                               "Foreign Table":  "accounting.Suppliers",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Bills__Chart_of___2A7633E7":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Bills__bill_paym__2C5E7C59":  {
+                                                               "Cols":  "bill_payment_id",
+                                                               "Foreign Table":  "accounting.Bill_Payments",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "due_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(10,2) -- ",
+                    "status smallint -- ",
+                    "supplier_id int -- ",
+                    "bill_payment_id int -- ",
+                    "Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  ""
+}

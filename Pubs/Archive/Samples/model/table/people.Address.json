@@ -1,0 +1,24 @@
+﻿{
+    "Check constraint":  {
+                             "Address_Not_Complete":  "(coalesce([AddressLine1],[AddressLine2],[City],[PostalCode]) IS NOT NULL)"
+                         },
+    "primary key":  {
+                        "AddressPK":  "Address_ID"
+                    },
+    "Default constraint":  {
+                               "AddressModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "Address_ID int IDENTITY(1,1) -- surrogate key ",
+                    "AddressLine1 people.PersonalAddressline -- first line address",
+                    "AddressLine2 people.PersonalAddressline --  second line address ",
+                    "City people.PersonalLocation --  the city ",
+                    "Region people.PersonalLocation -- ",
+                    "PostalCode people.PersonalPostalCode -- ",
+                    "country nvarchar(50) -- ",
+                    "Full_Address  AS (stuff((((coalesce(\u0027, \u0027+[AddressLine1],\u0027\u0027)+coalesce(\u0027, \u0027+[AddressLine2],\u0027\u0027))+coalesce(\u0027, \u0027+[City],\u0027\u0027))+coalesce(\u0027, \u0027+[Region],\u0027\u0027))+coalesce(\u0027, \u0027+[PostalCode],\u0027\u0027),(1),(2),\u0027\u0027))",
+                    "LegacyIdentifier nvarchar(30) -- ",
+                    "ModifiedDate datetime -- when the record was last modified"
+                ],
+    "documentation":  "This contains the details of an addresss,\r\nany address, it can be a home, office, factory or whatever "
+}

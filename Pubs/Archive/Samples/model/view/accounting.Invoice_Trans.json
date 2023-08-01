@@ -1,0 +1,19 @@
+﻿{
+    "columns":  [
+                    "tran_id varchar(10)",
+                    "tran_date date",
+                    "ar_account int",
+                    "Name varchar(50)",
+                    "total decimal(10,2)",
+                    "line_id int",
+                    "line_Chart_of_Accounts_id int",
+                    "line_amount decimal(20,2)",
+                    "id int",
+                    "bank_account int",
+                    "bank_name varchar(21)",
+                    "status smallint",
+                    "line_Chart_of_Accounts_name varchar(50)"
+                ],
+    "Definition":  "CREATE VIEW accounting.Invoice_Trans\r\nAS\r\n  WITH itrans\r\n  AS (\r\n     SELECT Convert (VARCHAR(10), i.id) AS tran_id, i.tran_date,\r\n            i.Chart_of_Accounts_id AS ar_account, c.Name, i.total,\r\n            il.id AS line_id, il.line_Chart_of_Accounts_id, il.line_amount,\r\n            ip.id, ip.Chart_of_Accounts_id AS bank_account,\r\n            \u0027Business Bank account\u0027 AS bank_name, i.status\r\n       FROM\r\n       accounting.Invoices AS i\r\n         LEFT JOIN accounting.Invoice_Lines AS il\r\n           ON i.id = il.invoice_id\r\n         LEFT JOIN accounting.Chart_of_Accounts AS c\r\n           ON i.Chart_of_Accounts_id = c.id\r\n         LEFT JOIN accounting.Invoice_Payments AS ip\r\n           ON i.invoice_payment_id = ip.id)\r\n  SELECT itrans.*, c.Name AS line_Chart_of_Accounts_name\r\n    FROM\r\n    itrans\r\n      LEFT JOIN accounting.Chart_of_Accounts AS c\r\n        ON itrans.line_Chart_of_Accounts_id = c.id;",
+    "documentation":  ""
+}

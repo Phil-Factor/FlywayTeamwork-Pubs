@@ -1,0 +1,23 @@
+﻿{
+    "primary key":  {
+                        "PK_Roysched":  "roysched_id"
+                    },
+    "Foreign Key":  {
+                        "FK__roysched__title":  {
+                                                    "Cols":  "title_id",
+                                                    "Foreign Table":  "dbo.publications",
+                                                    "Referencing":  "Publication_id"
+                                                }
+                    },
+    "columns":  [
+                    "title_id dbo.tid -- The title to which this applies",
+                    "lorange int -- the lowest range to which the royalty applies",
+                    "hirange int -- the highest range to which this royalty applies",
+                    "royalty int -- the royalty",
+                    "roysched_id int IDENTITY(1,1) -- The surrogate key to the RoySched Table"
+                ],
+    "index":  {
+                  "titleidind":  "title_id"
+              },
+    "documentation":  "this is a table of the authors royalty schedule"
+}

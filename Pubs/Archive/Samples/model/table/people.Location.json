@@ -1,0 +1,35 @@
+﻿{
+    "primary key":  {
+                        "LocationPK":  "Location_ID"
+                    },
+    "Foreign Key":  {
+                        "Location_AddressTypeFK":  {
+                                                       "Cols":  "TypeOfAddress",
+                                                       "Foreign Table":  "people.AddressType",
+                                                       "Referencing":  "TypeOfAddress"
+                                                   },
+                        "Location_organisationFK":  {
+                                                        "Cols":  "organisation_id",
+                                                        "Foreign Table":  "people.Organisation",
+                                                        "Referencing":  "organisation_ID"
+                                                    },
+                        "Location_AddressFK":  {
+                                                   "Cols":  "Address_id",
+                                                   "Foreign Table":  "people.Address",
+                                                   "Referencing":  "Address_ID"
+                                               }
+                    },
+    "columns":  [
+                    "Location_ID int IDENTITY(1,1) -- ",
+                    "organisation_id int -- ",
+                    "Address_id int -- ",
+                    "TypeOfAddress nvarchar(40) -- ",
+                    "Start_date datetime -- ",
+                    "End_date datetime -- ",
+                    "ModifiedDate datetime -- "
+                ],
+    "Default constraint":  {
+                               "LocationModifiedD":  "ModifiedDate = (getdate())"
+                           },
+    "documentation":  ""
+}

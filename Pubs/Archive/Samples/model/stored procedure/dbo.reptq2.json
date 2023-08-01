@@ -1,0 +1,4 @@
+﻿{
+    "documentation":  "",
+    "Definition":  "CREATE PROCEDURE dbo.reptq2\r\nAS\r\n  BEGIN\r\n    SELECT CASE WHEN Grouping(TN.tag) = 1 THEN \u0027ALL\u0027 ELSE TN.Tag END AS type,\r\n      CASE WHEN Grouping(titles.pub_id) = 1 THEN \u0027ALL\u0027 ELSE titles.pub_id END AS pub_id,\r\n      Avg(titles.ytd_sales) AS avg_ytd_sales\r\n      FROM dbo.titles AS titles\r\n        INNER JOIN dbo.TagTitle AS TagTitle\r\n          ON TagTitle.title_id = titles.title_id\r\n        INNER JOIN dbo.TagName AS TN\r\n          ON TN.TagName_ID = TagTitle.TagName_ID\r\n      WHERE titles.pub_id IS NOT NULL AND TagTitle.Is_Primary = 1\r\n      GROUP BY titles.pub_id, TN.Tag WITH ROLLUP;\r\n  END;"
+}

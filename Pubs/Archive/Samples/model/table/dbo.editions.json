@@ -1,0 +1,31 @@
+﻿{
+    "Default constraint":  {
+                               "DF__editions__Editio__202DAF9E":  "EditionDate = (getdate())",
+                               "DF__editions__Public__1F398B65":  "Publication_type = (\u0027book\u0027)"
+                           },
+    "columns":  [
+                    "Edition_id int IDENTITY(1,1) -- The surrogate key to the Editions Table",
+                    "publication_id dbo.tid -- the foreign key to the publication",
+                    "Publication_type nvarchar(20) -- the type of publication",
+                    "EditionDate datetime2 -- the date at which this edition was created"
+                ],
+    "index":  {
+                  "Publicationid_index":  "publication_id"
+              },
+    "documentation":  "A publication can come out in several different editions, of maybe a different type",
+    "Foreign Key":  {
+                        "fk_Publication_Type":  {
+                                                    "Cols":  "Publication_type",
+                                                    "Foreign Table":  "dbo.Publication_Types",
+                                                    "Referencing":  "Publication_Type"
+                                                },
+                        "fk_edition":  {
+                                           "Cols":  "publication_id",
+                                           "Foreign Table":  "dbo.publications",
+                                           "Referencing":  "Publication_id"
+                                       }
+                    },
+    "primary key":  {
+                        "PK_editions":  "Edition_id"
+                    }
+}

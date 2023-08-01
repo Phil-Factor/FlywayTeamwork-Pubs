@@ -1,0 +1,24 @@
+﻿{
+    "primary key":  {
+                        "PK__Spent_Mo__3213E83FF1621D0E":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Spent_Mon__line___39B87777":  {
+                                                               "Cols":  "line_Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Spent_Mon__spent__38C4533E":  {
+                                                               "Cols":  "spent_money_id",
+                                                               "Foreign Table":  "accounting.Spent_Moneys",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "line_amount decimal(20,2) -- ",
+                    "spent_money_id int -- ",
+                    "line_Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "this is the joining table between Spent_Moneys and COA"
+}

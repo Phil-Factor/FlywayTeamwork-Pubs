@@ -1,0 +1,24 @@
+﻿{
+    "primary key":  {
+                        "PK_Discounts":  "Discount_id"
+                    },
+    "Foreign Key":  {
+                        "FK__discounts__store":  {
+                                                     "Cols":  "stor_id",
+                                                     "Foreign Table":  "dbo.stores",
+                                                     "Referencing":  "stor_id"
+                                                 }
+                    },
+    "columns":  [
+                    "discounttype nvarchar(80) -- The type of discount",
+                    "stor_id char(4) -- The store that has the discount",
+                    "lowqty smallint -- The lowest order quantity for which the discount applies",
+                    "highqty smallint -- The highest order quantity for which the discount applies",
+                    "discount decimal(4,2) -- the percentage discount",
+                    "Discount_id int IDENTITY(1,1) -- The surrogate key to the Discounts Table"
+                ],
+    "index":  {
+                  "Storid_index":  "stor_id"
+              },
+    "documentation":  "These are the discounts offered by the sales people for bulk orders"
+}

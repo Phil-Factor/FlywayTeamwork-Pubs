@@ -1,0 +1,10 @@
+﻿{
+    "columns":  [
+                    "Item varchar(255)",
+                    "@string varchar(MAX)",
+                    "location int",
+                    "Sequence int IDENTITY(1,1)"
+                ],
+    "Definition":  "CREATE FUNCTION dbo.IterativeWordChop\r\n/*\r\nsummary:   \u003e\nThis Table-valued function takes any text as a parameter and splits it into its constituent words,\r\npassing back the order in which they occured and their location in the text. \r\nAuthor: Phil Factor\r\nRevision: 1.3\r\ndate: 2 Apr 2014\r\nexample:\r\n     - code: SELECT * FROM IterativeWordChop(\u0027this tests stuff. Will it work?\u0027)\r\n     - code: SELECT * FROM IterativeWordChop(\u0027this ------- tests it again; Will it work ...\u0027)\r\n     - code: SELECT * FROM IterativeWordChop(\u0027Do we allow %Wildcards% like %x%?\u0027)\r\nreturns:   \u003e\r\nTable of SequenceNumber, item (word) and sequence no.\r\n**/\r\n( \r\n@string VARCHAR(MAX)\r\n) \r\nRETURNS\r\n@Results TABLE\r\n(\r\nItem VARCHAR(255),\r\nlocation INT,\r\nSequence INT IDENTITY PRIMARY KEY\r\n)\r\nAS\r\nBEGIN\r\nDECLARE @Len INT, @Start INT, @end INT, @Cursor INT,@length INT\r\nSELECT @Cursor=1, @len=Len(@string)\r\nWHILE @cursor\u003c@len\r\n   BEGIN\r\n   SELECT @start=PatIndex(\u0027%[^A-Za-z0-9][A-Za-z0-9%]%\u0027,\r\n                   \u0027 \u0027+Substring (@string,@cursor,50)\r\n                   )-1\r\n   IF @start\u003c0 BREAK                \r\n   SELECT @length=PatIndex(\u0027%[^A-Z\u0027\u0027a-z0-9-%]%\u0027,Substring (@string,@cursor+@start+1,50)+\u0027 \u0027)   \r\n   INSERT INTO @results(item, location) \r\n       SELECT  Substring(@string,@cursor+@start,@length), @cursor+@start\r\n   SELECT @Cursor=@Cursor+@Start+@length+1\r\n   END\r\nRETURN\r\nEND",
+    "documentation":  ""
+}

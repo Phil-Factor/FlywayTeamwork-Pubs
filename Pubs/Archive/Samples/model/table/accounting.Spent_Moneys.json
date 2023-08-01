@@ -1,0 +1,27 @@
+﻿{
+    "primary key":  {
+                        "PK__Spent_Mo__3213E83FC36C739E":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Spent_Mon__Chart__3AAC9BB0":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Spent_Mon__suppl__3BA0BFE9":  {
+                                                               "Cols":  "supplier_id",
+                                                               "Foreign Table":  "accounting.Suppliers",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(20,2) -- ",
+                    "supplier_id int -- ",
+                    "Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "cash disbursements that are not bill payments. This may involve cash purchases but if you’re going to issue a bill, use the Bills feature"
+}

@@ -1,0 +1,16 @@
+﻿{
+    "columns":  [
+                    "title_id dbo.tid",
+                    "title nvarchar(255)",
+                    "Type nvarchar(80)",
+                    "pub_id char(8)",
+                    "price dbo.Dollars",
+                    "advance dbo.Dollars",
+                    "royalty int",
+                    "ytd_sales int",
+                    "notes nvarchar(4000)",
+                    "pubdate datetime"
+                ],
+    "Definition":  "CREATE VIEW dbo.titles\r\n/* this view replaces the old TITLES table and shows only those books that represent each publication and only the current price */\r\nAS\r\nSELECT publications.Publication_id AS title_id, publications.title,\r\n  Tag AS [Type], pub_id, price, advance, royalty, ytd_sales, notes, pubdate\r\n  FROM publications\r\n    INNER JOIN editions\r\n      ON editions.publication_id = publications.Publication_id\r\n     AND Publication_type = \u0027book\u0027\r\n    INNER JOIN prices\r\n      ON prices.Edition_id = editions.Edition_id\r\n    LEFT OUTER JOIN TagTitle\r\n      ON TagTitle.title_id = publications.Publication_id\r\n     AND TagTitle.Is_Primary = 1 --just the first, primary, tag\r\n    LEFT OUTER JOIN dbo.TagName\r\n      ON TagTitle.TagName_ID = TagName.TagName_ID\r\n  WHERE prices.PriceEndDate IS NULL;",
+    "documentation":  ""
+}

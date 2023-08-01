@@ -1,0 +1,13 @@
+﻿{
+    "primary key":  {
+                        "PKWord":  "Item"
+                    },
+    "Default constraint":  {
+                               "DF__Word__frequency__26A5A303":  "frequency = ((0))"
+                           },
+    "columns":  [
+                    "Item varchar(255) -- ",
+                    "frequency int -- "
+                ],
+    "documentation":  "Words used in the notes with their frequency, used for searching notes"
+}

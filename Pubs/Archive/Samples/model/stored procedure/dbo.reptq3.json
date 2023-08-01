@@ -1,0 +1,9 @@
+﻿{
+    "columns":  [
+                    "@lolimit dbo.Dollars",
+                    "@hilimit dbo.Dollars",
+                    "@type char(12)"
+                ],
+    "Definition":  "CREATE PROCEDURE dbo.reptq3 @lolimit dbo.Dollars, @hilimit dbo.Dollars,\r\n  @type CHAR(12)\r\nAS\r\n  BEGIN\r\n    SELECT CASE WHEN Grouping(titles.pub_id) = 1 THEN \u0027ALL\u0027 ELSE titles.pub_id END AS pub_id,\r\n      CASE WHEN Grouping(TN.tag) = 1 THEN \u0027ALL\u0027 ELSE TN.Tag END AS type,\r\n      Count(titles.title_id) AS cnt\r\n      FROM dbo.titles AS titles\r\n        INNER JOIN dbo.TagTitle AS TagTitle\r\n          ON TagTitle.title_id = titles.title_id\r\n        INNER JOIN dbo.TagName AS TN\r\n          ON TN.TagName_ID = TagTitle.TagName_ID\r\n      WHERE titles.price \u003e @lolimit\r\n        AND TagTitle.Is_Primary = 1\r\n        AND titles.price \u003c @hilimit\r\n        AND TN.Tag = @type\r\n         OR TN.Tag LIKE \u0027%cook%\u0027\r\n      GROUP BY titles.pub_id, TN.Tag WITH ROLLUP;\r\n  END;",
+    "documentation":  ""
+}

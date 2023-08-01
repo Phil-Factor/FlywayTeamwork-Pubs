@@ -1,0 +1,23 @@
+﻿{
+    "primary key":  {
+                        "PKWordOcurrence":  [
+                                                "Item",
+                                                "Sequence",
+                                                "Note"
+                                            ]
+                    },
+    "Foreign Key":  {
+                        "FKWordOccurenceWord":  {
+                                                    "Cols":  "Item",
+                                                    "Foreign Table":  "people.Word",
+                                                    "Referencing":  "Item"
+                                                }
+                    },
+    "columns":  [
+                    "Item varchar(255) -- ",
+                    "location int -- ",
+                    "Sequence int -- ",
+                    "Note int -- "
+                ],
+    "documentation":  "Whereabouts the word was found in the text fiels within a table"
+}

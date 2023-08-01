@@ -1,0 +1,5 @@
+﻿{
+    "columns":  "@percentage int",
+    "Definition":  "CREATE PROCEDURE byroyalty @percentage INT\r\nAS\r\n  BEGIN\r\n    SELECT titleauthor.au_id\r\n      FROM dbo.titleauthor AS titleauthor\r\n      WHERE titleauthor.royaltyper = @percentage;\r\n  END;",
+    "documentation":  ""
+}

@@ -1,0 +1,13 @@
+﻿{
+    "primary key":  {
+                        "PK__Chart_of__3213E83FE903E3B3":  "id"
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "Name varchar(50) -- "
+                ],
+    "unique key":  {
+                       "UQ__Chart_of__737584F6B2A5ADFA":  "Name"
+                   },
+    "documentation":  ""
+}

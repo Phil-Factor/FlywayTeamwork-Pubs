@@ -1,0 +1,32 @@
+﻿{
+    "Default constraint":  {
+                               "CreditCardModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "CreditCardID int IDENTITY(1,1) -- Surrogate primary key for the Credit card",
+                    "Person_id int -- foreign key to the person who has the addess",
+                    "CardNumber people.PersonalPaymentCardNumber -- The actual card-number",
+                    "ValidFrom date -- from when the credit card was valid",
+                    "ValidTo date -- to when the credit card was valid",
+                    "CVC people.PersonalCVC -- the CVC",
+                    "ModifiedDate datetime -- when was this last modified"
+                ],
+    "documentation":  " the customer\u0027s credit card details. This is here just because this database is used as a nursery slope to check for personal information ",
+    "unique key":  {
+                       "DuplicateCreditCardUK":  [
+                                                     "Person_id",
+                                                     "CardNumber"
+                                                 ],
+                       "CreditCardWasntUnique":  "CardNumber"
+                   },
+    "Foreign Key":  {
+                        "CreditCard_PersonFK":  {
+                                                    "Cols":  "Person_id",
+                                                    "Foreign Table":  "people.Person",
+                                                    "Referencing":  "person_ID"
+                                                }
+                    },
+    "primary key":  {
+                        "CreditCardPK":  "CreditCardID"
+                    }
+}

@@ -1,0 +1,30 @@
+﻿{
+    "primary key":  {
+                        "PhonePK":  "Phone_ID"
+                    },
+    "Foreign Key":  {
+                        "Phone_PersonFK":  {
+                                               "Cols":  "Person_id",
+                                               "Foreign Table":  "people.Person",
+                                               "Referencing":  "person_ID"
+                                           },
+                        "FK__Phone__TypeOfPho__6A90B8FC":  {
+                                                               "Cols":  "TypeOfPhone",
+                                                               "Foreign Table":  "people.PhoneType",
+                                                               "Referencing":  "TypeOfPhone"
+                                                           }
+                    },
+    "columns":  [
+                    "Phone_ID int IDENTITY(1,1) -- the surrogate key for the phone",
+                    "Person_id int -- the person who has the phone number",
+                    "TypeOfPhone nvarchar(40) -- the type of phone",
+                    "DiallingNumber people.PersonalPhoneNumber -- the actual dialling number ",
+                    "Start_date datetime --  when we first knew thet the person was using the number",
+                    "End_date datetime --  if not null, when the person stopped using the number",
+                    "ModifiedDate datetime -- when the record was last modified"
+                ],
+    "Default constraint":  {
+                               "PhoneModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "documentation":  " the actual phone number, and relates it to the person and the type of phone "
+}

@@ -1,0 +1,19 @@
+﻿{
+    "primary key":  {
+                        "NotePK":  "Note_id"
+                    },
+    "Default constraint":  {
+                               "GetUserName":  "InsertedBy = (user_name())",
+                               "NoteInsertionDateDL":  "InsertionDate = (getdate())",
+                               "NoteModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "Note_id int IDENTITY(1,1) -- Surrogate primary key for the Note",
+                    "Note people.PersonalNote -- The actual text of the note",
+                    "NoteStart  AS (coalesce(left([Note],(850)),\u0027Blank\u0027+CONVERT([nvarchar](20),rand()*(20))))",
+                    "InsertionDate datetime -- when the note was inserted",
+                    "InsertedBy sysname -- Who inserted the note",
+                    "ModifiedDate datetime -- when the note  got changed"
+                ],
+    "documentation":  " a note relating to a customer "
+}

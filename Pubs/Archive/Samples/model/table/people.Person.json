@@ -1,0 +1,27 @@
+﻿{
+    "primary key":  {
+                        "PersonIDPK":  "person_ID"
+                    },
+    "Default constraint":  {
+                               "PersonModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "person_ID int IDENTITY(1,1) -- ",
+                    "Title people.PersonalTitle --  the title (Mr, Mrs, Ms etc",
+                    "Nickname people.PersonalName --  the way the person is usually addressed",
+                    "FirstName people.PersonalName --  the person\u0027s first name",
+                    "MiddleName people.PersonalName -- any middle name ",
+                    "LastName people.PersonalName --  the lastname or surname ",
+                    "Suffix people.PersonalSuffix -- any suffix used by the person",
+                    "fullName  AS (((((coalesce([Title]+\u0027 \u0027,\u0027\u0027)+[FirstName])+coalesce(\u0027 \u0027+[MiddleName],\u0027\u0027))+\u0027 \u0027)+[LastName])+coalesce(\u0027 \u0027+[Suffix],\u0027\u0027))",
+                    "LegacyIdentifier nvarchar(30) -- ",
+                    "ModifiedDate datetime -- when the record was last modified"
+                ],
+    "index":  {
+                  "SearchByPersonLastname":  [
+                                                 "FirstName",
+                                                 "LastName"
+                                             ]
+              },
+    "documentation":  " This table represents a person- can be a customer or a member of staff,or someone in one of the outsourced support agencies"
+}

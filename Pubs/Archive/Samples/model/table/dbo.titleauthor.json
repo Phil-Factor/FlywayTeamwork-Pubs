@@ -1,0 +1,31 @@
+﻿{
+    "columns":  [
+                    "au_id dbo.id -- Foreign key to the author",
+                    "title_id dbo.tid -- Foreign key to the publication",
+                    "au_ord tinyint --  the order in which authors are listed",
+                    "royaltyper int -- the royalty percentage figure"
+                ],
+    "index":  {
+                  "auidind":  "au_id",
+                  "titleidind":  "title_id"
+              },
+    "documentation":  "this is a table that relates authors to publications, and gives their order of listing and royalty",
+    "Foreign Key":  {
+                        "FK__titleauth__title":  {
+                                                     "Cols":  "title_id",
+                                                     "Foreign Table":  "dbo.publications",
+                                                     "Referencing":  "Publication_id"
+                                                 },
+                        "FK__titleauth__au_id":  {
+                                                     "Cols":  "au_id",
+                                                     "Foreign Table":  "dbo.authors",
+                                                     "Referencing":  "au_id"
+                                                 }
+                    },
+    "primary key":  {
+                        "UPKCL_taind":  [
+                                            "au_id",
+                                            "title_id"
+                                        ]
+                    }
+}

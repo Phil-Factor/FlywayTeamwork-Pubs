@@ -1,0 +1,24 @@
+﻿{
+    "primary key":  {
+                        "PK__Bill_Lin__3213E83FAE977E69":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Bill_Line__line___288DEB75":  {
+                                                               "Cols":  "line_Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Bill_Line__bill___2799C73C":  {
+                                                               "Cols":  "bill_id",
+                                                               "Foreign Table":  "accounting.Bills",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "line_amount decimal(20,2) -- ",
+                    "bill_id int -- ",
+                    "line_Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "this is the joining table between Bills and COA. An account may appear in multiple bills and a bill may have multiple accounts."
+}

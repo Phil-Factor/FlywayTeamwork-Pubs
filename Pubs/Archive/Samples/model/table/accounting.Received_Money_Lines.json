@@ -1,0 +1,24 @@
+﻿{
+    "primary key":  {
+                        "PK__Received__3213E83F8AB14401":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Received___line___35E7E693":  {
+                                                               "Cols":  "line_Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Received___recei__34F3C25A":  {
+                                                               "Cols":  "received_money_id",
+                                                               "Foreign Table":  "accounting.Received_Moneys",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "line_amount decimal(20,2) -- ",
+                    "received_money_id int -- ",
+                    "line_Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "this is the joining table between Received_Moneys and COA"
+}

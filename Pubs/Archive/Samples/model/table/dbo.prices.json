@@ -1,0 +1,29 @@
+﻿{
+    "Default constraint":  {
+                               "DF__prices__PriceSta__230A1C49":  "PriceStartDate = (getdate())"
+                           },
+    "columns":  [
+                    "Price_id int IDENTITY(1,1) -- The surrogate key to the Prices Table",
+                    "Edition_id int -- The edition that this price applies to",
+                    "price dbo.Dollars -- the price in dollars",
+                    "advance dbo.Dollars -- the advance to the authors",
+                    "royalty int -- the royalty",
+                    "ytd_sales int -- the current sales this year",
+                    "PriceStartDate datetime2 -- the start date for which this price applies",
+                    "PriceEndDate datetime2 -- null if the price is current, otherwise the date at which it was supoerceded"
+                ],
+    "index":  {
+                  "editionid_index":  "Edition_id"
+              },
+    "documentation":  "these are the current prices of every edition of every publication",
+    "Foreign Key":  {
+                        "fk_prices":  {
+                                          "Cols":  "Edition_id",
+                                          "Foreign Table":  "dbo.editions",
+                                          "Referencing":  "Edition_id"
+                                      }
+                    },
+    "primary key":  {
+                        "PK_Prices":  "Price_id"
+                    }
+}

@@ -1,0 +1,15 @@
+﻿{
+    "columns":  [
+                    "publisher nvarchar(100)",
+                    "AudioBook int",
+                    "Book int",
+                    "Calendar int",
+                    "Ebook int",
+                    "Hardback int",
+                    "Map int",
+                    "PaperBack int",
+                    "total int"
+                ],
+    "Definition":  "CREATE VIEW [dbo].[PublishersByPublicationType] as\r\n/* A view to provide the number of each type of publication produced\r\nby each publisher*/\r\nSELECT Coalesce(publishers.pub_name, \u0027---All types\u0027) AS publisher,\r\nSum(CASE WHEN Editions.Publication_type = \u0027AudioBook\u0027 THEN 1 ELSE 0 END) AS \u0027AudioBook\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Book\u0027 THEN 1 ELSE 0 END) AS \u0027Book\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Calendar\u0027 THEN 1 ELSE 0 END) AS \u0027Calendar\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Ebook\u0027 THEN 1 ELSE 0 END) AS \u0027Ebook\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Hardback\u0027 THEN 1 ELSE 0 END) AS \u0027Hardback\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Map\u0027 THEN 1 ELSE 0 END) AS \u0027Map\u0027,\r\nSum(CASE WHEN Editions.Publication_type =\u0027Paperback\u0027 THEN 1 ELSE 0 END) AS \u0027PaperBack\u0027,\r\nCount(*) AS total\r\n FROM dbo.publishers\r\nINNER JOIN dbo.publications\r\nON publications.pub_id = publishers.pub_id\r\nINNER JOIN editions ON editions.publication_id = publications.Publication_id\r\nINNER JOIN dbo.prices ON prices.Edition_id = editions.Edition_id\r\nWHERE prices.PriceEndDate IS null \r\nGROUP BY publishers.pub_name\r\nWITH ROLLUP",
+    "documentation":  ""
+}

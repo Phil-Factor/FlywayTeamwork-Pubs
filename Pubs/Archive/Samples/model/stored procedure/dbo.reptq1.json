@@ -1,0 +1,4 @@
+﻿{
+    "documentation":  "",
+    "Definition":  "CREATE PROCEDURE reptq1\r\nAS\r\n  BEGIN\r\n    SELECT CASE WHEN Grouping(publications.pub_id) = 1 \r\n\t         THEN \u0027ALL\u0027 ELSE publications.pub_id END AS pub_id,\r\n      Avg(price) AS avg_price\r\n      FROM dbo.publishers\r\n        INNER JOIN dbo.publications\r\n          ON publications.pub_id = publishers.pub_id\r\n        INNER JOIN editions\r\n          ON editions.publication_id = publications.Publication_id\r\n        INNER JOIN dbo.prices\r\n          ON prices.Edition_id = editions.Edition_id\r\n      WHERE prices.PriceEndDate IS NULL\r\n      GROUP BY publications.pub_id WITH ROLLUP\r\n      ORDER BY publications.pub_id;\r\n  END;"
+}

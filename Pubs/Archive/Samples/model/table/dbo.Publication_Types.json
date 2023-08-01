@@ -1,0 +1,7 @@
+﻿{
+    "primary key":  {
+                        "PK__Publicat__66D9D2B3FB0C9D95":  "Publication_Type"
+                    },
+    "columns":  "Publication_Type nvarchar(20) -- ",
+    "documentation":  "An edition can be one of several types"
+}

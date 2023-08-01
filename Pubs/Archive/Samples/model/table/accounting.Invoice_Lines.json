@@ -1,0 +1,24 @@
+﻿{
+    "primary key":  {
+                        "PK__Invoice___3213E83F938F9E0B":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Invoice_L__line___2F3AE904":  {
+                                                               "Cols":  "line_Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Invoice_L__invoi__302F0D3D":  {
+                                                               "Cols":  "invoice_id",
+                                                               "Foreign Table":  "accounting.Invoices",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "line_amount decimal(20,2) -- ",
+                    "invoice_id int -- ",
+                    "line_Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "joining table between Invoices and COA. An account may appear in multiple invoices and an invoice may have multiple accounts."
+}

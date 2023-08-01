@@ -1,0 +1,9 @@
+﻿{
+    "columns":  [
+                    "publisher nvarchar(100)",
+                    "title nvarchar(255)",
+                    "ListOfEditions nvarchar(4000)"
+                ],
+    "Definition":  "CREATE VIEW [dbo].[TitlesAndEditionsByPublisher]\r\nAS\r\n/* A view to provide the number of each type of publication produced\r\nSelect * from [dbo].[TitlesAndEditionsByPublisher]\r\nby each publisher*/\r\nSELECT publishers.pub_name AS publisher, title,\r\n  String_Agg\r\n    (\r\n    Publication_type + \u0027 ($\u0027 + Convert(VARCHAR(20), price) + \u0027)\u0027, \u0027, \u0027\r\n    ) AS ListOfEditions\r\n  FROM dbo.publishers\r\n    INNER JOIN dbo.publications\r\n      ON publications.pub_id = publishers.pub_id\r\n    INNER JOIN editions\r\n      ON editions.publication_id = publications.Publication_id\r\n    INNER JOIN dbo.prices\r\n      ON prices.Edition_id = editions.Edition_id\r\n  WHERE prices.PriceEndDate IS NULL\r\n  GROUP BY publishers.pub_name, title;",
+    "documentation":  ""
+}

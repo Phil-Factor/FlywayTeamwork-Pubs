@@ -1,0 +1,29 @@
+﻿{
+    "primary key":  {
+                        "PK__Supplier__3213E83FDDD2CA08":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK_contact_id_organisation_id":  {
+                                                              "Cols":  "contact_id",
+                                                              "Foreign Table":  "people.Organisation",
+                                                              "Referencing":  "organisation_ID"
+                                                          },
+                        "FK_supplier_id_organisation_id":  {
+                                                               "Cols":  "supplier_id",
+                                                               "Foreign Table":  "people.Organisation",
+                                                               "Referencing":  "organisation_ID"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "supplier_id int -- ",
+                    "contact_id int -- ",
+                    "CustomerFrom date -- ",
+                    "CustomerTo date -- ",
+                    "ModifiedDate datetime -- "
+                ],
+    "Default constraint":  {
+                               "DF__Suppliers__Modif__25B17ECA":  "ModifiedDate = (getdate())"
+                           },
+    "documentation":  "a supplier can have many bills but a bill can’t belong to many suppliers"
+}

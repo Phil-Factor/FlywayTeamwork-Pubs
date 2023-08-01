@@ -1,0 +1,15 @@
+﻿{
+    "columns":  [
+                    "tran_id varchar(12)",
+                    "tran_date date",
+                    "Chart_of_Accounts_id int",
+                    "Chart_of_Accounts_name varchar(21)",
+                    "total decimal(20,2)",
+                    "line_id int",
+                    "line_Chart_of_Accounts_id int",
+                    "line_Chart_of_Accounts_name varchar(50)",
+                    "line_amount decimal(20,2)"
+                ],
+    "Definition":  "CREATE VIEW accounting.Spent_Money_Trans\r\nAS\r\n  SELECT \u0027SM\u0027 + Convert (VARCHAR(10), sm.id) AS tran_id, tran_date,\r\n         Chart_of_Accounts_id,\r\n         \u0027Business Bank Account\u0027 AS Chart_of_Accounts_name, total,\r\n         sml.id AS line_id, sml.line_Chart_of_Accounts_id,\r\n         c.Name AS line_Chart_of_Accounts_name, sml.line_amount\r\n    FROM\r\n    accounting.Spent_Moneys AS sm\r\n      LEFT JOIN accounting.Spent_Money_Lines AS sml\r\n        ON sm.id = sml.spent_money_id\r\n      LEFT JOIN accounting.Chart_of_Accounts AS c\r\n        ON c.id = sml.line_Chart_of_Accounts_id;\r\n--SELECT * from accounting.Spent_Money_Trans;",
+    "documentation":  ""
+}

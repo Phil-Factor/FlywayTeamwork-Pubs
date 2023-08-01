@@ -1,0 +1,27 @@
+﻿{
+    "primary key":  {
+                        "PK__Received__3213E83F7A768F35":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Received___Chart__37D02F05":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           },
+                        "FK__Received___custo__36DC0ACC":  {
+                                                               "Cols":  "customer_id",
+                                                               "Foreign Table":  "accounting.customer",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(20,2) -- ",
+                    "customer_id int -- ",
+                    "Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "may have an optional Customer"
+}

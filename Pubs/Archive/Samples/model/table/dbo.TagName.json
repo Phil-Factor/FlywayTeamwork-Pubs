@@ -1,0 +1,13 @@
+﻿{
+    "primary key":  {
+                        "TagnameSurrogate":  "TagName_ID"
+                    },
+    "columns":  [
+                    "TagName_ID int IDENTITY(1,1) -- The surrogate key to the Tag Table",
+                    "Tag nvarchar(80) -- the name of the tag"
+                ],
+    "unique key":  {
+                       "Uniquetag":  "Tag"
+                   },
+    "documentation":  "All the categories of publications"
+}

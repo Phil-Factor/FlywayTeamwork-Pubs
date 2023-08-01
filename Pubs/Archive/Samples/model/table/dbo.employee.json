@@ -1,0 +1,46 @@
+﻿{
+    "Default constraint":  {
+                               "AssumeAewHire":  "hire_date = (getdate())",
+                               "AssumeJobIDof1":  "job_id = ((1))",
+                               "AssumeJobLevelof10":  "job_lvl = ((10))",
+                               "AssumeAPub_IDof9952":  "pub_id = (\u00279952\u0027)"
+                           },
+    "columns":  [
+                    "emp_id dbo.empid -- The key to the Employee Table",
+                    "fname nvarchar(40) -- first name",
+                    "minit char(1) -- middle initial",
+                    "lname nvarchar(60) -- last name",
+                    "job_id smallint -- the job that the employee does",
+                    "job_lvl tinyint -- the job level",
+                    "pub_id char(8) -- the publisher that the employee works for",
+                    "hire_date datetime -- the date that the employeee was hired"
+                ],
+    "Check constraint":  {
+                             "CK_emp_id":  "([emp_id] like \u0027[A-Z][A-Z][A-Z][1-9][0-9][0-9][0-9][0-9][FM]\u0027 OR [emp_id] like \u0027[A-Z]-[A-Z][1-9][0-9][0-9][0-9][0-9][FM]\u0027)"
+                         },
+    "index":  {
+                  "pub_id_index":  "pub_id",
+                  "JobID_index":  "job_id",
+                  "employee_ind":  [
+                                       "fname",
+                                       "minit",
+                                       "lname"
+                                   ]
+              },
+    "documentation":  "An employee of any of the publishers",
+    "Foreign Key":  {
+                        "FK__employee__job_id":  {
+                                                     "Cols":  "job_id",
+                                                     "Foreign Table":  "dbo.jobs",
+                                                     "Referencing":  "job_id"
+                                                 },
+                        "FK__employee__pub_id":  {
+                                                     "Cols":  "pub_id",
+                                                     "Foreign Table":  "dbo.publishers",
+                                                     "Referencing":  "pub_id"
+                                                 }
+                    },
+    "primary key":  {
+                        "PK_emp_id":  "emp_id"
+                    }
+}

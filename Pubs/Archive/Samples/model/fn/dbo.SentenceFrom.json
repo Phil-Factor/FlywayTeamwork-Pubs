@@ -1,0 +1,8 @@
+﻿{
+    "columns":  [
+                    " nvarchar(MAX) NULL ",
+                    "@JsonData nvarchar(MAX) NULL ",
+                    "@Reference nvarchar(100) NULL ",
+                    "@level int NULL "
+                ]
+}

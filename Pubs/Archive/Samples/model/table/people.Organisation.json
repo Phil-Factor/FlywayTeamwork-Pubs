@@ -1,0 +1,19 @@
+﻿{
+    "primary key":  {
+                        "organisationIDPK":  "organisation_ID"
+                    },
+    "Default constraint":  {
+                               "organisationModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "organisation_ID int IDENTITY(1,1) -- ",
+                    "OrganisationName nvarchar(100) -- ",
+                    "LineOfBusiness nvarchar(100) -- ",
+                    "LegacyIdentifier nvarchar(30) -- ",
+                    "ModifiedDate datetime -- "
+                ],
+    "index":  {
+                  "SearchByOrganisationName":  "OrganisationName"
+              },
+    "documentation":  ""
+}

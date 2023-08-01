@@ -1,0 +1,25 @@
+﻿{
+    "primary key":  {
+                        "PK__Invoice___3213E83F09263632":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Invoice_P__Chart__31233176":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(20,2) -- ",
+                    "Chart_of_Accounts_id int -- ",
+                    "ModifiedDate datetime -- "
+                ],
+    "Default constraint":  {
+                               "DF__Invoice_P__Modif__24BD5A91":  "ModifiedDate = (getdate())"
+                           },
+    "documentation":  "one-to-many relationship between Invoice_Payments and Invoices respectively (no partial payments)"
+}

@@ -1,0 +1,19 @@
+﻿{
+    "columns":  [
+                    "tran_id varchar(10)",
+                    "tran_date date",
+                    "ap_account int",
+                    "Name varchar(50)",
+                    "total decimal(10,2)",
+                    "line_id int",
+                    "line_Chart_of_Accounts_id int",
+                    "line_amount decimal(20,2)",
+                    "id int",
+                    "bank_account int",
+                    "bank_name varchar(21)",
+                    "status smallint",
+                    "line_Chart_of_Accounts_name varchar(50)"
+                ],
+    "Definition":  "CREATE VIEW accounting.Bill_Trans\r\nAS\r\n  WITH btrans\r\n  AS (\r\n     SELECT Convert (VARCHAR(10), b.id) AS tran_id, b.tran_date,\r\n            b.Chart_of_Accounts_id AS ap_account,\r\n            -- ABS(total) as total,\r\n            c.Name, b.total, bl.id AS line_id, bl.line_Chart_of_Accounts_id,\r\n            bl.line_amount, bp.id, bp.Chart_of_Accounts_id AS bank_account,\r\n            \u0027Business Bank Account\u0027 AS bank_name, b.status\r\n       FROM\r\n       accounting.Bills AS b\r\n         LEFT JOIN accounting.Bill_Lines AS bl\r\n           ON b.id = bl.bill_id\r\n         LEFT JOIN accounting.Chart_of_Accounts AS c\r\n           ON b.Chart_of_Accounts_id = c.id\r\n         LEFT JOIN accounting.Bill_Payments AS bp\r\n           ON b.bill_payment_id = bp.id)\r\n  SELECT btrans.tran_id, btrans.tran_date, btrans.ap_account, btrans.Name,\r\n         btrans.total, btrans.line_id, btrans.line_Chart_of_Accounts_id,\r\n         btrans.line_amount, btrans.id, btrans.bank_account,\r\n         btrans.bank_name, btrans.status,\r\n         c.Name AS line_Chart_of_Accounts_name\r\n    FROM\r\n    btrans\r\n      LEFT JOIN accounting.Chart_of_Accounts AS c\r\n        ON btrans.line_Chart_of_Accounts_id = c.id;",
+    "documentation":  ""
+}

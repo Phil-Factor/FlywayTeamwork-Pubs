@@ -1,0 +1,13 @@
+﻿{
+    "primary key":  {
+                        "PhoneTypePK":  "TypeOfPhone"
+                    },
+    "Default constraint":  {
+                               "PhoneTypeModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "TypeOfPhone nvarchar(40) -- a description of the type of phone",
+                    "ModifiedDate datetime -- when this record was last modified"
+                ],
+    "documentation":  " the description of the type of the phone (e.g. Mobile, Home, work) "
+}

@@ -1,0 +1,21 @@
+﻿{
+    "primary key":  {
+                        "PK__Bill_Pay__3213E83F79E72DBA":  "id"
+                    },
+    "Foreign Key":  {
+                        "FK__Bill_Paym__Chart__29820FAE":  {
+                                                               "Cols":  "Chart_of_Accounts_id",
+                                                               "Foreign Table":  "accounting.Chart_of_Accounts",
+                                                               "Referencing":  "id"
+                                                           }
+                    },
+    "columns":  [
+                    "id int -- ",
+                    "tran_date date -- ",
+                    "description nvarchar(MAX) -- ",
+                    "reference nvarchar(MAX) -- ",
+                    "total decimal(20,2) -- ",
+                    "Chart_of_Accounts_id int -- "
+                ],
+    "documentation":  "payments of the outstanding Bills. there’s a one-to-many relationship between Bill_Payments and Bills respectively"
+}

@@ -1,0 +1,36 @@
+﻿{
+    "Default constraint":  {
+                               "NotePersonInsertionDateD":  "InsertionDate = (getdate())",
+                               "NotePersonModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "NotePerson_id int IDENTITY(1,1) -- Surrogate primary key for the link table",
+                    "Person_id int -- foreign key to the person who has the addess",
+                    "Note_id int -- foreign key to the actual note",
+                    "InsertionDate datetime --  whan the note was inserted ",
+                    "ModifiedDate datetime --  whan the association of note with person was last modified "
+                ],
+    "documentation":  " relates a note to a person ",
+    "unique key":  {
+                       "DuplicateUK":  [
+                                           "Person_id",
+                                           "Note_id",
+                                           "InsertionDate"
+                                       ]
+                   },
+    "Foreign Key":  {
+                        "NotePerson_PersonFK":  {
+                                                    "Cols":  "Person_id",
+                                                    "Foreign Table":  "people.Person",
+                                                    "Referencing":  "person_ID"
+                                                },
+                        "NotePerson_NoteFK":  {
+                                                  "Cols":  "Note_id",
+                                                  "Foreign Table":  "people.Note",
+                                                  "Referencing":  "Note_id"
+                                              }
+                    },
+    "primary key":  {
+                        "NotePersonPK":  "NotePerson_id"
+                    }
+}

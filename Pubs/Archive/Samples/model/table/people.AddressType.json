@@ -1,0 +1,13 @@
+﻿{
+    "primary key":  {
+                        "TypeOfAddressPK":  "TypeOfAddress"
+                    },
+    "Default constraint":  {
+                               "AddressTypeModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "TypeOfAddress nvarchar(40) -- description of the type of address",
+                    "ModifiedDate datetime -- when was this record LAST modified"
+                ],
+    "documentation":  " the way that a particular customer is using the address (e.g. Home, Office, hotel etc "
+}

@@ -1,0 +1,19 @@
+﻿{
+    "Check constraint":  {
+                             "CK__publisher__pub_id":  "([pub_id]=\u00271756\u0027 OR [pub_id]=\u00271622\u0027 OR [pub_id]=\u00270877\u0027 OR [pub_id]=\u00270736\u0027 OR [pub_id]=\u00271389\u0027 OR [pub_id] like \u002799[0-9][0-9]\u0027)"
+                         },
+    "primary key":  {
+                        "UPKCL_pubind":  "pub_id"
+                    },
+    "Default constraint":  {
+                               "AssumeItsTheSatates":  "country = (\u0027USA\u0027)"
+                           },
+    "columns":  [
+                    "pub_id char(8) -- The surrogate key to the Publishers Table",
+                    "pub_name nvarchar(100) -- The name of the publisher",
+                    "city nvarchar(100) -- the city where this publisher is based",
+                    "state char(2) -- Thge state where this publisher is based",
+                    "country nvarchar(80) -- The country where this publisher is based"
+                ],
+    "documentation":  "this is a table of publishers who we distribute books for"
+}

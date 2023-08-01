@@ -1,0 +1,25 @@
+﻿{
+    "Default constraint":  {
+                               "DF__EmailAddr__Start__007FFA1B":  "StartDate = (getdate())",
+                               "EmailAddressModifiedDateD":  "ModifiedDate = (getdate())"
+                           },
+    "columns":  [
+                    "EmailID int IDENTITY(1,1) -- Surrogate key for the email",
+                    "Person_id int -- foreign key to the person who has the addess",
+                    "EmailAddress people.PersonalEmailAddress -- the actual email address",
+                    "StartDate date -- when the customer started using this address",
+                    "EndDate date -- when the customer stopped using this address",
+                    "ModifiedDate datetime -- When the email address got modified"
+                ],
+    "documentation":  " the email address for the person. a person can have more than one ",
+    "Foreign Key":  {
+                        "EmailAddress_PersonFK":  {
+                                                      "Cols":  "Person_id",
+                                                      "Foreign Table":  "people.Person",
+                                                      "Referencing":  "person_ID"
+                                                  }
+                    },
+    "primary key":  {
+                        "EmailPK":  "EmailID"
+                    }
+}
