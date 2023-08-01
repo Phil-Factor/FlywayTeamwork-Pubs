@@ -3699,117 +3699,194 @@ UNION ALL
 <# this is the section that creates a SQL Server Database Model based where
 possible on information schema #>
 				'sqlserver'  {
+#Fetch the preliminaries such as user-defined types, schemas, and RDBMS-specifics.
+$Preliminaries = Execute-SQL $param1 @"
+    SELECT TheSchema.name AS "schema", 'userType' AS "Type",
+       UserTypes.name AS name,
+       'CREATE TYPE ' + TheSchema.name + '.' + UserTypes.name + ' FROM '
+       + sysTypes.name + ' '
+       + CASE WHEN UserTypes.precision <> 0 AND UserTypes.scale <> 0 THEN
+                '(' + Convert (VARCHAR(5), UserTypes.precision) + ','
+                + Convert (VARCHAR(5), UserTypes.scale) + ')'
+           WHEN UserTypes.max_length > 0 THEN
+             '(' + Convert (VARCHAR(5), UserTypes.max_length) + ')'
+           WHEN UserTypes.max_length = -1 THEN '(MAX)' ELSE '' END
+       + CASE WHEN UserTypes.is_nullable = 0 THEN ' NOT' ELSE '' END
+       + ' NULL' AS "definition"
+  FROM
+  sys.types UserTypes
+    INNER JOIN sys.types sysTypes
+      ON UserTypes.system_type_id = sysTypes.system_type_id
+     AND sysTypes.is_user_defined = 0
+     AND UserTypes.is_user_defined = 1
+     AND sysTypes.system_type_id = sysTypes.user_type_id
+    INNER JOIN sys.schemas AS TheSchema
+      ON TheSchema.schema_id = UserTypes.schema_id
+    for json path
+"@ | ConvertFrom-Json
+if ($Preliminaries.Error -ne $null)
+                        { $Problems += $Preliminaries.Error
+                        write-error "$($Preliminaries.Error)"}
+                         
 					#fetch all the relations (anything that produces columns)
-					$query = @"
-SELECT ParentObjects.[Schema] AS "Schema", ParentObjects.type,
+	$query = @"
+	SELECT Object_Schema_Name (ParentObjects.object_id) AS "Schema",
+     Replace (Lower (Replace(Replace(ParentObjects.type_Desc,'user_',''),'sql_','')), '_', ' ') as "type", 
        ParentObjects.Name,
        colsandparams.name + ' ' +
 -- SQL Prompt formatting off
-			t.[name]+ CASE --do the basic datatype
-			WHEN t.[name] IN ('char', 'varchar', 'nchar', 'nvarchar')
-			THEN '(' + -- we have to put in the length
-				CASE WHEN ValueTypemaxlength = -1 THEN 'MAX'
+			CASE --do the basic datatype
+			  WHEN colsandparams.definition IS NOT NULL THEN ' AS '+colsandparams.definition
+			  ELSE CASE WHEN t.is_user_defined=1 THEN ts.name +'.' ELSE '' END +  t.[name]+ 
+			  CASE WHEN t.[name] IN ('char', 'varchar', 'nchar', 'nvarchar')
+			  THEN '(' + -- we have to put in the length
+				CASE WHEN colsandparams.ValueTypemaxlength = -1 THEN 'MAX'
 				ELSE CONVERT(VARCHAR(4),
 					CASE WHEN t.[name] IN ('nchar', 'nvarchar')
-					THEN ValueTypemaxlength / 2 ELSE ValueTypemaxlength
+					THEN colsandparams.ValueTypemaxlength / 2 ELSE colsandparams.ValueTypemaxlength
 					END)
 				END + ')' --having to put in the length
-			WHEN t.[name] IN ('decimal', 'numeric')
-			--Ah. We need to put in the precision
-			THEN '(' + CONVERT(VARCHAR(4), ValueTypePrecision)
-					+ ',' + CONVERT(VARCHAR(4), ValueTypeScale) + ')'
-			ELSE ''-- no more to do
-			END+ --we've now done the datatype
-			CASE WHEN XMLcollectionID <> 0 --when an XML document
-			THEN --deal with object schema names
+			  WHEN t.[name] IN ('decimal', 'numeric')
+			  --Ah. We need to put in the precision
+			  THEN '(' + CONVERT(VARCHAR(4), colsandparams.ValueTypePrecision)
+					+ ',' + CONVERT(VARCHAR(4), colsandparams.ValueTypeScale) + ')'
+			  ELSE ''-- no more to do
+			  END+
+			  CASE WHEN colsandparams.is_identity =1 
+			    THEN ' IDENTITY('+Convert(VARCHAR(5),colsandparams.seed_value)+','
+								+Convert(Varchar(5), colsandparams.increment_value)+')' 
+				ELSE '' END +
+			  CASE WHEN colsandparams.XMLcollectionID <> 0 --when an XML document
+			  THEN --deal with object schema names
 				'(' +
-				CASE WHEN isXMLDocument = 1 THEN 'DOCUMENT ' ELSE 'CONTENT ' END
+				CASE WHEN colsandparams.isXMLDocument = 1 THEN 'DOCUMENT ' ELSE 'CONTENT ' END
 				+ COALESCE(
 				QUOTENAME(Schemae.name) + '.' + QUOTENAME(SchemaCollection.name)
-				,'NULL') + ')'
-				ELSE ''
-			END -- +Coalesce(' -- '+Description,'')
-        	AS "Column",
-			TheOrder
+				,'NULL') + ')' +
+			  CASE WHEN colsandparams.collation_name IS NOT NULL THEN
+				' COLLATE '+colsandparams.collation_name+' ' ELSE '' END+
+			  CASE WHEN colsandparams.is_nullable =  0 THEN ' NOT' ELSE '' END+' NULL '
+            				ELSE '' END 
+            +Coalesce(' -- '+colsandparams.Description,'')
+			END  --we've now done the datatype
+			    	AS "Column",
+			colsandparams.TheOrder As "TheOrder"
 -- SQL Prompt formatting on
   FROM --columns, parameters, return values ColsAndParams.
     --first get all the parameters
     (SELECT cols.object_id, cols.name, 'Columns' AS "Type",
-            Convert (NVARCHAR(2000), value) AS "Description",
-            column_id AS TheOrder, cols.xml_collection_id,
+            Convert (NVARCHAR(2000), EP.value) AS "Description",
+            cols.column_id AS TheOrder, cols.xml_collection_id,
             cols.max_length AS ValueTypemaxlength,
             cols.precision AS ValueTypePrecision,
             cols.scale AS ValueTypeScale,
+			cols.is_nullable, cols.is_identity,cc.definition,
+			IC.seed_value, IC.increment_value,
             cols.xml_collection_id AS XMLcollectionID,
-            cols.is_xml_document AS isXMLDocument, cols.user_type_id
-       FROM
+            cols.is_xml_document AS isXMLDocument, cols.user_type_id,
+			cols.collation_name
+      FROM
        sys.objects AS object
          INNER JOIN sys.columns AS cols
            ON cols.object_id = object.object_id
          LEFT OUTER JOIN sys.extended_properties AS EP
            ON cols.object_id = EP.major_id
-          AND class = 1
-          AND minor_id = cols.column_id
+          AND EP.class = 1
+          AND EP.minor_id = cols.column_id
           AND EP.name = 'MS_Description'
-       WHERE is_ms_shipped = 0
+		 LEFT OUTER JOIN sys.identity_columns IC
+		 ON ic.column_id = cols.column_id
+		 AND ic.object_id = object.object_id
+		 LEFT OUTER JOIN sys.computed_columns cc 
+		 ON cols.object_id = cc.object_id 
+		AND cols.column_id = cc.column_id
+       WHERE object.is_ms_shipped = 0
      UNION ALL
      --get in all the parameters
      SELECT params.object_id, params.name AS "Name",
-            CASE WHEN parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
+            CASE WHEN params.parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
             --'Parameters' AS "Type",
-            Convert (NVARCHAR(2000), value) AS "Description",
-            parameter_id AS TheOrder, params.xml_collection_id,
+            Convert (NVARCHAR(2000), EP.value) AS "Description",
+            params.parameter_id AS TheOrder, params.xml_collection_id,
             params.max_length AS ValueTypemaxlength,
             params.precision AS ValueTypePrecision,
             params.scale AS ValueTypeScale,
+			params.is_nullable, 0 AS is_Identity, null AS "definition",
+			NULL AS seed_value, NULL AS increment_value,
             params.xml_collection_id AS XMLcollectionID,
-            params.is_xml_document AS isXMLDocument, params.user_type_id
+            params.is_xml_document AS isXMLDocument, params.user_type_id,
+			NULL AS collation_name
        FROM
        sys.objects AS object
          INNER JOIN sys.parameters AS params
            ON params.object_id = object.object_id
          LEFT OUTER JOIN sys.extended_properties AS EP
            ON params.object_id = EP.major_id
-          AND class = 2
-          AND minor_id = params.parameter_id
+          AND EP.class = 2
+          AND EP.minor_id = params.parameter_id
           AND EP.name = 'MS_Description'
-       WHERE is_ms_shipped = 0) AS colsandparams
+       WHERE object.is_ms_shipped = 0) AS colsandparams
     INNER JOIN sys.types AS t
       ON colsandparams.user_type_id = t.user_type_id
+	INNER JOIN sys.schemas ts ON t.schema_id=ts.schema_id
     LEFT OUTER JOIN sys.xml_schema_collections AS SchemaCollection
       ON SchemaCollection.xml_collection_id = colsandparams.xml_collection_id
     LEFT OUTER JOIN sys.schemas AS Schemae
       ON SchemaCollection.schema_id = Schemae.schema_id
-    RIGHT OUTER JOIN --catch parent objects without columns
-      (SELECT TheObjects.object_id,
-              Object_Schema_Name (TheObjects.object_id) AS "Schema",
-              Replace (Lower (Replace (Replace (TheObjects.type_desc, 'user_', ''), 'sql_', '')), '_',' ') AS type, 
-			  Object_Name (TheObjects.object_id) Name
-         FROM sys.objects TheObjects
-         WHERE
-         Object_Schema_Name (TheObjects.object_id) IN ($ListOfSchemas)
-     AND TheObjects.parent_object_id = 0
-     AND type <> 'SQ') ParentObjects
+ INNER JOIN sys.objects ParentObjects
       ON ParentObjects.object_id = colsandparams.object_id
   WHERE Object_Name (ParentObjects.object_id) <> '$FlywayTableName'
+  and Object_Schema_Name (ParentObjects.object_id) IN ($ListOfSchemas)
   ORDER BY
-  "Schema", "type", Name, TheOrder
-FOR JSON AUTO
+  "Schema", "type", Name, colsandparams.TheOrder
+FOR JSON path
 "@
+
 					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
-					#now get the details of the routines
+                    if ($TheRelationMetadata.Error -ne $null)
+                        { $Problems += $TheRelationMetadata.Error
+                        write-error "$($TheRelationMetadata.Error)"}
+    #now we need to get the base 'parent' types
+                    $query = @"
+--all the base types and their documentation (and any other common information)
+SELECT sch.name AS "schema", 
+  Replace (Lower (Replace(Replace(o.type_desc,'user_',''),'sql_','')), '_', ' ') as "type",
+   o.name AS "Name",
+  Coalesce(ep.value,'') AS "documentation"
+FROM sys.objects o
+INNER JOIN sys.schemas sch
+ON sch.schema_id = o.schema_id AND o.parent_object_id = 0
+LEFT OUTER JOIN sys.extended_properties ep
+ON o.object_id = ep.major_id  AND  ep.minor_id=0 
+AND ep.name LIKE 'MS_Description'
+WHERE sch.name IN ($ListOfSchemas)
+AND o.name <> '$FlywayTableName'
+FOR JSON path
+"@
+					$TheBaseTypes = Execute-SQL $param1 $query | ConvertFrom-json
+                    if ($TheBaseTypes.Error -ne $null)
+                        {write-error "$($TheBaseTypes.Error)";
+                        $Problems += $TheBaseTypes.Error;
+                        }
+                        #now get the details of the routines
 					$query = @'
-    SELECT Replace (Lower (Replace(Replace(so.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
+SELECT Replace (Lower (Replace(Replace(so.type_desc,'user_',''),'sql_','')), '_', ' ') as type,
         so.name, Object_Schema_Name(so.object_id) AS "schema", 
-        left(definition,2000)+CASE when LEN(definition)>2000 THEN '...' ELSE '' END AS definition, 
-        checksum(definition) AS hash 
+        definition, 
+        checksum(definition) AS hash, ep.value AS documentation
         FROM sys.sql_modules ssm
         INNER JOIN sys.objects so
         ON so.OBJECT_ID=ssm.object_id
-        FOR JSON auto               
+		LEFT OUTER JOIN sys.extended_properties ep
+        ON so.object_id = ep.major_id
+		and minor_id=0 AND ep.name LIKE 'MS_Description'
+        FOR JSON path                   
 '@
 					$Routines = Execute-SQL $param1 $query | ConvertFrom-json
-					
+                    if ($Routines.Error -ne $null)
+                        {write-error "$($Routines.Error)";
+                        $Problems += $Routines.Error;
+                        }					
 					#now do the constraints
 					$query = @"
 SELECT *
@@ -3891,8 +3968,8 @@ FOR JSON AUTO
 "@
 					$Constraints = Execute-SQL $param1 $query | ConvertFrom-json
 					if (!($constraints.Error -eq $null)) { $Problems += $constraints.Error }
-            <# 
-            Now get the details of all the indexes that aren't primary keys, including the columns,  
+<#            
+           # Now get the details of all the indexes that aren't primary keys, including the columns,  
 					$indexes = Execute-SQL $param1 @"
     SELECT Schema_Name (t.schema_id) AS "schema", t.name AS table_name,
        Replace (
@@ -3946,34 +4023,56 @@ FOR JSON auto
 '@ | ConvertFrom-Json
 					
             <# RDBMS  #>
-					#$ErrorActionPreference='Stop' 
-					$THeTypes = $TheRelationMetadata | Select schema, type -Unique
-					if ($Routines -ne $null)
-					{ $TheTypes = $THeTypes + $Routines | Select schema, type -Unique }
+					#$ErrorActionPreference='Stop'
+                    #$SchemaTree|convertto-json -depth 10 
+                    #$SchemaTree=New-Object PSObject @{}
+                    #$TheBaseTypes= schema, type, Name, documentation
+                   	$THeTypes = ($TheBaseTypes | Select schema, type)+($preliminaries | Select schema, type)|Select schema,type -unique
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
 					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
-					
-					
 					$TheTypes | Select -ExpandProperty schema -Unique | foreach{
 						$TheSchema = $_;
 						$ourtypes = @{ }
 						$TheTypes | where { $_.schema -eq $TheSchema } | Select -ExpandProperty type | foreach{ $OurTypes += @{ $_ = @{ } } }
 						$SchemaTree | add-member -NotePropertyName $TheSchema -NotePropertyValue $OurTypes
-					}
-					
-            <# now inject all the objects into the schema tree. First we get all the relations  #>
-					$TheRelationMetadata | Select schema, type, name -Unique | foreach{
+					}          
+            #Get the tables and columns in place
+                      #Schema, type, Name , Column, TheOrder
+                     $TheRelationMetadata | Select schema, type, name -Unique | foreach{
 						$schema = $_.schema;
 						$type = $_.type;
 						$object = $_.name;
 						$TheColumnList = $TheRelationMetadata |
-						where { $_.schema -eq $schema -and $_.type -eq $type -and $_.name -eq $object } -OutVariable pk |
+						where { $_.schema -eq $schema -and $_.type -eq $type -and $_.name -eq $object } |
 						foreach{ $_.column }
 						$SchemaTree.$schema.$type += @{ $object = @{ 'columns' = $TheColumnList } }
+					} 
+            #Add in the documentation for the tables          
+                     $TheBaseTypes | Select schema, type, name, documentation | foreach{
+						$schema = $_.schema;
+						$type = $_.type;
+						$object = $_.name;
+                        $Documentation = $_.documentation;
+						$SchemaTree.$schema.$type.$object += @{ 'documentation'=$Documentation } 
+					}           
+ 
+            <# now we get the difinitions for all the routines  #>
+                    #Routines=schema, type, name. definition
+					($Routines | Select schema, type, name, definition)+
+                    ($preliminaries | Select schema, type, name, definition) | foreach{
+						$schema = $_.schema;
+						$type = $_.type;
+						$object = $_.name;
+						$Definition = $_.definition
+						$SchemaTree.$schema.$type.$Object += @{ 'Definition'=$Definition } 
 					}
-					#display-object $schemaTree|convertto-json -depth 10
+					#$SchemaTree.$schema.$type.$Object.Definition
+                    #$SchemaTree|convertto-json -depth 10
+					#$SchemaTree.$schema.$type.$Object|convertto-json -depth 10
             <# now stitch in the constraints and indexes with their columns  #>
+                    #Constraints=schema ,table_name,type,constraint_name ,definition ,referenced_table,column_name,ordinal_position,
+                    #referenced_column,referenced_ordinal_position
 					$constraints | Select schema, table_name, Type, constraint_name, referenced_table, definition -Unique | foreach{
 						$constraintSchema = $_.schema;
 						$constrainedTable = $_.table_name;
@@ -3981,9 +4080,9 @@ FOR JSON auto
 						$ConstraintType = $_.type;
 						$referenced_table = $_.referenced_table;
 						$definition = $_.definition;
-						# get the original object
+ 						# get the original object
 						if ($ConstraintType -notin @('Unique key','index', 'Primary key', 'foreign key'))
-						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType = @{ $constraintName = $definition } }
+						{ $SchemaTree.$constraintSchema.table.$constrainedTable.$ConstraintType += @{ $constraintName = $definition } }
 						else
 						{
 							#we have to deal with columns
@@ -4010,9 +4109,8 @@ FOR JSON auto
 						}
 						
 					}
-					
-					
-            <# now stitch in the indexes with their columns  
+				  <# these are already included #>
+                  <# now stitch in the indexes with their columns  
 					$indexes | Select schema, table_name, Type, IndexType, index_name -Unique | foreach{
 						$indexSchema = $_.schema;
 						$indexedTable = $_.table_name;
@@ -4072,29 +4170,24 @@ FOR JSON auto
             $Tables = $ObjectsToBuild | where { $_.path -like '$*.*.table.*' } | foreach {
 	            $Splitpath = ($_.Path -split '\.'); "$($Splitpath[1]).$($Splitpath[3])"
             }
-            #now we work out the dependency order. First we put in the tables that aren't being
-            #referenced by anything
-            $TablesInDependencyOrder = $Tables | where { $_ -notin $TableReferences.referencing }
-            $ii = 10;
-            do #add tables  their dependent 
-            {
-	            $PreviousCount = $TablesInDependencyOrder.count #$tables.count
-	            $NotYetPicked = $Tables | where { $_ -notin $TablesInDependencyOrder }
-	            $TablesInDependencyOrder += $NotYetPicked | where {
-		            $_  -notin  ($NotyetPicked | foreach{
-				            $notpicked = $_; $TableReferences | where {
-					            $_.Referencing -eq $notpicked
-				            }
-			            } |
-			            where {
-				            $_.references -notin $TablesInDependencyOrder
-			            } | Select -ExpandProperty referencing)
-	            }
-	            $ii--;
-            }
-            while (($TablesInDependencyOrder.count -lt $Tables.count) -and ($ii -gt 0))
-            if ($TablesInDependencyOrder.count -ne $Tables.count)
-            { Throw 'could not get tables in dependency order' }
+            # Now we work out the dependency order. 
+	        # We put them in sorted order within their dependency group, starting with the tables that
+	        # don't reference anything. 
+	        $TablesInDependencyOrder = @()
+	        $ii = 20; # just to stop mutual dependencies hanging the script
+	        Do
+	        {
+		        $NotYetPicked = $Tables | where { $_ -notin $TablesInDependencyOrder }
+		        $TablesInDependencyOrder += $notyetpicked | foreach{
+			        $Name = $_; $Referencing = ($TableReferences | where { $_.referencing -eq $Name }).references;
+			        $AlreadyThere = $Referencing | where { $_ -in $TablesInDependencyOrder }
+			        if ($Referencing.Count -eq $AlreadyThere.Count) { $Name }
+		        } | sort-object
+		        $ii--;
+	        }
+	        while (($TablesInDependencyOrder.count -lt $Tables.count) -and ($ii -gt 0))
+	        if ($TablesInDependencyOrder.count -ne $Tables.count)
+	        { Throw 'could not get tables in dependency order' }
             $TablesInDependencyOrder > $MyManifestPath #and save the manifest
             $feedback += "written table manifest  to $MyManifestPath"
             }
@@ -4203,7 +4296,7 @@ $ExtractFromSQLServerIfNecessary = { <#
      'ObjectType'  (files in folders for each object type), 'Flat' (all files in the same folder)
      'File' (1 single file). #>
 	Param ($param1,
-		$OutputType, <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
+		$OutputType = 'DacPac', <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
 		$RedoIt = $false, #by default you just do it the once
 		$doDiagnostics = $false # do you want the log saved to disk to see what went wrong?
 	) # $ExtractFromSQLServerIfNecessary (Don't delete this) 
@@ -5776,6 +5869,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.620'
+'FlywayTeamwork framework  loaded. V1.2.627'
 
 
