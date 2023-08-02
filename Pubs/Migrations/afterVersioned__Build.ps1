@@ -42,6 +42,7 @@ $PostMigrationTasks = @(
     #it does this by reading the Flyway schema history table. 
 	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
     #uses SQL Compare
+    $ExtractFromSQLServerIfNecessary, #(SQL Server only)
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
     #this uses SQL Compare
 	$ExecuteTableSmellReport, #checks for table-smells
