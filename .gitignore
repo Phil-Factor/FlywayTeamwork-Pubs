@@ -4,6 +4,12 @@ reports/
 plastic/
 # Ignore copies/
 copies/
+# Ignore logs
+*.log
+# Ignore Report.html
+Report.html
+# Ignore Report.json
+Report.json
 # Ignore versions/  but not versions current
 Versions/
  !Versions/Current 

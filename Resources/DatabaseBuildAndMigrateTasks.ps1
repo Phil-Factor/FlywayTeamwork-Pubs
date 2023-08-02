@@ -402,7 +402,7 @@ set 'simpleText' to true
 			#Then we can't pass a query as a string. It must be passed as a file
 			#Deal with query strings 
 			if ([string]::IsNullOrEmpty($FileBasedQuery)) { $FullQuery>$TempInputFile; }
-			if ($TheArgs.uid -ne $null) #if we need to use credentials
+			if (-not [string]::IsNullOrEmpty($TheArgs.uid)) #if we need to use credentials
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -i $TempInputFile -U $TheArgs.Uid -P $TheArgs.pwd `
@@ -420,7 +420,7 @@ set 'simpleText' to true
 		
 		else #we can pass a query as a string
 		{
-			if ($TheArgs.uid -ne $null) #if we need to use credentials
+			if (-not [string]::IsNullOrEmpty($TheArgs.uid)) #if we need to use credentials
 			{
 				sqlcmd -S $TheArgs.server -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -U $TheArgs.uid -P $TheArgs.pwd `
@@ -3730,116 +3730,140 @@ if ($Preliminaries.Error -ne $null)
                          
 					#fetch all the relations (anything that produces columns)
 	$query = @"
-	SELECT Object_Schema_Name (ParentObjects.object_id) AS "Schema",
-     Replace (Lower (Replace(Replace(ParentObjects.type_Desc,'user_',''),'sql_','')), '_', ' ') as "type", 
-       ParentObjects.Name,
-       colsandparams.name + ' ' +
--- SQL Prompt formatting off
-			CASE --do the basic datatype
-			  WHEN colsandparams.definition IS NOT NULL THEN ' AS '+colsandparams.definition
-			  ELSE CASE WHEN t.is_user_defined=1 THEN ts.name +'.' ELSE '' END +  t.[name]+ 
-			  CASE WHEN t.[name] IN ('char', 'varchar', 'nchar', 'nvarchar')
-			  THEN '(' + -- we have to put in the length
-				CASE WHEN colsandparams.ValueTypemaxlength = -1 THEN 'MAX'
-				ELSE CONVERT(VARCHAR(4),
-					CASE WHEN t.[name] IN ('nchar', 'nvarchar')
-					THEN colsandparams.ValueTypemaxlength / 2 ELSE colsandparams.ValueTypemaxlength
-					END)
-				END + ')' --having to put in the length
-			  WHEN t.[name] IN ('decimal', 'numeric')
-			  --Ah. We need to put in the precision
-			  THEN '(' + CONVERT(VARCHAR(4), colsandparams.ValueTypePrecision)
-					+ ',' + CONVERT(VARCHAR(4), colsandparams.ValueTypeScale) + ')'
-			  ELSE ''-- no more to do
-			  END+
-			  CASE WHEN colsandparams.is_identity =1 
-			    THEN ' IDENTITY('+Convert(VARCHAR(5),colsandparams.seed_value)+','
-								+Convert(Varchar(5), colsandparams.increment_value)+')' 
-				ELSE '' END +
-			  CASE WHEN colsandparams.XMLcollectionID <> 0 --when an XML document
-			  THEN --deal with object schema names
-				'(' +
-				CASE WHEN colsandparams.isXMLDocument = 1 THEN 'DOCUMENT ' ELSE 'CONTENT ' END
-				+ COALESCE(
-				QUOTENAME(Schemae.name) + '.' + QUOTENAME(SchemaCollection.name)
-				,'NULL') + ')' +
-			  CASE WHEN colsandparams.collation_name IS NOT NULL THEN
-				' COLLATE '+colsandparams.collation_name+' ' ELSE '' END+
-			  CASE WHEN colsandparams.is_nullable =  0 THEN ' NOT' ELSE '' END+' NULL '
-            				ELSE '' END 
-            +Coalesce(' -- '+colsandparams.Description,'')
-			END  --we've now done the datatype
-			    	AS "Column",
-			colsandparams.TheOrder As "TheOrder"
--- SQL Prompt formatting on
-  FROM --columns, parameters, return values ColsAndParams.
-    --first get all the parameters
-    (SELECT cols.object_id, cols.name, 'Columns' AS "Type",
-            Convert (NVARCHAR(2000), EP.value) AS "Description",
-            cols.column_id AS TheOrder, cols.xml_collection_id,
-            cols.max_length AS ValueTypemaxlength,
-            cols.precision AS ValueTypePrecision,
-            cols.scale AS ValueTypeScale,
-			cols.is_nullable, cols.is_identity,cc.definition,
-			IC.seed_value, IC.increment_value,
-            cols.xml_collection_id AS XMLcollectionID,
-            cols.is_xml_document AS isXMLDocument, cols.user_type_id,
-			cols.collation_name
-      FROM
-       sys.objects AS object
-         INNER JOIN sys.columns AS cols
-           ON cols.object_id = object.object_id
-         LEFT OUTER JOIN sys.extended_properties AS EP
-           ON cols.object_id = EP.major_id
-          AND EP.class = 1
-          AND EP.minor_id = cols.column_id
-          AND EP.name = 'MS_Description'
-		 LEFT OUTER JOIN sys.identity_columns IC
-		 ON ic.column_id = cols.column_id
-		 AND ic.object_id = object.object_id
-		 LEFT OUTER JOIN sys.computed_columns cc 
-		 ON cols.object_id = cc.object_id 
-		AND cols.column_id = cc.column_id
-       WHERE object.is_ms_shipped = 0
-     UNION ALL
-     --get in all the parameters
-     SELECT params.object_id, params.name AS "Name",
-            CASE WHEN params.parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
-            --'Parameters' AS "Type",
-            Convert (NVARCHAR(2000), EP.value) AS "Description",
-            params.parameter_id AS TheOrder, params.xml_collection_id,
-            params.max_length AS ValueTypemaxlength,
-            params.precision AS ValueTypePrecision,
-            params.scale AS ValueTypeScale,
-			params.is_nullable, 0 AS is_Identity, null AS "definition",
-			NULL AS seed_value, NULL AS increment_value,
-            params.xml_collection_id AS XMLcollectionID,
-            params.is_xml_document AS isXMLDocument, params.user_type_id,
-			NULL AS collation_name
-       FROM
-       sys.objects AS object
-         INNER JOIN sys.parameters AS params
-           ON params.object_id = object.object_id
-         LEFT OUTER JOIN sys.extended_properties AS EP
-           ON params.object_id = EP.major_id
-          AND EP.class = 2
-          AND EP.minor_id = params.parameter_id
-          AND EP.name = 'MS_Description'
-       WHERE object.is_ms_shipped = 0) AS colsandparams
-    INNER JOIN sys.types AS t
-      ON colsandparams.user_type_id = t.user_type_id
-	INNER JOIN sys.schemas ts ON t.schema_id=ts.schema_id
-    LEFT OUTER JOIN sys.xml_schema_collections AS SchemaCollection
-      ON SchemaCollection.xml_collection_id = colsandparams.xml_collection_id
-    LEFT OUTER JOIN sys.schemas AS Schemae
-      ON SchemaCollection.schema_id = Schemae.schema_id
- INNER JOIN sys.objects ParentObjects
-      ON ParentObjects.object_id = colsandparams.object_id
-  WHERE Object_Name (ParentObjects.object_id) <> '$FlywayTableName'
-  and Object_Schema_Name (ParentObjects.object_id) IN ($ListOfSchemas)
-  ORDER BY
-  "Schema", "type", Name, colsandparams.TheOrder
-FOR JSON path
+SELECT
+	Object_Schema_Name(ParentObjects.object_id) AS "Schema",
+	REPLACE(LOWER(REPLACE(REPLACE(ParentObjects.type_Desc, 'user_', ''), 'sql_', '')), '_', ' ') AS "type",
+	ParentObjects.Name,
+	colsandparams.name + ' ' +
+	CASE
+		WHEN colsandparams.definition IS NOT NULL THEN ' AS ' + colsandparams.definition
+		ELSE
+			CASE
+				WHEN t.is_user_defined = 1 THEN ts.name + '.'
+				ELSE ''
+			END + t.[name] +
+			CASE
+				WHEN t.[name] IN ('char', 'varchar', 'nchar', 'nvarchar') THEN
+					'(' +
+					CASE
+						WHEN colsandparams.ValueTypemaxlength = -1 THEN 'MAX'
+						ELSE CONVERT(VARCHAR(4),
+							CASE
+								WHEN t.[name] IN ('nchar', 'nvarchar') THEN colsandparams.ValueTypemaxlength / 2
+								ELSE colsandparams.ValueTypemaxlength
+							END
+						)
+					END + ')'
+				WHEN t.[name] IN ('decimal', 'numeric') THEN
+					'(' + CONVERT(VARCHAR(4), colsandparams.ValueTypePrecision) +
+					',' + CONVERT(VARCHAR(4), colsandparams.ValueTypeScale) + ')'
+				ELSE ''
+			END +
+			CASE
+				WHEN colsandparams.is_identity = 1 THEN
+					' IDENTITY(' + CONVERT(VARCHAR(5), colsandparams.seed_value) + ',' +
+					CONVERT(VARCHAR(5), colsandparams.increment_value) + ')'
+				ELSE ''
+			END +
+			CASE
+				WHEN colsandparams.XMLcollectionID <> 0 THEN
+					'(' +
+					CASE
+						WHEN colsandparams.isXMLDocument = 1 THEN 'DOCUMENT '
+						ELSE 'CONTENT '
+					END +
+					COALESCE(
+						QUOTENAME(Schemae.name) + '.' + QUOTENAME(SchemaCollection.name),
+						'NULL'
+					) + ')' +
+					CASE
+						WHEN colsandparams.collation_name IS NOT NULL THEN
+							' COLLATE ' + colsandparams.collation_name + ' '
+						ELSE ''
+					END +
+					CASE
+						WHEN colsandparams.is_nullable = 0 THEN ' NOT'
+						ELSE ''
+					END + ' NULL '
+				ELSE ''
+			END +
+			COALESCE(' -- ' + colsandparams.Description, '')
+	END AS "Column",
+	colsandparams.TheOrder AS "TheOrder"
+FROM
+	(SELECT
+		cols.object_id,
+		cols.name,
+		'Columns' AS "Type",
+		CONVERT(NVARCHAR(2000), EP.value) AS "Description",
+		cols.column_id AS TheOrder,
+		cols.xml_collection_id,
+		cols.max_length AS ValueTypemaxlength,
+		cols.precision AS ValueTypePrecision,
+		cols.scale AS ValueTypeScale,
+		cols.is_nullable,
+		cols.is_identity,
+		cc.definition,
+		IC.seed_value,
+		IC.increment_value,
+		cols.xml_collection_id AS XMLcollectionID,
+		cols.is_xml_document AS isXMLDocument,
+		cols.user_type_id,
+		cols.collation_name
+	FROM
+		sys.objects AS object
+		INNER JOIN sys.columns AS cols ON cols.object_id = object.object_id
+		LEFT OUTER JOIN sys.extended_properties AS EP ON cols.object_id = EP.major_id
+			AND EP.class = 1
+			AND EP.minor_id = cols.column_id
+			AND EP.name = 'MS_Description'
+		LEFT OUTER JOIN sys.identity_columns IC ON ic.column_id = cols.column_id
+			AND ic.object_id = object.object_id
+		LEFT OUTER JOIN sys.computed_columns cc ON cols.object_id = cc.object_id
+			AND cols.column_id = cc.column_id
+	WHERE
+		object.is_ms_shipped = 0
+	UNION ALL
+	SELECT
+		params.object_id,
+		params.name AS "Name",
+		CASE WHEN params.parameter_id = 0 THEN 'Return' ELSE 'Parameters' END AS "Type",
+		CONVERT(NVARCHAR(2000), EP.value) AS "Description",
+		params.parameter_id AS TheOrder,
+		params.xml_collection_id,
+		params.max_length AS ValueTypemaxlength,
+		params.precision AS ValueTypePrecision,
+		params.scale AS ValueTypeScale,
+		params.is_nullable,
+		0 AS is_Identity,
+		NULL AS "definition",
+		NULL AS seed_value,
+		NULL AS increment_value,
+		params.xml_collection_id AS XMLcollectionID,
+		params.is_xml_document AS isXMLDocument,
+		params.user_type_id,
+		NULL AS collation_name
+	FROM
+		sys.objects AS object
+		INNER JOIN sys.parameters AS params ON params.object_id = object.object_id
+		LEFT OUTER JOIN sys.extended_properties AS EP ON params.object_id = EP.major_id
+			AND EP.class = 2
+			AND EP.minor_id = params.parameter_id
+			AND EP.name = 'MS_Description'
+	WHERE
+		object.is_ms_shipped = 0
+	) AS colsandparams
+	INNER JOIN sys.types AS t ON colsandparams.user_type_id = t.user_type_id
+	INNER JOIN sys.schemas ts ON t.schema_id = ts.schema_id
+	LEFT OUTER JOIN sys.xml_schema_collections AS SchemaCollection ON SchemaCollection.xml_collection_id = colsandparams.xml_collection_id
+	LEFT OUTER JOIN sys.schemas AS Schemae ON SchemaCollection.schema_id = Schemae.schema_id
+	INNER JOIN sys.objects ParentObjects ON ParentObjects.object_id = colsandparams.object_id
+WHERE
+	Object_Name(ParentObjects.object_id) <> '$FlywayTableName'
+	AND Object_Schema_Name(ParentObjects.object_id) IN ($ListOfSchemas)
+ORDER BY
+	"Schema", "type", Name, colsandparams.TheOrder
+FOR JSON PATH
 "@
 
 					$TheRelationMetadata = Execute-SQL $param1 $query | ConvertFrom-json
@@ -4027,7 +4051,7 @@ FOR JSON auto
                     #$SchemaTree|convertto-json -depth 10 
                     #$SchemaTree=New-Object PSObject @{}
                     #$TheBaseTypes= schema, type, Name, documentation
-                   	$THeTypes = ($TheBaseTypes | Select schema, type)+($preliminaries | Select schema, type)|Select schema,type -unique
+                   	$THeTypes = ($TheBaseTypes | Select schema, type)+($preliminaries | Select schema, type)+($routines | Select schema, type)|Select schema,type -unique
             <# OK. we now have to assemble all this into a model that is as human-friendly as possible  #>
 					$SchemaTree = @{ } <# This will become our model of the schema. Fist we put in
             all the types of relations  #>
@@ -5869,6 +5893,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.627'
+'FlywayTeamwork framework  loaded. V1.2.628'
 
 
