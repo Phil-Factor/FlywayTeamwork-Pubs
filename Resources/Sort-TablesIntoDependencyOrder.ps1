@@ -12,8 +12,7 @@
 				PS C:\> Sort-TablesIntoDependencyOrder -dbModel $MyDatabaseModel
                 PS C:\> $MyDatabaseModel|Sort-TablesIntoDependencyOrder
 	
-	.NOTES
-		Additional information about the function.
+
 #>
 function Sort-TablesIntoDependencyOrder
 {

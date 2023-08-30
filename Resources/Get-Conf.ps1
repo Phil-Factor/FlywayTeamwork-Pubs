@@ -9,31 +9,32 @@
 		The file cntaining the information
 	
 	.EXAMPLE
-				PS C:\> Get-Conf MyFile
-	
+				PS C:\> Get-Conf -file $Secrets
+				PS C:\> Get-Conf -file $null
+	            PS C:\> Get-Conf -file ''
 #>
 function Get-Conf
 {
 	[CmdletBinding()]
 	param
 	(
-		[Parameter(Mandatory = $true,
+		[Parameter(Mandatory = $false,
 				   ValueFromPipeline = $true,
 				   Position = 1)]
-		[string]$file
+		[string]$file = ''
 	)
-	{
-		type $file | foreach
-		-Begin
-		{
+	if (!([string]::IsNullOrEmpty($File)))
+    {
+		get-content $file | foreach	-Begin	{
 			$Values = @();
-		} 
-		-Process {
+		} -Process {
 			$Values += $_.Split("`n") |
 			where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
 			foreach{ $_ -replace '\Aflyway\.', '-' }
-		}
-		-End {
-			$Values }
-	}
+		} -End  { #tell callbacks where this file is
+			$Values  += "-placeholders.ParameterConfigItem=$file";
+            $Values
+            }
+    }	
+
 }

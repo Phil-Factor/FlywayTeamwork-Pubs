@@ -681,6 +681,8 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 
 $GetdataFromOracle = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. 
+$TheArgs=$DBDetails
+
 #>
 	Param ($Theargs,
 		#this is the same ubiquitous hashtable 
@@ -700,11 +702,12 @@ explicitly open a connection. it will take SQL files and queries.
 		$muted = $false #do you return the data
 	) # $GetdataFromOracle: (Don't delete this)
 	$problems = @();
+    $response='';
 	#check to see that we have the requisites
 	$TheWallet = $TheArgs.ZippedWalletLocation;
 	$Theservice = $TheArgs.service
 	$TheUID = $TheArgs.uid
-	$ThePassword = $TheArgs.password
+	$ThePassword = $TheArgs.pwd
 	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
 	{
 		$Problems += "Cannot continue because name of either service ('$TheService'
@@ -727,9 +730,12 @@ explicitly open a connection. it will take SQL files and queries.
 		$MaybeJSON = if ($simpleText) { '' }
 		else { "set sqlformat json`n" };
 		#do a command to set the output to JSON
-				<# the CLI picks up its commands from a local file called login.sql rather
-        than doing it at the command-line., and it reads its query from file too  #>
-		[System.IO.File]::WriteAllLines("$pwd\login.sql",@"
+		<# the CLI picks up its commands from a local file called login.sql rather
+        than doing it at the command-line., and it reads its query from file too
+        we now create the login file with the line to execute the command
+        Then when we execute the CLI it just run the file.
+        #>
+        [System.IO.File]::WriteAllLines("$pwd\login.sql",@"
 $($MaybeJSON)$($MaybeTimingSET)SET TERMOUT OFF 
 SET VERIFY OFF
 SET FEEDBACK OFF
@@ -741,13 +747,12 @@ spool $TempSpoolOutputFile
 spool off
 exit
 "@)
-		
-		if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
+        if (!([string]::IsNullOrEmpty($FileBasedQuery))) #if we've been passed a file ....
 		{ $query = [System.IO.File]::ReadAllLines($FileBasedQuery) }
 		[System.IO.File]::WriteAllLines("$pwd\$TempQueryFile", $Query)
 		$env:SQLPATH = "$pwd"
-		cmd.exe /c @"
-`"$OracleCmdAlias`" -noupdates -S -L  -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice
+        cmd.exe /c @"
+`"$OracleCmdAlias`" -noupdates -S -L  -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice  @$pwd/$TempQueryFile 
 "@
 		#we can't pass a query string directly so we have a file ...
 		If (Test-Path -Path "$pwd/$TempQueryFile")
@@ -762,7 +767,7 @@ exit
 		}
 	    If (Test-Path -Path "$pwd\login.sql")
             {Remove-Item "$pwd\login.sql"}
-		if ($response -like 'Error*')
+		if ($response -like '*Error at*' -or $response -like '*Error report*')
 		{ $Problems += " When connecting to oracle, we  had error $Response" }
 		if ($problems.count -gt 0)
 		{ @{ Error = $problems } | convertTo-json }
@@ -776,8 +781,9 @@ exit
 }
 
 $ExecutePLSQLScript = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get a set of
- JSON results without having to explicitly open a connection. it will take SQL files and queries 
+ JSON results without having to explicitly open a connection every time. it will take SQL files and queries 
  and also take an array of queries and filenames for the results. 
+ $TheArgs=$DBDetails
 #>
 	Param ($Theargs,
 		#this is the same ubiquitous hashtable 
@@ -794,7 +800,7 @@ $ExecutePLSQLScript = {<# a Scriptblock way of accessing oracle via Oracle SQLcl
 	$TheWallet = $TheArgs.ZippedWalletLocation;
 	$Theservice = $TheArgs.service
 	$TheUID = $TheArgs.uid
-	$ThePassword = $TheArgs.password
+	$ThePassword = $TheArgs.pwd
 	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
 	{
 		$Problems += "Cannot continue because name of either service ('$TheService'
@@ -870,15 +876,16 @@ set longchunksize 4000
 	if ($problems.count -eq 0)
 	{
 		$env:SQLPATH = "$pwd" #Use any local configuration you need
-		$cmd = "`"$OracleCmdAlias`"  -S -L  -noupdates  -cloudconfig $TheWallet $TheUID/$ThePassword@$Theservice @$FinalscriptFile`n"
+        $cmd = @"
+`"$OracleCmdAlias`"  -noupdates -S -L    -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice   @$FinalscriptFile
+"@
 	    cmd.exe /c $cmd
         
  	}
-
     $FilesToCleanUp|foreach{
         If (Test-Path -Path "$_")
 	        {
-                Remove-Item "$_"
+                  Remove-Item "$_"
             }
         }
 }
@@ -1098,7 +1105,7 @@ $Exists = Execute-SQL $param1 @"
 select count(*) as ItExists
         FROM ALL_TABLES
         WHERE  TABLE_NAME LIKE '$($param1.flywayTableName)'
-        AND OWNER = '$($param1.DefaultSchema)')) 
+        AND OWNER = '$($param1.DefaultSchema)'; 
 "@ | Convertfrom-json        }    
 
 
@@ -1138,11 +1145,11 @@ SELECT count()
     $param1.'FlywayTableExists'=if ($Exists.ItExists -gt 0) {$true} else {$False};
 	if ($problems.Count -gt 0)
 	{
-		$Param1.Problems.'$GetCurrentServerVersion' += $problems;
+		$Param1.Problems.'$DoesTheFlywayTableExist' += $problems;
 	}
 	else
 	{
-		$Param1.feedback.'$GetCurrentServerVersion' = "current $($param1.RDBMS) version is $($Param1.ServerVersion)."
+		$Param1.feedback.'$DoesTheFlywayTableExist' = "The Flyway table $($param1.DefaultSchema).$($param1.flywayTableName) does$(if ($Exists.ItExists -gt 0) {' '} else {'not yet '})exist"
 	}
 }
 
@@ -1493,8 +1500,9 @@ $GetCurrentVersion = {
 		}
 	}
 	$flywayTable = $Param1.flywayTable
+    $flywayTableForOracle = "$($Param1.DefaultSchema).`"$($Param1.flywayTableName)`""
 	if ($flywayTable -eq $null)
-	{ $flywayTable = 'dbo.[flyway_schema_history]' }
+	{ $flywayTable = 'dbo.flyway_schema_history' }
 	$Version = 'unknown'
     $AllVersions=@{}
     $LastAction=@{}
@@ -1576,12 +1584,12 @@ $GetCurrentVersion = {
 	}
     elseif ($param1.RDBMS -eq 'oracle')
 	{
-    $ExecutePLSQLScript.invoke($param1, $null, @(
+    $ExecuteResult=$ExecutePLSQLScript.invoke($param1, $null, @(
 		@{
 			ResultFile = 'AllVersions.json';
 			SQL =@"
 SELECT DISTINCT `"version`"
-        FROM $flywayTable
+        FROM $flywayTableForOracle
       WHERE `"version`" IS NOT NULL;
 "@
 		},
@@ -1589,13 +1597,16 @@ SELECT DISTINCT `"version`"
 			ResultFile = 'LastAction.json';
 			SQL =@"
 SELECT `"version`", `"type`"
-      FROM $flywayTable
+      FROM $flywayTableForOracle
       WHERE
       `"installed_rank`" =
-        (SELECT Max(`"installed_rank`") FROM $flywayTable
+        (SELECT Max(`"installed_rank`") FROM $flywayTableForOracle
            WHERE `"success`" = 1);
-"@
-		 }))
+"@ }))
+        if (![string]::IsNullOrEmpty(($ExecuteResult|ConvertFrom-StringData).'Error Message'))
+            { $problems += ($ExecuteResult|ConvertFrom-StringData).'Error Message';
+             $problems +=  $param1.uid+' and '+$param1.pwd	
+             }
         $response = get-content allversions.json
         if (($Response -join '') -like 'error*')
         { $allversions.error=$Response -join ' ' }
@@ -1695,7 +1706,11 @@ FOR JSON PATH
         {
         
 			# Do it the oracle way
-			$Version = Execute-SQL $param1 'SELECT BANNER FROM v$version;' | Convertfrom-json
+            try
+			{$Version = Execute-SQL $param1 'SELECT BANNER FROM v$version;' | Convertfrom-json}
+            catch
+            {$Problems += "Error. returned '$Version'"}
+            
 			$Param1.ServerVersion =  $Version[1].banner
 
         }    
@@ -2826,14 +2841,17 @@ $SaveDatabaseModelIfNecessary
 This writes a JSON model of the database to a file that can be used subsequently
 to check for database version-drift or to create a narrative of changes for the
 flyway project between versions.
-To run this, you need to provide values for 
 'server', The name of the database server
 'database', The name of the database
+'pwd',The password 
+'uid',  The UserID
 'version', The version directory that is to be ascribed to the file
 'project', The name of the whole project for the output filenames
 'RDBMS', the rdbms being used, e.g. sqlserver, mysql, mariadb, postgresql, sqlite
 'schemas', the schemas to be used to create the model
 'flywayTable' the name and schema of the flyway table
+'ReportDirectory' for an ad-hoc model
+You can, though use parameters to specify the path to the model and reports for ad-hoc models 
 /#>
 $SaveDatabaseModelIfNecessary = {
 	Param ($param1,
@@ -2856,8 +2874,7 @@ $SaveDatabaseModelIfNecessary = {
 	    # End the script.
 	    break
     }
-
-	$feedback = @();
+    $feedback = @();
 	$AlreadyDone = $false;
 	#check that you have the  entries that we need in the parameter table.
 	$Essentials = @('server', 'database', 'RDBMS', 'flywayTable')
@@ -2900,8 +2917,8 @@ $SaveDatabaseModelIfNecessary = {
     #handy stuff for where clauses in SQL Statements
 	$ListOfSchemas = ($param1.schemas -split ',' | foreach{ "'$_'" }) -join ',';
     
-	if ($param1.flywayTable -ne $null)
-	{ $FlywayTableName = (($param1.flywayTable -split '\.')[1]).Trim('"') }
+	if ($param1.flywayTableName -ne $null)
+	{ $FlywayTableName = $param1.flywayTableName}
 	else
 	{ $FlywayTableName = 'flyway_schema_history' }
 
@@ -3578,7 +3595,7 @@ UNION ALL
 	                $constraints = ([IO.File]::ReadAllText("$pwd/constraints.json") | convertfrom-json).results.items
 	                $indexes = ([IO.File]::ReadAllText("$pwd/indexes.json") | convertfrom-json).results.items
 	                $routines = ([IO.File]::ReadAllText("$pwd/routines.json") | convertfrom-json).results.items
-
+                    <# do the mass extinctiuon of the temporary files #>
                     @("$pwd\objects.json","$pwd\columns.json","$pwd\constraints.json",
                     "$pwd\indexes.json","$pwd\routines.json","$pwd\triggers.json") | foreach{
 	                    If (Test-Path -Path "$_")
@@ -3676,20 +3693,23 @@ UNION ALL
 		                else
 		                { $SchemaTree.$TheSchema.$TheType.$TheName += $Contents }
 		
-	                }
+	                } #$what |convertTo-json
 		            $Triggers | Foreach {
-                        $Theschema= $_.schema;
-                        $Thename= $_.name;
-                        $Thetriggerschema= $_.triggerschema;
-                        $Thetriggername= $_.triggername;
-                        $Thetriggertype= $_.triggertype;
-                        $Thebaseobjecttype= $_.baseobjecttype;
-                        $Theevent= $_.event; 
-                        $Thestatus= $_.status; 
-                        $Thescript= $_.script;
-		                $Contents = @{'Name'=$Thetriggername; 'Type'=$Thetriggertype;
-                        'event'=$Theevent;'status'=$Thestatus; 'script'=$Thescript};
-     	                $SchemaTree.$TheSchema.$Thebaseobjecttype.$Thename.'trigger' = $Contents
+                        if ($_ -ne $null)
+                            {
+                            $Theschema= $_.schema;
+                            $Thename= $_.name;
+                            $Thetriggerschema= $_.triggerschema;
+                            $Thetriggername= $_.triggername;
+                            $Thetriggertype= $_.triggertype;
+                            $Thebaseobjecttype= $_.baseobjecttype;
+                            $Theevent= $_.event; 
+                            $Thestatus= $_.status; 
+                            $Thescript= $_.script;
+		                    $Contents = @{'Name'=$Thetriggername; 'Type'=$Thetriggertype;
+                            'event'=$Theevent;'status'=$Thestatus; 'script'=$Thescript};
+     	                    $SchemaTree.$TheSchema.$Thebaseobjecttype.$Thename.'trigger' = $Contents
+                            }
 	                    }	
 	
 	                $SchemaTree | convertTo-json -depth 10 > "$MyOutputReport"
@@ -4333,7 +4353,7 @@ $ExtractFromSQLServerIfNecessary = { <#
     }
 	#check that we have values for the necessary details
 	@('version', 'server', 'reportLocation', 'database', 'pwd', 'uid', 'project', 'projectDescription') |
-	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
+	foreach{ if ([string]::IsNullOrEmpty($param1.$_)) { $Problems += "no value for '$($_)'" } }
 	<# has the user installed SQLPackage? - or specified the path as a variable#>
     $command = get-command sqlpackage -ErrorAction Ignore
 	if ($command -eq $null)
@@ -4368,6 +4388,8 @@ $ExtractFromSQLServerIfNecessary = { <#
          source parameter is valid. #>
 		"/TargetFile:$Outputfile",
     <#  Specifies a target file to be used for the dacpac #>
+        "/p:CommandTimeout=10", #Ten secondes timeout
+        "/p:LongRunningCommandTimeout=1000",
 		"/p:ExtractAllTableData=true",
 		"/p:ExtractTarget=$OutputType",
 		"/p:VerifyExtraction=true",

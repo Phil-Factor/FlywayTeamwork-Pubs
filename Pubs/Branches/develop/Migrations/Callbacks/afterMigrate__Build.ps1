@@ -1,5 +1,4 @@
 ﻿. '.\preliminary.ps1'
-
 <#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  
@@ -43,6 +42,7 @@ $PostMigrationTasks = @(
 	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
     #uses SQL Compare
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
+	$ExtractFromSQLServerIfNecessary, #save this version as a dacpac if it hasn't already been done
     #this uses SQL Compare
 	$ExecuteTableSmellReport, #checks for table-smells
     #This is an example of generating a SQL-based report
@@ -54,9 +54,9 @@ $PostMigrationTasks = @(
     #This uses SQL Codeguard to do this
 	$IsDatabaseIdenticalToSource, # uses SQL Compare to check that a version of a database is correct
     #this makes sure that the target is at the version you think it is.
-    $SaveDatabaseModelIfNecessary #writes out the database model
+    $SaveDatabaseModelIfNecessary, #writes out the database model
     #This writes out a model of the version for purposes of comparison, narrative and checking. 
-    $CreateUndoScriptIfNecessary # uses SQL Compare
+    $CreateUndoScriptIfNecessary, # uses SQL Compare
     #Creates a first-cut UNDo script. This is an idempotentic script that undoes to the previous version 
     $GeneratePUMLforGanttChart
     # This script creates a PUML file for a Gantt chart at the current version of the 

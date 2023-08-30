@@ -19,7 +19,7 @@
 		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'preliminary.ps1'
 		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1'
 		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
-        Distribute-LatestVersionOfFile @("s:\work\Github","s:\work\FlywayDevelopments") 'preliminary.ps1' -Verbose
+        Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -Verbose
         Distribute-LatestVersionOfFile @("s:\work\Github","s:\work\FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -Verbose
 	
 	.NOTES

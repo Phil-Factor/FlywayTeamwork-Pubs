@@ -15,9 +15,9 @@
 	
 	.EXAMPLE
 		cls;
-		'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.3\Reports\DatabaseModel.JSON'|
+		'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON'|
 		Convert-ModelToScript
-		Convert-ModelToScript -PathToModel 'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.3\Reports\DatabaseModel.JSON'
+		Convert-ModelToScript -PathToModel 'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON'
 		
     .NOTES
 		
@@ -35,8 +35,7 @@ function Convert-ModelToScript
 		[string]$RDBMS = 'sqlserver'
 	)
 	
-	#$PathToModel=' S:\work\Github\FlywayTeamwork\Pubs\Versions\1.3\Reports\DatabaseModel.JSON';$RDBMS='SQLServer';
-	
+	#$PathToModel=' S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON';$RDBMS='SQLServer';
 	$Terminator = if ($RDBMS -eq 'sqlserver') { "GO" }
 	else { "" }
 	$PreliminaryTypes = @('UserType');
@@ -44,82 +43,9 @@ function Convert-ModelToScript
 	$model = [IO.File]::ReadAllText($PathToModel) #read the json text of the model
 	try { $DB = $model | convertfrom-json } #convert it into a powershell model 
 	catch { Write-error "The JSON model at $PathToModel isn't valid JSON" };
-	$TableReferences = @(); #a list of every table reference
-	$ListOfTables = @(); #A list of all the tables with their schemas
-	
-	$ListOfTables = $db.PSObject.Properties | Foreach{
-		$SchemaName = $_.Name; #Get the name of the schema
-		#now get all object-types from the schema and select just the tables
-		$_.Value.PSObject.Properties | where { $_.name -like 'table' } |
-		foreach{ $_.Value.PSObject.Properties } | foreach{
-			$table = $_;
-			$ObjectName = $table.Name;
-			"$SchemaName.$ObjectName";
-		}
-	}
-	#For every table, we now get the tables they refer to in foreign keys.
-	$TableReferences = $db.PSObject.Properties | Foreach{
-		$SchemaName = $_.Name; #Get the name of the schema
-		#now get all object-types from the schema and select just the tables
-		$_.Value.PSObject.Properties | where { $_.name -like 'table' } |
-		foreach{ $_.Value.PSObject.Properties } | foreach{
-			$table = $_;
-			$ObjectName = $table.Name;
-			$Fullname = "$SchemaName.$ObjectName";
-			$table.Value.PSObject.Properties | where { $_.name -eq 'foreign key' } |
-			foreach { $_.Value.PSObject.Properties } | foreach{
-				[pscustomObject]@{
-					'referencing' = $Fullname;
-					'references' = ($_.Value.PSObject.Properties | where { $_.name -eq 'Foreign Table' }).value
-				}
-			}
-		}
-	}
-    # Now we work out the dependency order. 
-	# We put them in sorted order within their dependency group, starting with the tables that
-	# don't reference anything. 
-	$TablesInDependencyOrder = @()
-	$ii = 20; # just to stop mutual dependencies hanging the script
-	Do
-	{
-		$NotYetPicked = $ListOfTables | where { $_ -notin $TablesInDependencyOrder }
-		$TablesInDependencyOrder += $notyetpicked | foreach{
-			$Name = $_; $Referencing = ($TableReferences | where { $_.referencing -eq $Name }).references;
-			$AlreadyThere = $Referencing | where { $_ -in $TablesInDependencyOrder }
-			if ($Referencing.Count -eq $AlreadyThere.Count) { $Name }
-		} | sort-object
-		$ii--;
-	}
-	while (($TablesInDependencyOrder.count -lt $ListOfTables.count) -and ($ii -gt 0))
-	if ($TablesInDependencyOrder.count -ne $ListOfTables.count)
-	{ Throw 'could not get tables in dependency order' }
+	try {$TablesInDependencyOrder=Sort-TablesIntoDependencyOrder -dbModel $DB}
+      catch { Write-error "Couldn't sort the tables into dependency order" };
 
-    #now we have to do the views
-
-	$viewDefinitions= $db.PSObject.Properties | Foreach{
-		$SchemaName = $_.Name; #Get the name of the schema
-		#now get all object-types from the schema and select just the views
-		$_.Value.PSObject.Properties | where { $_.name -like 'view' }
-    } | foreach{ $_.Value.PSObject.Properties } | foreach{
-			$view = $_;
-			$ObjectName = $view.Name;
-			$Fullname = "$SchemaName.$ObjectName";
-			$Definition = $view.value.Definition;
-			[pscustomObject]@{ 'ObjectName' = $ObjectName; 'FullName'=$Fullname; 'definition' = $Definition }
-		}
-	$ViewReferences=$viewDefinitions | foreach{
-		$TheView = $_;
-		$viewDefinitions | where { $_.ObjectName -ne $TheView.ObjectName } | foreach{
-			if ($_.definition -clike "*$($TheView.ObjectName)*")
-			{
-				[pscustomObject]@{
-					'referencing' = $_.FullName;
-					'references' = $TheView.FullName
-				}
-			}
-		}
-	}
-	
     # Now we work out the view interdependency order. 
 	# We put them in sorted order within their dependency group, starting with the viewas that
 	# don't reference any other views. 
@@ -169,7 +95,7 @@ function Convert-ModelToScript
 			
 		}
 	}
-	
+	$script += "`n$Terminator`n"
 	#With the preliminaries out of the way, we do the table definitions 
 	$TablesInDependencyOrder | foreach{
 		$fullName = $_.Split('.')

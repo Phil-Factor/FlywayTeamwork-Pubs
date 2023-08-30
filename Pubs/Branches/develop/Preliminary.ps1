@@ -1,11 +1,18 @@
-﻿<# Principles:
+﻿param ($ListOfSources= @())
+<# Principles:
 one 'resource' directory with all the scripting tools we need for the project
 each branch needs its own place for reports, source and scripts
 Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
 Use flyway.conf where possible #>
-
+#were parameters read from a file? If so, we need to read that file
+#gci env:F* | sort-object name
+if (test-path 'env:FP__ParameterConfigItem__')
+    {
+    if ("$env:FP__ParameterConfigItem__" -notin $ListOfSources)
+       {$ListOfSources+="$env:FP__ParameterConfigItem__"}
+    }
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
@@ -54,7 +61,10 @@ $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project art
 
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
-$Branch = Split-Path -Path $pwd.Path -leaf;
+if (test-path   "..\$ResourcesPath")
+    {$Branch ='main'}
+else
+    {$Branch = Split-Path -Path $pwd.Path -leaf;}
 $structure='classic'
 if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
     {$structure='branch'}
@@ -114,21 +124,21 @@ if (!([string]::IsNullOrEmpty("$env:FP__dpeci__")))
    }
     $FlywaylinesToParse+=$originalText -split "`n"
  }
+if ($ListOfSources.count -gt 0 -and !([string]::IsNullOrEmpty($ListOfSources)) )
+    {$ListOfSources | foreach {$FlywaylinesToParse+=Get-content "$_"}
+    } 
 $FlywaylinesToParse+=gci env:FLYWAY* |foreach{"$($_.Name.ToLower() -replace 'FLYWAY_','') = $($_.value.ToLower())"}
 $FlywaylinesToParse+=gci env:FP_*|foreach{"$($_.Name -replace 'FP__flyway_','') = $($_.value)"}
-  
 $FlywaylinesToParse+=Get-Content "flyway.conf"
 $FlywaylinesToParse+=Get-content "$env:userProfile\flyway.conf" 
-
 $FlywayConfContent=@()
 $FlywaylinesToParse  |
 where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
     foreach{$_ -replace '\\','\\'} |
     ConvertFrom-StringData |foreach {
     if ($FlywayConfContent."$($_.Keys)" -eq $null)
-        {$FlywayConfContent+= $_}
+     {$FlywayConfContent+= $_}
     }
-
 
 # use this information for our own local data
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
@@ -177,6 +187,8 @@ $DBDetails = @{
 	'scriptsPath' = $scriptsPath; #where the various scripts of any branch version is stored #>
 	'dataPath' = $DataPath; #where the data for any branch version is stored #>
     'versionsPath'=$VersionsPath;
+    'defaultSchema'='';
+    'flywayTableName'='';
     'reportDirectory'=$Reportdirectory;
     'reportLocation'=$ReportLocation; # part of path from user area to project artefacts folder location 
 	'Port' = $port
@@ -186,6 +198,7 @@ $DBDetails = @{
     'previous'=''; # The previous Version. This gets filled in if you request it
 	'flywayTable' = 'dbo.flyway_schema_history';#this gets filled in later
 	'branch' = $branch;
+    'variant'= 'default'
 	'schemas' = 'dbo,classic,people';
 	'project' = $project; #Just the simple name of the project
 	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
@@ -196,18 +209,19 @@ $DBDetails = @{
 	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
-if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null))) #if there is a UID then it needs credentials
-    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
 
-$FlywayConfContent |
+if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null)) -and $FlywayConfContent.'flyway.password' -in @("''",'',$null) ) #if there is a UID then it needs credentials
+    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
+    else
+    {$DBDetails.pwd = $FlywayConfContent.'flyway.password'}
+$FlywayConfContent | 
 foreach{
 	$what = $_;
-	$variable = $_.Keys;
+	$variable = $what.Keys;
 	$Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
-	$value = $what."$($_.Keys)"
+	$value = $what."$($what.Keys)"
 	$dbDetails."$variable" = $value;
 }
-
 
 #now add in any values passed as environment variables
 try{
@@ -242,5 +256,10 @@ $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
                      {($DBDetails.schemas -split ','|select -First 1)} 
                      else {"$($DBDetails.'defaultSchema')"}
 $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema_history'} else {"$($DBDetails.'table')"}
+$DBDetails.'flywayTableName'=$defaultTable;
+$DBDetails.'defaultSchema'=$defaultSchema;
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
+
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd
+if (![string]::IsNullOrEmpty($env:FLYWAY_CONFIG_FILES))
+    {write-warning "Environment variable FLYWAY_CONFIG_FILES is set as '$env:FLYWAY_CONFIG_FILES'."}
