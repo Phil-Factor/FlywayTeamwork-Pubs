@@ -6,7 +6,7 @@
 		This function is used where you need to differentiate the noise (verbose) freom the warnings and errors for long migrations. It is also handy if you need to store configurations in secure directories.
 	
 	.PARAMETER Parameters
-		An optional  options Array of parameters that specify how Flyway should do the migration.
+		An options Array of parameters that specify how Flyway should do the migration.
 	
 	.PARAMETER Secrets
 		an optional path to a 'secrets' file
@@ -22,13 +22,12 @@ function Do-AFlywayMigration
 		[Parameter(Mandatory = $False,
 				   ValueFromPipeline = $true,
 				   HelpMessage = 'The parameters that specify what you wish  Flyway to do ')]
-		[array]$parameters = $(),
+		[array]$parameters = @(),
 		[Parameter(Mandatory = $false)]
 		[String]$Secrets = ''
 	)
-	$ExtraParameters = @();
-	if ($parameters.Count>0)
-		{ $ExtraParameters = { $parameters }.Invoke() }
+	
+	$ExtraParameters = { $parameters }.Invoke()
 	if (!([string]::IsNullOrEmpty($Secrets)))
 	{
 		get-content $Secrets | foreach {
