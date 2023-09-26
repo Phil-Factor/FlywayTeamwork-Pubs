@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\RazorSQL\jre11\bin\java" -jar "C:\Program Files (x86)\RazorSQL\razorsql.jar" -execute "PiPubsDev" "S:\work\Github\FlywayTeamwork\PubsPG\Branches\Develop\scripts\ThePGPubsExerciser.sql" ";" null null null true true

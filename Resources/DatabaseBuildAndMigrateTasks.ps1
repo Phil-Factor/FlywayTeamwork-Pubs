@@ -4331,14 +4331,14 @@ $CreatePossibleMigrationScriptFromDacpac = {
 }
 
 $ExtractFromSQLServerIfNecessary = { <# 
-     this connects to the SQL Serverdatabase and will then, 
-     For the current version of the database extract either a 
-     'DacPac'     (output a .dacpac single file). 
-     'Flat'  (all files in a single folder),
-     'SchemaObjectType' (files in folders for each schema and object type), 
-     'Schema' (files in folders for each schema),
-     'ObjectType'  (files in folders for each object type), 'Flat' (all files in the same folder)
-     'File' (1 single file). #>
+     this connects to the SQL Server database and will then, For the current version of the database 
+     extract either a 
+       'DacPac'     (output a .dacpac single file). 
+       'Flat'  (all files in a single folder),
+       'SchemaObjectType' (files in folders for each schema and object type), 
+       'Schema' (files in folders for each schema),
+       'ObjectType'  (files in folders for each object type), 'Flat' (all files in the same folder)
+       'File' (1 single file). #>
 	Param ($param1,
 		$OutputType = 'DacPac', <# {DacPac|File|Flat|ObjectType|Schema|SchemaObjectType} #>
 		$RedoIt = $false, #by default you just do it the once

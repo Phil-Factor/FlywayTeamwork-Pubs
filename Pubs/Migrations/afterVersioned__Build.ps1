@@ -1,5 +1,7 @@
 ﻿. '.\preliminary.ps1'
 
+$dbDetails
+gci env:* | sort-object name
 <#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  
@@ -34,15 +36,15 @@ $SQLCmdAlias in ..\DatabaseBuildAndMigrateTasks.ps1
 
 below are the tasks you want to execute. Some, like the on getting credentials, are essential befor you
 execute others
-in order to execute tasks, you just load them up in the order you want. It is like loading a 
-revolver. 
+in order to execute tasks, you just load them up in the order you want. 
 #>
+
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number
     #it does this by reading the Flyway schema history table. 
 	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
     #uses SQL Compare
-    $ExtractFromSQLServerIfNecessary, #(SQL Server only)
+   # $ExtractFromSQLServerIfNecessary, #(SQL Server only)
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
     #this uses SQL Compare
 	$ExecuteTableSmellReport, #checks for table-smells

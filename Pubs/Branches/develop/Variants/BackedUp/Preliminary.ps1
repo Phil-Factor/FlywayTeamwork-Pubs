@@ -97,15 +97,15 @@ if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 {$Filterpath= dir "$Dir\$ResourcesPath\*.scpf" |select -first 1|foreach{$_.FullName}}
 
 <# We now know the project name ($project) and the name of the branch (Branch), and have installed all the resources
-
-Now we check that the directories and files that we need are there #>
+$dbDetails
+Now we check that the directories and files that we need are there 
 @(@{ path = "$($pwd.Path)"; desc = 'project directory'; type = 'container' },
 	@{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
 	@{ path = "$($pwd.Path)\flyway.conf"; desc = 'flyway.conf file'; type = 'leaf' }
 ) | foreach{
 	if (-not (Test-Path $_.path -PathType $_.type))
 	{ throw "Sorry, but I couldn't find a $($_.desc) at the $($pwd.Path) location" }
-}
+}#>
 $FlywaylinesToParse=@()
 #We need to add unencrypted file import too 
 #has the placeholder been set to explain that an encrypted file was imported into Flyway?

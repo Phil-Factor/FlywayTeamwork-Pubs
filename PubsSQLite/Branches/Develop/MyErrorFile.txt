@@ -1,0 +1,7 @@
+﻿flyway : ERROR: No database found to handle silly
+At line:1 char:1
++ flyway info "-url=silly" 2>'MyErrorFile.txt'
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR: No database found to handle silly:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

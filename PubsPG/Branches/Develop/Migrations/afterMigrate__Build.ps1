@@ -40,11 +40,12 @@ revolver.
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number
     #it does this by reading the Flyway schema history table. 
+    $SaveDatabaseModelIfNecessary, #writes out the database model
 	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
     $CreateVersionNarrativeIfNecessary,# create a version narrative 
-    $WriteOutERDiagramCode,# and a PUML database diagram
-    $SaveDatabaseModelIfNecessary #writes out the database model
+    $WriteOutERDiagramCode# and a PUML database diagram
+    
     #This writes out a model of the version for purposes of comparison, narrative and checking. 
             )
 Process-FlywayTasks $DBDetails $PostMigrationTasks

@@ -70,7 +70,6 @@ function Redo-EveryFlywayMigrationSingly
 		cd $ProjectLocation #make the correct directory the project directory
 		#Make the directory your current working directory
 		#define where your Flyway config secrets should be 
-		. '.\preliminary.ps1'  $SecretsPath #Tell the Framework in case of callbacks
 		Flyway ($SecretsPath | get-conf) info #check that you've got a connection
 		$ExecutedWell = $?
 		if ($ExecutedWell)
@@ -84,7 +83,10 @@ function Redo-EveryFlywayMigrationSingly
 		}
       <# now we are going to do each version in turn so that we are sure of 
       getting a report and list of changes for each version #>
-		Dir ".\$($dbDetails.migrationsPath)\V*.sql" -Recurse |
+      $Configuration= Get-FlywayConfContent $SecretsPath
+        $Configuration.'flyway.locations'-split ','|
+            foreach{$_ -replace 'filesystem:', ''} |
+		foreach{Dir "$_\V*.sql" -Recurse} |
 		foreach{
 			[pscustomobject]@{
 				'file' = $_.Name;
