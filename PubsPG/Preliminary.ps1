@@ -1,4 +1,4 @@
-﻿param ($ListOfSources= @())
+﻿param ($ListOfSources= @()) #these are extra configuration files, usually decripted en-route and  read in as parameters.
 <# Principles:
 one 'resource' directory with all the scripting tools we need for the project
 each branch needs its own place for reports, source and scripts
@@ -96,50 +96,7 @@ $Filterpath =$null
 if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 {$Filterpath= dir "$Dir\$ResourcesPath\*.scpf" |select -first 1|foreach{$_.FullName}}
 
-<# We now know the project name ($project) and the name of the branch (Branch), and have installed all the resources
-$dbDetails
-Now we check that the directories and files that we need are there 
-@(@{ path = "$($pwd.Path)"; desc = 'project directory'; type = 'container' },
-	@{ path = "$($pwd.Path)\$MigrationsPath"; desc = 'migration Scripts Location'; type = 'container' },
-	@{ path = "$($pwd.Path)\flyway.conf"; desc = 'flyway.conf file'; type = 'leaf' }
-) | foreach{
-	if (-not (Test-Path $_.path -PathType $_.type))
-	{ throw "Sorry, but I couldn't find a $($_.desc) at the $($pwd.Path) location" }
-}#>
-$FlywaylinesToParse=@()
-#We need to add unencrypted file import too 
-#has the placeholder been set to explain that an encrypted file was imported into Flyway?
-#Flyway will do placeholder substitutions 
-if (!([string]::IsNullOrEmpty("$env:FP__dpeci__"))) 
-   { $secureString = Import-Clixml "$env:FP__dpeci__"
-	$bstrPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-	try
-	{
-		$originalText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstrPtr)
-	}
-	finally
-	{
-		[System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPtr)
-    
-   }
-    $FlywaylinesToParse+=$originalText -split "`n"
- }
-if ($ListOfSources.count -gt 0 -and !([string]::IsNullOrEmpty($ListOfSources)) )
-    {$ListOfSources | foreach {$FlywaylinesToParse+=Get-content "$_"}
-    } 
-$FlywaylinesToParse+=gci env:FLYWAY* |foreach{"$($_.Name.ToLower() -replace 'FLYWAY_','') = $($_.value.ToLower())"}
-$FlywaylinesToParse+=gci env:FP_*|foreach{"$($_.Name -replace 'FP__flyway_','') = $($_.value)"}
-$FlywaylinesToParse+=Get-Content "flyway.conf"
-$FlywaylinesToParse+=Get-content "$env:userProfile\flyway.conf" 
-$FlywayConfContent=@()
-$FlywaylinesToParse  |
-where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
-    foreach{$_ -replace '\\','\\'} |
-    ConvertFrom-StringData |foreach {
-    if ($FlywayConfContent."$($_.Keys)" -eq $null)
-     {$FlywayConfContent+= $_}
-    }
-
+$FlywayConfContent=Get-FlywayConfContent($ListOfSources);
 # use this information for our own local data
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 {
@@ -204,6 +161,7 @@ $DBDetails = @{
 	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
 	'projectFolder' = $FlywayConfContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
 	'resources' = "$Dir\$ResourcesPath"
+    'testsLocations'='';
 	'feedback' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'warnings' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           

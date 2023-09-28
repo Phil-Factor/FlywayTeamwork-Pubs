@@ -5724,14 +5724,22 @@ function Run-TestsForMigration
 		[Parameter(Mandatory = $false)]
 		[string]$Script = 'ps1'
 	)
+    $Problems=@()
     #check the report directory to make sure it exists
 	$OurReportDirectory = "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\reports\tests"
 	if (-not (Test-Path $OurReportDirectory -PathType Container))
-	{ New-Item -ItemType Directory -Path $OurReportDirectory -Force }
+	{ New-Item -ItemType Directory -Path $OurReportDirectory -Force
+      # if not then create it 
+    }
+	if (-not (Test-Path $ThePath -PathType Container))
+    {
+    Throw 'no valid path to the tests specified'
+    }
+    #for each file in the test location
 	Dir "$ThePath\$($Type)*.$($Script)" -name |
 	foreach{
 		if ($_ -cmatch "\A(?m:^)$type(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.$Script\z")
-		{
+		{#get the versions for which the test file is appropriate
 			@{
 				#turn blank strings into nulls so we can process underfined starts and ends properly
 				'StartVersion' = switch ($matches.StartVersion)
@@ -5762,6 +5770,9 @@ function Run-TestsForMigration
 		{
 			if ($Type -eq 'P') 
             # we run these with timings and with the results 'muted'
+            {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
+			elseif ($Type -eq 'S') 
+            # we run these with eavh expression individually with timings and with the results 'muted'
             {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
             else
             {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" }
