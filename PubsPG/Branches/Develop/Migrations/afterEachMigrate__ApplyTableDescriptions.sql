@@ -1,3 +1,4 @@
+
 -- now put the table comments into a temporary table called TableCommentsWanted
 drop table  if exists TableCommentsWanted;
 CREATE TEMPORARY TABLE  TableCommentsWanted(Tablename VARCHAR(128), TheDescription VARCHAR(1024));
@@ -142,11 +143,9 @@ CREATE TEMPORARY TABLE WhatTableToDocument (
   TheDescription VARCHAR(255)
 );
 
-drop table  if exists WhatColumnToDocument;
--- Create a temporary table to store the columns that need comments
-CREATE TEMPORARY TABLE WhatColumnToDocument (
-  TheOrder SERIAL PRIMARY KEY,
-  TheExpression VARCHAR(255)
+drop table  if exists Warnings;
+CREATE TEMPORARY TABLE Warnings (
+ 	Warning  VARCHAR(80)
 );
 
 -- Insert the tables that need comments into the temporary table
@@ -157,6 +156,40 @@ JOIN TableCommentsWanted tc ON CONCAT(t.table_schema, '.', t.table_name) = Table
 LEFT JOIN pg_catalog.pg_description d ON d.objoid = (quote_ident(t.table_schema) || '.' || quote_ident(t.table_name))::regclass::oid
 WHERE t.table_type = 'BASE TABLE'
   AND COALESCE(d.description, '') <> tc.TheDescription;
+
+-- Function to iterate over each table and add the comments
+CREATE OR REPLACE FUNCTION CommentEachTable() RETURNS VOID AS $$
+DECLARE
+  iiMax INT;
+  ii INT := 1;
+  TABLE_NAME VARCHAR(80);
+  THE_COMMENT VARCHAR(255);
+  sqlstmt TEXT;
+BEGIN
+  SELECT COUNT(*) INTO iiMax FROM WhatTableToDocument;
+  
+  WHILE ii <= iiMax LOOP
+    SELECT TableName, TheDescription INTO TABLE_NAME, THE_COMMENT FROM WhatTableToDocument WHERE TheOrder = ii;
+    
+    sqlstmt := 'COMMENT ON TABLE ' || TABLE_NAME || ' IS ' || quote_literal(THE_COMMENT);
+    EXECUTE sqlstmt;
+    
+    ii := ii + 1;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function to add comments to tables
+insert into warnings (warning)
+	SELECT CommentEachTable();
+
+
+drop table  if exists WhatColumnToDocument;
+-- Create a temporary table to store the columns that need comments
+CREATE TEMPORARY TABLE WhatColumnToDocument (
+  TheOrder SERIAL PRIMARY KEY,
+  TheExpression VARCHAR(255)
+);
 
 -- Insert the columns that need comments into the temporary table
 INSERT INTO WhatColumnToDocument (TheExpression)
@@ -174,30 +207,8 @@ LEFT JOIN pg_catalog.pg_description d ON d.objoid = (cc."TableObjectName")::regc
 WHERE  COALESCE(d.description, '') <> cc."comment";
 
 
--- Function to iterate over each table and add the comments
-CREATE OR REPLACE FUNCTION pg_temp.CommentEachTable() RETURNS VOID AS '
-DECLARE
-  iiMax INT;
-  ii INT := 1;
-  TABLE_NAME VARCHAR(80);
-  THE_COMMENT VARCHAR(255);
-  sqlstmt TEXT;
-BEGIN
-  SELECT COUNT(*) INTO iiMax FROM WhatTableToDocument;
-  
-  WHILE ii <= iiMax LOOP
-    SELECT TableName, TheDescription INTO TABLE_NAME, THE_COMMENT FROM WhatTableToDocument WHERE TheOrder = ii;
-    
-    sqlstmt := ''COMMENT ON TABLE '' || TABLE_NAME || '' IS '' || quote_literal(THE_COMMENT);
-    EXECUTE sqlstmt;
-    
-    ii := ii + 1;
-  END LOOP;
-END;
-' LANGUAGE plpgsql;
-
 -- Function to iterate over each column and add the comments
-CREATE OR REPLACE FUNCTION pg_temp.CommentPerRow() RETURNS VOID AS '
+CREATE OR REPLACE FUNCTION CommentPerRow() RETURNS VOID AS $$
 DECLARE
   iiMax INT;
   ii INT := 1;
@@ -214,25 +225,14 @@ BEGIN
     ii := ii + 1;
   END LOOP;
 END;
-' LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
-DO '
-BEGIN
-  -- Call the function to add comments to tables
-  PERFORM pg_temp.CommentEachTable();
-  
-  -- Call the function to add comments to columns
-  PERFORM pg_temp.CommentPerRow();
-END;
-';
-
-
-
-
+-- Call the function to add comments to columns
+insert into warnings (warning) SELECT CommentPerRow();
 
 -- Clean up temporary objects
-DROP FUNCTION pg_temp.CommentEachTable();
-DROP FUNCTION pg_temp.CommentPerRow();
+DROP FUNCTION CommentPerRow();
+DROP FUNCTION CommentEachTable();
 DROP TABLE if exists WhatColumnToDocument;
 DROP TABLE if exists  WhatTableToDocument;
 

@@ -134,7 +134,6 @@ function Tokenize_SQLString
 		$TheColumn = $TheIndex - $TheStart;
 		$Token.'Line' = $TheLine; $Token.'Column' = $TheColumn;
 		$ItsADot = ($_.name -eq 'Punctuation' -and $_.value -eq '.')
-        #write-verbose " state '$state' '$($token.value)'  $ItsADot $ItsAnIdentifier " 
 		switch ($state)
 		{
 			'not' {
@@ -178,7 +177,6 @@ function Tokenize_SQLString
 		
 	} -End{if ($state -ne 'not') 
         {
-        #Write-Verbose "status was $state rather than 'not'"
         $held | foreach -begin { $length = 0; $ref = "" } {
 						$ref = "$ref.$($_.value.trim())"; $length += $_.length;
 					}
@@ -192,8 +190,6 @@ function Tokenize_SQLString
         }
         }
 }
-
-Create-TestObject 
 
 #-----sanity checks
 $Correct="CREATE VIEW [dbo].[titleview] /* this is a test view */ AS --with comments select 'Report' , title , au_ord , au_lname , price , ytd_sales , pub_id from authors , titles , titleauthor where authors.au_id = titleauthor.au_id AND titles.title_id = titleauthor.title_id ;"
