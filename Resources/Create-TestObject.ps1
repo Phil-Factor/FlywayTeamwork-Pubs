@@ -100,7 +100,7 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 		}
 	}
 	@{
-		'TheOrder' = $SectionAction;
+		'TheOrder' = $How;
 		'Times' = $ExecuteAllQuantity;
 		'Pause' = $PauseAllQuantity
 		'Tasks' = $Tasks

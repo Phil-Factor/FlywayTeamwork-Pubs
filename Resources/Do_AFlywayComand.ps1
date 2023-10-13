@@ -1,6 +1,6 @@
 ﻿<#
 	.SYNOPSIS
-		Executes a Flyway migration using Flyway CLI, with the parameters you choose
+		Executes a Flyway command using Flyway CLI, with the parameters you choose
         and with an optional path to a secrets file. It sends warnings to the warning
         channel, chatter to the -verbose channel and it sends errors either to the
         screen or to a function (e.g. webhook or logging) that you specify. 
@@ -60,6 +60,8 @@ function Do-AFlywayCommand
 	$ExtraParameters = { $parameters }.Invoke() # get any extra parameters
 	if (!([string]::IsNullOrEmpty($Secrets))) # if you've specified an extra .conf file 
 	{
+       if (-not (Test-Path $Secrets))
+            { $Secrets="$($env:USERPROFILE)\$Secrets" }
 		get-content $Secrets | foreach {
 			$_.Split("`n") |
 			where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |

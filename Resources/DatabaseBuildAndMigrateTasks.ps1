@@ -5698,7 +5698,12 @@ function Execute-SQLTimedStatement
 		Parses a SQL test script into individual statements or queries and assigns then to one of four categories
 	
 	.DESCRIPTION
-		This is a way of providing a single script that can be tested in a SQL IDE and then saved as an object  such as JSON)  so that indivifual statements can be run and times, and
+		This is a way of providing a way to convert  a single SQL script, annotated as required
+        in block comments, into an object that can be executed within the framework as many times 
+        as you need. The individual statements  can be run a specified number of times. and you
+        can specify that the routine should pause a specific  number of seconds before it is executed. 
+        This information is kept in the object and is therefore easily repeated.
+
 	
 	.PARAMETER Content
 		A description of the Content parameter.
@@ -5803,45 +5808,6 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 }
 
 
-
-
-function Run--AnnotatedTestScript
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $true)]
-		[string]$TheFilename,
-		[Parameter(Mandatory = $true)]
-		[Array]$TheDBDetails
-	)
-	
-	$Content = Get-Content -Raw $TheFileName
-	$JSONObject = Create-TestObject $Content ';'
-	cls
-	$DefaultPause = $JSONObject.Pause
-	$DefaultTimes = $JSONObject.Times
-	$DefaultOrder = $JSONObject.TheOrder
-	
-	
-	$JSONObject.Tasks | where { $_.State -like 'Arrange' } | foreach{
-		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
-	}
-	$JSONObject.Tasks | where { $_.State -like 'Act' } | foreach{
-		Start-Sleep -seconds $_.PauseBefore;
-		$Iterations = $_.times
-		if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
-		while ($iterations -gt 0)
-		{
-			Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $true -muted $true;
-			$iterations--;
-		}
-	}
-	$JSONObject.Tasks | where { $_.State -like 'Teardown' } | foreach{
-		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
-	}
-}
-
 <#
 	.SYNOPSIS
 		Runs a SQL Script that has been annotated for AAAT usage
@@ -5861,7 +5827,7 @@ function Run--AnnotatedTestScript
 		A description of the database.
 	
 	.EXAMPLE
-				PS C:\> Run--AnnotatedTestScript -TheFilename 'Value1' -DBDetails $value2
+				PS C:\> Run--AnnotatedTestScript -TheFilename '<PathToTheFile' -DBDetails $DBDetails
 	
 	.NOTES
 		Additional information about the function.
@@ -5877,26 +5843,42 @@ function Run-AnnotatedTestScript
 		[Array]$TheDBDetails
 	)
 	
-	$Content = Get-Content -Raw $TheFileName
-	if ($TheDbDetails.RDBMS -eq 'sqlserver'){ $Delimiter = 'GO' }
-	else { $Delimiter = ';' }
-	$JSONObject = Create-TestObject $Content $Delimiter
-	$DefaultPause = $JSONObject.Pause
+    if ($TheDbDetails.RDBMS -eq 'sqlserver'){ $Delimiter = 'GO' }
+	else { $Delimiter = ';' };
+    $Content = Get-Content -Raw $TheFileName
+    try
+        {
+        $JSONObject=$Content|convertfrom-json
+        }
+    catch
+        {
+    	$JSONObject = Create-TestObject $Content $Delimiter
+        }
+    $DefaultPause = $JSONObject.Pause
 	$DefaultTimes = $JSONObject.Times
 	$DefaultOrder = $JSONObject.TheOrder
 	
 	$JSONObject.Tasks | where { $_.State -like 'Arrange' } | foreach{
 		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
 	}
-	$JSONObject.Tasks | where { $_.State -like 'Act' } | foreach{
-		Start-Sleep -seconds $_.PauseBefore;
-		$Iterations = $_.times
-		if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
-		while ($iterations -gt 0)
-		{
-			Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $true -muted $true;
-			$iterations--;
-		}
+	if ($DefaultOrder -eq 'serially')
+        {$Tasks= $JSONObject.Tasks | where { $_.State -like 'Act' }}
+    else
+        {$Tasks= $JSONObject.Tasks | where { $_.State -like 'Act' }|  Sort-Object {Get-Random}}     
+    $SectionIterationsLeft=$DefaultTimes;
+    while ($SectionIterationsLeft -gt 0)
+        {
+    $Tasks | foreach{
+		    Start-Sleep -seconds $_.PauseBefore;
+		    $Iterations = $_.times
+		    if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
+		    while ($iterations -gt 0)
+		    {
+			    Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $true -muted $true;
+			    $iterations--;
+		    }
+        $SectionIterationsLeft--
+        }
 	}
 	$JSONObject.Tasks | where { $_.State -like 'Teardown' } | foreach{
 		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
@@ -5905,7 +5887,9 @@ function Run-AnnotatedTestScript
 
 <#
 	.SYNOPSIS
-		Run the tests that are available
+		Run the tests that are available See:
+        https://www.red-gate.com/hub/product-learning/flyway/running-unit-and-integration-tests-during-flyway-migrations
+        https://www.red-gate.com/hub/product-learning/flyway/performance-testing-databases-with-flyway-and-powershell
 	
 	.DESCRIPTION
 		Runs all the available and suitable tests in the directory

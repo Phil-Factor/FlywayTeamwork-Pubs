@@ -91,13 +91,13 @@ function Tokenize_SQLString
 	# we start by breaking the string up into a pipeline of objects according to the
     # type of string. First get the match objects
 	$allmatches = $parserRegex.Matches($SQLString)
-    # we also break the script up into lines
+    # we also break the script up into lines so we can say where each token is 
 	$Lines = $Lineregex.Matches($SQLString); #get the offset where lines start
 	# we put each token through a pipeline to attach the line and column for 
     # each token 
     $allmatches | foreach  {
 		$_.Groups | where { $_.success -eq $true -and $_.name -ne 0 }
-	} | # now e convert each object with the columns we 
+	} | # now we convert each object with the columns we later calculate 
 	Select name, index, length, value,
 		   @{ n = "Type"; e = { '' } }, @{ n = "line"; e = { 0 } },
 		   @{ n = "column"; e = { 0 } } | foreach -Begin {
@@ -107,7 +107,7 @@ function Tokenize_SQLString
 		$Token = $_;
 		$ItsAnIdentifier = ($Token.name -in ('SquareBracketed', 'Quoted', 'identifier'));
 		if ($ItsAnIdentifier)
-		{#strip delimiters out
+		{#strip delimiters out to get the value inside
             $TheString=switch ($Token.name )
             {
             'SquareBracketed' { $Token.Value.TrimStart('[').TrimEnd(']') }
@@ -115,12 +115,16 @@ function Tokenize_SQLString
             default {$Token.Value}
             }
             $Token.Type = $Token.Name; 
+            # Catch local identifiers in some RDBMSs 
+            if ($Token.Type -eq 'identifier' -and $Token.Value -like '@*')
+                {$Token.Type='LocalIdentifier'}    
+                
 			if ($TheString -in $ReservedSQLWords) #
 			{ $Token.Name='Keyword';  $ItsAnIdentifier=$false }
 			else
 			{ $Token.Name = 'Reference' }
             
-		}
+		} #Now we calculate the location
 		$TheIndex = $Token.Index;
 		While ($lines.count -gt $TheLine -and #do we bump the line number
 			$lines[$TheLine - 1].Index -lt $TheIndex)
@@ -131,13 +135,15 @@ function Tokenize_SQLString
 			({ $PSItem -le 2 }) { 0 }
 			Default { $lines[$TheLine - 2].Index }
 		}
-		$TheColumn = $TheIndex - $TheStart;
+		$TheColumn = $TheIndex - $TheStart; 
+        #index of where we found the token - index of start of line
 		$Token.'Line' = $TheLine; $Token.'Column' = $TheColumn;
 		$ItsADot = ($_.name -eq 'Punctuation' -and $_.value -eq '.')
 		switch ($state)
 		{
 			'not' {
-				if ($ItsAnIdentifier)
+				if ($ItsAnIdentifier -and $token.type -ne 'localIdentifier')
+                # local identifiers cannot be multi-part identifiers
 				{ $Held += $token; $FirstIndex = $token.index; 
                   $FirstLine = $TheLine; $FirstColumn = $TheColumn; $state = 'first'; }
 				else { write-output $token }
@@ -207,7 +213,6 @@ if ($resultingString -ne $correct)
 { write-warning "ooh. that first test wasn't right"}
 
 
-
 $result=@'
 /* we no longer access NotMyServer.NotMyDatabase.NotMySchema.NotMyTable */
 -- and we wouldn't use NotMySchema.NotMyTable
@@ -256,4 +261,27 @@ $TestValues= Tokenize_SQLString @'
 $BadResults=Compare-Object -Property Name, Value -IncludeEqual -ReferenceObject $correct -DifferenceObject $TestValues |
     where {$_.sideIndicator -ne '=='}
 if ($BadResults.Count -ne 0) { write-warning "ooh. that third test wasn't right"}
+$result=@'
+CREATE OR ALTER FUNCTION dbo.PublishersEmployees
+(
+    @company varchar(30) --the name of the publishing company or '_' for all.
+)
+RETURNS TABLE AS RETURN
+(
+SELECT fname
+       + CASE WHEN minit = '' THEN ' ' ELSE COALESCE (' ' + minit + ' ', ' ') END
+       + lname AS NAME, job_desc, pub_name, person.person_id
+  FROM
+  employee
+    INNER JOIN jobs
+      ON jobs.job_id = employee.job_id
+    INNER JOIN dbo.publishers
+      ON publishers.pub_id = employee.pub_id
+	INNER JOIN people.person
+	ON person.LegacyIdentifier='em-'+employee.emp_id
+	WHERE pub_name LIKE '%'+@company+'%'
+)
+'@ |Tokenize_SQLString |Where {$_.Type -eq 'LocalIdentifier'}|select value|sort -Unique|foreach{$_.Value}
+if ($result -ne '@company')  { write-warning "ooh. that fourth test wasn't right"
+
 #-----end of sanity check
