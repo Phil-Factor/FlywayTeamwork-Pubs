@@ -158,7 +158,7 @@ WHERE t.table_type = 'BASE TABLE'
   AND COALESCE(d.description, '') <> tc.TheDescription;
 
 -- Function to iterate over each table and add the comments
-CREATE OR REPLACE FUNCTION CommentEachTable() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION dbo.CommentEachTable() RETURNS VOID AS $$
 DECLARE
   iiMax INT;
   ii INT := 1;
@@ -181,7 +181,7 @@ $$ LANGUAGE plpgsql;
 
 -- Call the function to add comments to tables
 insert into warnings (warning)
-	SELECT CommentEachTable();
+	SELECT dbo.CommentEachTable();
 
 
 drop table  if exists WhatColumnToDocument;
@@ -208,7 +208,7 @@ WHERE  COALESCE(d.description, '') <> cc."comment";
 
 
 -- Function to iterate over each column and add the comments
-CREATE OR REPLACE FUNCTION CommentPerRow() RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION dbo.CommentPerRow() RETURNS VOID AS $$
 DECLARE
   iiMax INT;
   ii INT := 1;
@@ -228,11 +228,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Call the function to add comments to columns
-insert into warnings (warning) SELECT CommentPerRow();
+insert into warnings (warning) SELECT dbo.CommentPerRow();
 
 -- Clean up temporary objects
-DROP FUNCTION CommentPerRow();
-DROP FUNCTION CommentEachTable();
+DROP FUNCTION dbo.CommentPerRow();
+DROP FUNCTION dbo.CommentEachTable();
 DROP TABLE if exists WhatColumnToDocument;
 DROP TABLE if exists  WhatTableToDocument;
 
