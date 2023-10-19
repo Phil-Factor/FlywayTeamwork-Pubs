@@ -75,7 +75,8 @@ function Redo-EveryFlywayMigrationSingly
 		if ($ExecutedWell)
 		{
 			Flyway ($SecretsPath | get-conf) clean #clean the existing 
-			del .\versions\*.* -Recurse #remove any reports for all the versions
+            if (Test-Path -Path .\versions -PathType Container)
+                {del .\versions\*.* -Recurse} #remove any reports for all the versions
 		}
 		else
 		{

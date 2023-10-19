@@ -1,10 +1,231 @@
-
+/* Arrange */
 drop view if exists dbo.Book_Purchases_By_Date;
 drop view if exists dbo.TitlesTopicsAuthorsAndEditions;
 drop view if exists dbo.SalesByMonthAndYear;
 drop function if exists dbo.PublishersEmployees;
 drop function if exists dbo.calculate_monthly_sales;
 drop function if exists dbo.TheYear;
+
+CREATE VIEW dbo.SalesByMonthAndYear
+/**
+Summary: >
+  This does a pivot table breaking down sales by month and year
+Author: phil factor
+Date: Tuesday, 6 June 2023
+Database: Pubs
+Examples:
+   - Select * from SalesByMonthAndYear
+   - Select * from SalesByMonthAndYear
+
+  
+**/
+as
+SELECT  Date_part('YEAR',ord_date) AS "Date",
+	Sum(CASE WHEN Date_part('Month',ord_date) =1 THEN qty ELSE 0  END) AS Jan,
+	Sum(CASE WHEN Date_part('Month',ord_date) =2 THEN qty ELSE 0  END) AS Feb,
+	Sum(CASE WHEN Date_part('Month',ord_date) =3 THEN qty ELSE 0  END) AS Mar,
+	Sum(CASE WHEN Date_part('Month',ord_date) =4 THEN qty ELSE 0  END) AS Apr,
+	Sum(CASE WHEN Date_part('Month',ord_date) =5 THEN qty ELSE 0  END) AS May,
+	Sum(CASE WHEN Date_part('Month',ord_date) =6 THEN qty ELSE 0  END) AS Jun,
+	Sum(CASE WHEN Date_part('Month',ord_date) =7 THEN qty ELSE 0  END) AS Jul,
+	Sum(CASE WHEN Date_part('Month',ord_date) =8 THEN qty ELSE 0  END) AS Aug,
+	Sum(CASE WHEN Date_part('Month',ord_date) =9 THEN qty ELSE 0  END) AS Sep,
+	Sum(CASE WHEN Date_part('Month',ord_date) =10 THEN qty ELSE 0 END) AS Oct,
+	Sum(CASE WHEN Date_part('Month',ord_date) =11 THEN qty ELSE 0 END) AS Nov,
+	Sum(CASE WHEN Date_part('Month',ord_date) =12 THEN qty ELSE 0 END) AS Dec,
+	Sum( qty) AS Total
+  FROM
+  dbo.sales
+GROUP BY Date_part('YEAR',ord_date);
+
+
+CREATE OR REPLACE FUNCTION dbo.calculate_monthly_sales
+/**
+Summary: >
+  This gives the monthly breakdown 
+  for all titles or a particular title (wildcard)
+  between two years or all if you leave out the
+  parameter
+Author: phil factor
+Date: Tuesday, 6 June 2023
+Database: Pubs
+Examples:
+   - Select * from dbo.Calculate_Monthly_Sales('%','2000','2023')
+
+  
+**/
+(
+    title_id varchar(6) = '%',
+    start_year char(4) = '2000',
+    end_year char(4) = null
+)
+RETURNS TABLE (
+    "Date" CHAR(4),
+    Jan INT,
+    Feb INT,
+    Mar INT,
+    Apr INT,
+    May INT,
+    Jun INT,
+    Jul INT,
+    Aug INT,
+    Sep INT,
+    Oct INT,
+    Nov INT,
+    "Dec" INT,
+    Total INT
+)
+AS
+'
+BEGIN
+    IF end_year IS NULL THEN
+        end_year := to_char(current_date, ''YYYY'');
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        to_char(ord_date, ''YYYY'') AS "Date",
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 1 THEN qty ELSE 0 END) AS Jan,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 2 THEN qty ELSE 0 END) AS Feb,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 3 THEN qty ELSE 0 END) AS Mar,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 4 THEN qty ELSE 0 END) AS Apr,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 5 THEN qty ELSE 0 END) AS May,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 6 THEN qty ELSE 0 END) AS Jun,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 7 THEN qty ELSE 0 END) AS Jul,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 8 THEN qty ELSE 0 END) AS Aug,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 9 THEN qty ELSE 0 END) AS Sep,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 10 THEN qty ELSE 0 END) AS Oct,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 11 THEN qty ELSE 0 END) AS Nov,
+        SUM(CASE WHEN extract(MONTH FROM ord_date) = 12 THEN qty ELSE 0 END) AS "Dec",
+        SUM(qty) AS Total
+    FROM dbo.sales
+    WHERE title_id LIKE title_id
+        AND extract(YEAR FROM ord_date) BETWEEN start_year AND end_year
+    GROUP BY to_char(ord_date, ''YYYY'');
+
+END;
+'
+LANGUAGE plpgsql;
+
+
+
+CREATE or replace FUNCTION dbo.TheYear( TheDateTime DATE)
+RETURNS CHAR(4)
+AS
+'
+BEGIN
+    RETURN Date_part(''YEAR'',TheDateTime);
+END;
+'
+LANGUAGE plpgsql;
+
+
+CREATE VIEW dbo.TitlesTopicsAuthorsAndEditions
+/**
+Summary: >
+  This is a view that lists all the authors, 
+  editions and tages for titles
+Author: PhilFactor
+Date: Thursday, 25 May 2023
+Database: Pubs
+Examples:
+   - Select * from dbo.TitlesTopicsAuthorsAndEditions
+     where title like '%Pre-Raphaelite%'
+   - Select "Author(s)" from dbo.TitlesTopicsAuthorsAndEditions
+	 
+Returns: >
+	Title, Topic(s), Author(s), Editions(s)
+**/
+AS
+  SELECT title, F.Publication_id AS code,
+         Coalesce (authors, '') AS "Author(s)",
+         Coalesce (topics, '') AS "Topic(s)",
+         Coalesce (Editions, '') AS "Edition(s)"
+    FROM
+      (SELECT publications.Publication_id, Max (publications.title) AS title,
+              String_Agg (Concat(au_fname ,' ', au_lname), ', ') AS "authors"
+         FROM
+         dbo.publications
+           INNER JOIN dbo.titleauthor
+             ON titleauthor.title_id = publications.Publication_id
+           INNER JOIN dbo.authors
+             ON authors.au_id = titleauthor.au_id
+         GROUP BY publications.Publication_id) F
+      LEFT OUTER JOIN
+        (SELECT TagTitle.title_id AS publication_id,
+                String_Agg (TagName.Tag, ', ') AS topics
+           FROM
+           dbo.TagName
+             INNER JOIN dbo.TagTitle
+               ON TagName.TagName_ID = TagTitle.TagName_ID
+           GROUP BY TagTitle.title_id) g
+        ON F.Publication_id = g.publication_id
+      LEFT OUTER JOIN
+        (SELECT editions.publication_id,
+                String_Agg (
+                  concat(editions.Publication_type, '(',dbo.TheYear(editions.EditionDate),')'),
+                  ', ') AS Editions
+           FROM dbo.editions
+           GROUP BY editions.publication_id) H
+        ON H.publication_id = F.Publication_id;
+
+
+
+
+create or replace function dbo.PublishersEmployees
+/**
+Summary: >
+  This is an in-line table function that you can use to select the
+  employees of a particular company or group. It passes back the 
+  person key from the people schema, so you can add addresses, emails
+  phone numbers and so on.
+Author: philfactor
+Date: Friday, 26 May 2023
+Database: Pubs
+Examples:
+   - Select * from dbo.PublishersEmployees('_')
+   - 
+     SELECT NAME, Job_Desc, pub_name,
+       STRING_AGG (
+         COALESCE (TypeOfPhone + ' - ' + DiallingNumber, 'None'), ', ') AS Contact_Numbers
+     FROM
+     dbo.PublishersEmployees ('Biblio')
+       LEFT OUTER JOIN people.phone
+         ON phone.person_id = PublishersEmployees.person_id
+     WHERE phone.end_date IS NULL
+     GROUP BY
+     NAME, Job_Desc, Pub_name
+     ORDER BY pub_name;
+
+  
+**/
+(
+    company varchar(30) --the name of the publishing company or '_' for all.
+)
+RETURNS TABLE (NAME varchar(100), job_desc varchar(100),
+   pub_name varchar(100), person_id int)
+AS
+'
+begin
+SELECT fname
+       + CASE WHEN minit = '''' THEN '' '' ELSE COALESCE ('' '' + minit + '' '', '' '') END
+       + lname AS NAME, job_desc, pub_name, person.person_id
+  FROM
+  employee
+    INNER JOIN dbo.jobs
+      ON jobs.job_id = employee.job_id
+    INNER JOIN dbo.publishers
+      ON publishers.pub_id = employee.pub_id
+	INNER JOIN people.person
+	ON person.LegacyIdentifier=''em-''+employee.emp_id
+	WHERE pub_name LIKE ''%''+company+''%'';
+
+END;
+'
+LANGUAGE plpgsql;
+
+/* Act */
+
 
   /*Retrieve all titles along with the number of authors for each title;*/
 SELECT title.title_id, title.title, Count (*) AS author_count
@@ -226,106 +447,7 @@ information along with the total sales. */
  -- Table Function: Retrieve the top-selling titles along with the average sales quantity per month:
 
 
-CREATE VIEW dbo.SalesByMonthAndYear
-/**
-Summary: >
-  This does a pivot table breaking down sales by month and year
-Author: phil factor
-Date: Tuesday, 6 June 2023
-Database: Pubs
-Examples:
-   - Select * from SalesByMonthAndYear
-   - Select * from SalesByMonthAndYear
-Returns: >
-  nothing
-**/
-as
-SELECT  Date_part('YEAR',ord_date) AS "Date",
-	Sum(CASE WHEN Date_part('Month',ord_date) =1 THEN qty ELSE 0  END) AS Jan,
-	Sum(CASE WHEN Date_part('Month',ord_date) =2 THEN qty ELSE 0  END) AS Feb,
-	Sum(CASE WHEN Date_part('Month',ord_date) =3 THEN qty ELSE 0  END) AS Mar,
-	Sum(CASE WHEN Date_part('Month',ord_date) =4 THEN qty ELSE 0  END) AS Apr,
-	Sum(CASE WHEN Date_part('Month',ord_date) =5 THEN qty ELSE 0  END) AS May,
-	Sum(CASE WHEN Date_part('Month',ord_date) =6 THEN qty ELSE 0  END) AS Jun,
-	Sum(CASE WHEN Date_part('Month',ord_date) =7 THEN qty ELSE 0  END) AS Jul,
-	Sum(CASE WHEN Date_part('Month',ord_date) =8 THEN qty ELSE 0  END) AS Aug,
-	Sum(CASE WHEN Date_part('Month',ord_date) =9 THEN qty ELSE 0  END) AS Sep,
-	Sum(CASE WHEN Date_part('Month',ord_date) =10 THEN qty ELSE 0 END) AS Oct,
-	Sum(CASE WHEN Date_part('Month',ord_date) =11 THEN qty ELSE 0 END) AS Nov,
-	Sum(CASE WHEN Date_part('Month',ord_date) =12 THEN qty ELSE 0 END) AS Dec,
-	Sum( qty) AS Total
-  FROM
-  dbo.sales
-GROUP BY Date_part('YEAR',ord_date);
 
-
-CREATE OR REPLACE FUNCTION dbo.calculate_monthly_sales
-/**
-Summary: >
-  This gives the monthly breakdown 
-  for all titles or a particular title (wildcard)
-  between two years or all if you leave out the
-  parameter
-Author: phil factor
-Date: Tuesday, 6 June 2023
-Database: Pubs
-Examples:
-   - Select * from dbo.Calculate_Monthly_Sales('%','2000','2023')
-Returns: >
-  nothing
-**/
-(
-    title_id varchar(6) = '%',
-    start_year char(4) = '2000',
-    end_year char(4) = null
-)
-RETURNS TABLE (
-    "Date" CHAR(4),
-    Jan INT,
-    Feb INT,
-    Mar INT,
-    Apr INT,
-    May INT,
-    Jun INT,
-    Jul INT,
-    Aug INT,
-    Sep INT,
-    Oct INT,
-    Nov INT,
-    "Dec" INT,
-    Total INT
-)
-AS
-'
-BEGIN
-    IF end_year IS NULL THEN
-        end_year := to_char(current_date, ''YYYY'');
-    END IF;
-
-    RETURN QUERY
-    SELECT
-        to_char(ord_date, ''YYYY'') AS "Date",
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 1 THEN qty ELSE 0 END) AS Jan,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 2 THEN qty ELSE 0 END) AS Feb,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 3 THEN qty ELSE 0 END) AS Mar,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 4 THEN qty ELSE 0 END) AS Apr,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 5 THEN qty ELSE 0 END) AS May,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 6 THEN qty ELSE 0 END) AS Jun,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 7 THEN qty ELSE 0 END) AS Jul,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 8 THEN qty ELSE 0 END) AS Aug,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 9 THEN qty ELSE 0 END) AS Sep,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 10 THEN qty ELSE 0 END) AS Oct,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 11 THEN qty ELSE 0 END) AS Nov,
-        SUM(CASE WHEN extract(MONTH FROM ord_date) = 12 THEN qty ELSE 0 END) AS "Dec",
-        SUM(qty) AS Total
-    FROM dbo.sales
-    WHERE title_id LIKE title_id
-        AND extract(YEAR FROM ord_date) BETWEEN start_year AND end_year
-    GROUP BY to_char(ord_date, ''YYYY'');
-
-END;
-'
-LANGUAGE plpgsql;
 
 /*
 In this example, dbo.Calculate_Monthly_Sales() 
@@ -337,122 +459,6 @@ SELECT
 FROM dbo.titles
 LEFT JOIN LATERAL dbo.calculate_monthly_sales(titles.title_id, cast ('2000' as char(4)), cast('2023'as char(4))) F ON true
 WHERE titles.title LIKE '%historical%';
-
-
-CREATE or replace FUNCTION dbo.TheYear( TheDateTime DATE)
-RETURNS CHAR(4)
-AS
-'
-BEGIN
-    RETURN Date_part(''YEAR'',TheDateTime);
-END;
-'
-LANGUAGE plpgsql;
-
-
-CREATE VIEW dbo.TitlesTopicsAuthorsAndEditions
-/**
-Summary: >
-  This is a view that lists all the authors, 
-  editions and tages for titles
-Author: PhilFactor
-Date: Thursday, 25 May 2023
-Database: Pubs
-Examples:
-   - Select * from dbo.TitlesTopicsAuthorsAndEditions
-     where title like '%Pre-Raphaelite%'
-   - Select "Author(s)" from dbo.TitlesTopicsAuthorsAndEditions
-	 
-Returns: >
-	Title, Topic(s), Author(s), Editions(s)
-**/
-AS
-  SELECT title, F.Publication_id AS code,
-         Coalesce (authors, '') AS "Author(s)",
-         Coalesce (topics, '') AS "Topic(s)",
-         Coalesce (Editions, '') AS "Edition(s)"
-    FROM
-      (SELECT publications.Publication_id, Max (publications.title) AS title,
-              String_Agg (Concat(au_fname ,' ', au_lname), ', ') AS "authors"
-         FROM
-         dbo.publications
-           INNER JOIN dbo.titleauthor
-             ON titleauthor.title_id = publications.Publication_id
-           INNER JOIN dbo.authors
-             ON authors.au_id = titleauthor.au_id
-         GROUP BY publications.Publication_id) F
-      LEFT OUTER JOIN
-        (SELECT TagTitle.title_id AS publication_id,
-                String_Agg (TagName.Tag, ', ') AS topics
-           FROM
-           dbo.TagName
-             INNER JOIN dbo.TagTitle
-               ON TagName.TagName_ID = TagTitle.TagName_ID
-           GROUP BY TagTitle.title_id) g
-        ON F.Publication_id = g.publication_id
-      LEFT OUTER JOIN
-        (SELECT editions.publication_id,
-                String_Agg (
-                  concat(editions.Publication_type, '(',dbo.TheYear(editions.EditionDate),')'),
-                  ', ') AS Editions
-           FROM dbo.editions
-           GROUP BY editions.publication_id) H
-        ON H.publication_id = F.Publication_id;
-
-
-
-
-create or replace function dbo.PublishersEmployees
-/**
-Summary: >
-  This is an in-line table function that you can use to select the
-  employees of a particular company or group. It passes back the 
-  person key from the people schema, so you can add addresses, emails
-  phone numbers and so on.
-Author: philfactor
-Date: Friday, 26 May 2023
-Database: Pubs
-Examples:
-   - Select * from dbo.PublishersEmployees('_')
-   - 
-     SELECT NAME, Job_Desc, pub_name,
-       STRING_AGG (
-         COALESCE (TypeOfPhone + ' - ' + DiallingNumber, 'None'), ', ') AS Contact_Numbers
-     FROM
-     dbo.PublishersEmployees ('Biblio')
-       LEFT OUTER JOIN people.phone
-         ON phone.person_id = PublishersEmployees.person_id
-     WHERE phone.end_date IS NULL
-     GROUP BY
-     NAME, Job_Desc, Pub_name
-     ORDER BY pub_name;
-Returns: >
-  nothing
-**/
-(
-    company varchar(30) --the name of the publishing company or '_' for all.
-)
-RETURNS TABLE (NAME varchar(100), job_desc varchar(100),
-   pub_name varchar(100), person_id int)
-AS
-'
-begin
-SELECT fname
-       + CASE WHEN minit = '''' THEN '' '' ELSE COALESCE ('' '' + minit + '' '', '' '') END
-       + lname AS NAME, job_desc, pub_name, person.person_id
-  FROM
-  employee
-    INNER JOIN dbo.jobs
-      ON jobs.job_id = employee.job_id
-    INNER JOIN dbo.publishers
-      ON publishers.pub_id = employee.pub_id
-	INNER JOIN people.person
-	ON person.LegacyIdentifier=''em-''+employee.emp_id
-	WHERE pub_name LIKE ''%''+company+''%'';
-
-END;
-'
-LANGUAGE plpgsql;
 
 /*
 Each order, when it happened, how many of each title, 
@@ -572,3 +578,11 @@ AS (SELECT title_id, AVG (qty) AS avg_qty FROM dbo.sales GROUP BY title_id)
       JOIN avg_sales s
         ON t.title_id = s.title_id;
 
+/* Teardown*/
+
+drop view if exists dbo.Book_Purchases_By_Date;
+drop view if exists dbo.TitlesTopicsAuthorsAndEditions;
+drop view if exists dbo.SalesByMonthAndYear;
+drop function if exists dbo.PublishersEmployees;
+drop function if exists dbo.calculate_monthly_sales;
+drop function if exists dbo.TheYear;
