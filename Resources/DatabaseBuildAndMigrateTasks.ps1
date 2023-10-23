@@ -5713,9 +5713,7 @@ function Execute-SQLTimedStatement
 	
 	.EXAMPLE
 		PS C:\> Create-TestObject
-	
-	.NOTES
-		Additional information about the function.
+
 #>
 function Create-TestObject
 {
@@ -5885,6 +5883,68 @@ function Run-AnnotatedTestScript
 	}
 }
 
+
+
+<#
+	.SYNOPSIS
+		Creates an array of SQL Expressions/queries from a larger script
+	
+	.DESCRIPTION
+		This allows us to get timings for each one of a large number of 
+        SQL Expressions
+	
+	.PARAMETER TheFileName
+		A description of the TheFileName parameter.
+	
+	.PARAMETER TheDBDetails
+		The file holding the strings
+	
+	.PARAMETER Content
+		The SQL file that can contain a number of SQL expressions
+	
+	.PARAMETER Terminator
+        Only necessary if you are using an unusual terminator;
+        We need DBDetails anyway, so we use that to determine
+		The SQL Terminator to use, usually ; but Transact SQL uses GO
+
+	.EXAMPLE
+		Run-EachSQLExpression -TheFileName '<pathToTheFile>' -TheDBDetails $DBDetails 
+#>
+function Run-EachSQLExpression
+{
+	[CmdletBinding()]
+	[OutputType([array])]
+	param
+	(
+		[Parameter(Position = 1)]
+		[string]$TheFileName,
+		[Parameter(Position = 2)]
+		$TheDBDetails,
+		[Parameter(Position = 3)]
+		$Terminators =[array]$null
+	)
+	$Content = Get-Content -Raw $TheFileName;
+   if ($Terminators -eq $null)
+    {
+        switch ($TheDBDetails.rdbms)
+ 	    {
+		    'sqlserver' { $Terminators = 'GO' } #Meaning you delete it
+		    default { $Terminators = ';' } #Meaning you leave it there
+	    }
+    }
+	$Tasks = @()
+	Tokenize_SQLString $Content | where {
+		$_.value -in $Terminators
+	} | foreach -begin { $Sections = @(); $StartIndex = 0 } {
+		if ($_.value -eq 'GO') {$TerminatorLength=2} else {$TerminatorLength=0}
+		$EndIndex = $_.Index;
+		$TheExpression = "$($Content.Substring($StartIndex, $EndIndex - $StartIndex - $TerminatorLength))"
+        $StartIndex = $EndIndex + $TerminatorLength;
+		write-verbose "---Executing `"$TheExpression`""
+		Execute-SQLStatement $TheDbDetails $TheExpression -simpleText $true -timing $true -muted $true;
+	}
+}
+
 <#
 	.SYNOPSIS
 		Run the tests that are available See:
@@ -5900,6 +5960,12 @@ function Run-AnnotatedTestScript
 	.PARAMETER ThePath
 		The path to the test directory you want
 	
+	.PARAMETER Thetype
+		The type of test P= S= T= an AAAT test
+
+	.PARAMETER Script
+		The filetype to the test directory you want
+
 	.EXAMPLE
 				PS C:\> Run-TestsForMigration -TheDetails $value1 -ThePath 'Value2'
 	
@@ -5914,9 +5980,10 @@ function Run-TestsForMigration
 		[Parameter(Mandatory = $true)]
 		[string]$ThePath,
 		[Parameter(Mandatory = $false)]
-		[string]$Type = 'T',
+		[string]$Type = 'T', 
+        #an integration test (T)'P', a  performance test (P), an AAAT test (A)
 		[Parameter(Mandatory = $false)]
-		[string]$Script = 'ps1'
+		[string]$Script = '*'
 	)
     $Problems=@()
     #check the report directory to make sure it exists
@@ -5962,13 +6029,13 @@ function Run-TestsForMigration
 		if ($Script -eq 'ps1') { $TestOutput = . "$ThePath\$($_.Filename)" }
 		elseif ($Script -eq 'sql')
 		{
-			if ($Type -eq 'P') 
-            # we run these with timings and with the results 'muted'
+			if ($Type -eq 'T') 
+            # we run these together with a with timing and with the results 'muted'
             {$TestOutput = Execute-SQLStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
-			elseif ($Type -eq 'S') 
+			elseif ($Type -eq 'P') 
             # we run these with eavh expression individually with timings and with the results 'muted'
-            {$TestOutput = Execute-SQLTimedStatement $DatabaseDetails '-' -fileBasedQuery "$ThePath\$($_.Filename)" -simpleText $true -timing $true -muted $true }
-			elseif ($Type -eq 'T') 
+            {$TestOutput = Run-EachSQLExpression -TheFileName "$ThePath\$($_.Filename)"  -TheDBDetails $DatabaseDetails }
+			elseif ($Type -eq 'A') 
             <# we run a SQL Script that has been annotated for AAAT usage. 
             It runs the four sections of an AAAT script through from construction to teardown #>
             {$TestOutput = Run-AnnotatedTestScript "$ThePath\$($_.Filename)"  $DatabaseDetails }

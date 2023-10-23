@@ -54,9 +54,12 @@ function Do-AFlywayCommand
 		[String]$Secrets = '',
 		[Parameter(Mandatory = $false,
 				   HelpMessage = 'The scriptblock for hamdling errors ')]
-		[scriptblock]$ErrorNotifier = { }
+		[scriptblock]$ErrorNotifier = { },
+        [Parameter(Mandatory = $false,
+                   HelpMessage = 'The name of the action ') ]
+		[String]$Name= 'current database'
 	)
-	
+	write-verbose "now doing flyway command with $Name"
 	$ExtraParameters = { $parameters }.Invoke() # get any extra parameters
 	if (!([string]::IsNullOrEmpty($Secrets))) # if you've specified an extra .conf file 
 	{
@@ -96,8 +99,8 @@ function Do-AFlywayCommand
 	{ $TheErrorMessage = get-content $ErrorCatcher -Raw };
 	if (![string]::IsNullOrEmpty($TheErrorMessage)) #if there really is something
 	{
-		&$ErrorNotifier  "In $pwd $TheErrorMessage" #send it to our notification system
-		throw "In $pwd $TheErrorMessage" #generally you'll want to halt execution there
+		&$ErrorNotifier  "In $pwd $Name $TheErrorMessage" #send it to our notification system
+		throw "In $pwd $name $TheErrorMessage" #generally you'll want to halt execution there
 	};
 	del $ErrorCatcher
 }
