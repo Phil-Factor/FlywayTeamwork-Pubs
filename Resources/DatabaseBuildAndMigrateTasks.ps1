@@ -5739,7 +5739,8 @@ function Create-TestObject
         {$TerminatorLength=0}  #Meaning you leave it there
 	$ExecuteAllQuantity = 1;
 	$ExecuteNextQuantity = $ExecuteAllQuantity;
-	$PauseAllQuantity = $PauseNextQuantity;
+	$PauseAllQuantity = 0;
+    $PauseAllQuantity = $PauseNextQuantity;
 	
 	$RegexForInterpretingExecution = [regex]@'
 (?i)(?m)^(?<ExecuteOrPause>EXECUTE|PAUSE){1,10}\s(?#
@@ -5838,7 +5839,7 @@ function Run-AnnotatedTestScript
 		[Parameter(Mandatory = $true)]
 		[string]$TheFilename,
 		[Parameter(Mandatory = $true)]
-		[Array]$TheDBDetails
+		[hashtable]$TheDBDetails
 	)
 	
     if ($TheDbDetails.RDBMS -eq 'sqlserver'){ $Delimiter = 'GO' }
@@ -5867,7 +5868,10 @@ function Run-AnnotatedTestScript
     while ($SectionIterationsLeft -gt 0)
         {
     $Tasks | foreach{
-		    Start-Sleep -seconds $_.PauseBefore;
+		    if (!([string]::IsNullOrEmpty($_.PauseBefore))) 
+                {if ($_.PauseBefore -gt 0)
+                    {Start-Sleep -seconds $_.PauseBefore;}
+                }
 		    $Iterations = $_.times
 		    if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
 		    while ($iterations -gt 0)
@@ -5961,7 +5965,7 @@ function Run-EachSQLExpression
 		The path to the test directory you want
 	
 	.PARAMETER Thetype
-		The type of test P= S= T= an AAAT test
+		The type of test T= a Timed Test,  P=a performance test (each one timed)   A=an AAAT test
 
 	.PARAMETER Script
 		The filetype to the test directory you want
@@ -5986,6 +5990,8 @@ function Run-TestsForMigration
 		[string]$Script = '*'
 	)
     $Problems=@()
+    if ([string]::IsNullOrEmpty($DBDetails.version))
+    {Process-FlywayTasks $DBDetails $GetCurrentVersion}
     #check the report directory to make sure it exists
 	$OurReportDirectory = "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\reports\tests"
 	if (-not (Test-Path $OurReportDirectory -PathType Container))
@@ -5997,32 +6003,34 @@ function Run-TestsForMigration
     Throw 'no valid path to the tests specified'
     }
     #for each file in the test location
-	Dir "$ThePath\$($Type)*.$($Script)" -name |
+		Dir "$ThePath\$($Type)*.$($Script)" -name |
 	foreach{
-		if ($_ -cmatch "\A(?m:^)$type(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.$Script\z")
+		if ($_ -imatch "\A(?m:^)$type(?<StartVersion>.*)-(?<EndVersion>.*)__(?<Description>.*)\.$Script\z")
 		{#get the versions for which the test file is appropriate
 			@{
 				#turn blank strings into nulls so we can process underfined starts and ends properly
-				'StartVersion' = switch ($matches.StartVersion)
-				{
-					''{ $null }
-					Default { $_ }
-				};
-				'EndVersion' = switch ($matches.EndVersion)
-				{
-					''{ $null }
-					Default { $_ }
-				};
+				'StartVersion' = if ([string]::IsNullOrWhiteSpace($matches.StartVersion)){[version]'0.0.0.0'}
+                                 else {$matches.StartVersion};
+				'EndVersion' = if ([string]::IsNullOrWhiteSpace($matches.EndVersion)){[version]'999.0.0.0'}
+                                 else {$matches.EndVersion};
 				'Description' = $matches.Description.Replace('_', ' ');
 				'Filename' = $matches.0;
 			}
 		}
 		else
-		{ throw "could not parse $($_) with regex" }
-	} |
+		{ @{
+				#turn blank strings into nulls so we can process underfined starts and ends properly
+				'StartVersion' = '0.0.0.0';
+				'EndVersion' = '9.9.9.9';
+				'Description' = 'unversioned file';
+				'Filename' = $matches.0;
+			}
+       }
+	}|    
 	where {
-		[version]$DatabaseDetails.version -ge ($_.StartVersion, [version]'0.0.0.0' -ne $null)[0] -and
-		[version]$DatabaseDetails.version -lt ($_.EndVersion, [version]'999.0.0.0' -ne $null)[0]
+		[version]$DatabaseDetails.version -ge [version]$_.StartVersion -and
+		[version]$DatabaseDetails.version -lt [version]$_.EndVersion -and
+        $_.Description -ne 'unversioned file'
 	} | foreach {
 		"executing $($_.Filename) ($($_.Description))"
 		# now we execute it

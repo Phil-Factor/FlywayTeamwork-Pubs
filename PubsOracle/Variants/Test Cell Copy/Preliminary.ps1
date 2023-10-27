@@ -58,7 +58,7 @@ $Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory))
         {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
 #$ReportLocation is used for the branch version
 $ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
-
+$TestsLocations=@();
 #look for the common resources directory for all assets such as modules that are shared
 $dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
 if (test-path   "..\$ResourcesPath")
@@ -72,6 +72,7 @@ while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Containe
 	) -and $ii -gt 0)
 {
 	$Project = split-path -path $dir -leaf
+    if (test-path "$dir\tests" -PathType Container){$TestsLocations+="$dir\tests"}
     if ($Project -eq 'Branches') {$structure='branch'} 
 	$dir = Split-Path $Dir;
 	$ii = $ii - 1;
@@ -161,7 +162,7 @@ $DBDetails = @{
 	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
 	'projectFolder' = $FlywayConfContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
 	'resources' = "$Dir\$ResourcesPath"
-    'testsLocations'='';
+    'testsLocations'= ($testsLocations -join ',') ;
 	'feedback' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'warnings' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
 	'problems' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                           

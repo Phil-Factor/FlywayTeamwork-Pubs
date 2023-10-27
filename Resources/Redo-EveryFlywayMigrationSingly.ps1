@@ -82,6 +82,10 @@ function Redo-EveryFlywayMigrationSingly
 		{
 			write-verbose "Could not connect properly, using the $($_.Name) database"
 		}
+        if ($PostMigrationTasks -ne $null)
+		#we would only need to do this for every migration file if using Flyway Community
+				{ . '.\preliminary.ps1'; $OurDBDetails=$DBDetails}
+        
       <# now we are going to do each version in turn so that we are sure of 
       getting a report and list of changes for each version #>
       $Configuration= Get-FlywayConfContent $SecretsPath
@@ -121,7 +125,8 @@ function Redo-EveryFlywayMigrationSingly
 				if ($ExecutedWell -and ($PostMigrationTasks -ne $null))
 				#we would only need to do this for every migration file if using Flyway Community
 				{
-					Process-FlywayTasks $DBDetails $PostMigrationTasks
+				    . '.\preliminary.ps1'
+                   	Process-FlywayTasks $OurDBDetails $PostMigrationTasks
 				}
 			}
 		}
