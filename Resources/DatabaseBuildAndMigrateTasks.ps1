@@ -5625,8 +5625,6 @@ function Execute-SQL
 	.PARAMETER fileBasedQuery
 		a query. If a file, put the path in the $fileBasedQuery parameter
 	
-	.NOTES
-		Additional information about the function.
 #>
 function Execute-SQLStatement
 {
@@ -5695,7 +5693,9 @@ function Execute-SQLTimedStatement
 
 <#
 	.SYNOPSIS
-		Parses a SQL test script into individual statements or queries and assigns then to one of four categories
+		Parses a SQL test script into individual statements or queries and assigns then to one of 
+        four categories, 'Arrange', 'Act', 'Assert', 'Teardown'
+        
 	
 	.DESCRIPTION
 		This is a way of providing a way to convert  a single SQL script, annotated as required
@@ -5749,9 +5749,12 @@ how many times)(?<Quantity>\d{1,10})\s{0,10}(?#
 ignore this)(?<TimesOrSecs>TIMES|SECS)?\s{0,5}(?#
 do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 '@
+    $RegexForGettingComparisonFilename=[regex]@'
+Compare with\s{1,80}?(?<ComparisonFile>[\w\s]{1,80})
+'@
 	Tokenize_SQLString $Content | where {
 		$_.value -eq $Terminator -or $_.name -eq 'BlockComment'
-	} | foreach -begin { $State = 'Act'; $StartIndex = 0 } {
+	} | foreach -begin { $State = 'Act'; $StartIndex = -1 } {
 		if ($_.value -eq $Terminator)
 		{
 			$EndIndex = $_.Index;
@@ -5759,12 +5762,14 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 				'State' = $State;
 				'Times' = $ExecuteNextQuantity;
 				'PauseBefore' = $PauseNextQuantity;
-				'Expression' = "$($Content.Substring($StartIndex, $EndIndex - $StartIndex - $TerminatorLength))"
+                'compare' = $WhatWeCompareWith;
+				'Expression' = "$($Content.Substring($StartIndex+1 , $EndIndex - $StartIndex - $TerminatorLength))"
 			};
 			
 			$StartIndex = $EndIndex + $TerminatorLength;
 			$ExecuteNextQuantity = $ExecuteAllQuantity;
 			$PauseNextQuantity = $PauseAllQuantity;
+            $WhatWeCompareWith='';
 		}
 		else
 		{
@@ -5795,6 +5800,14 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 						}
 					}
 				}
+                elseif($CommentText.Trim() -like 'Compare With*')
+                {
+                if ($CommentText.Trim() -imatch $RegexForGettingComparisonFilename) {
+	                $WhatWeCompareWith = $matches.ComparisonFile
+                    } else {
+	                    $WhatWeCompareWith = ''
+                    }
+                }
 			}
 		}
 	}
@@ -5805,7 +5818,6 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 		'Tasks' = $Tasks
 	} #End foreach token
 }
-
 
 <#
 	.SYNOPSIS
@@ -5826,10 +5838,8 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 		A description of the database.
 	
 	.EXAMPLE
-				PS C:\> Run--AnnotatedTestScript -TheFilename '<PathToTheFile' -DBDetails $DBDetails
+	Run-AnnotatedTestScript -TheFilename '<PathToTheFile' -DBDetails $DBDetails
 	
-	.NOTES
-		Additional information about the function.
 #>
 function Run-AnnotatedTestScript
 {
@@ -5839,21 +5849,20 @@ function Run-AnnotatedTestScript
 		[Parameter(Mandatory = $true)]
 		[string]$TheFilename,
 		[Parameter(Mandatory = $true)]
-		[hashtable]$TheDBDetails
+		[hashtable]$TheDBDetails,
+		[Parameter(Mandatory = $false)]
+		[string]$Delimiter=';'
 	)
-	
-    if ($TheDbDetails.RDBMS -eq 'sqlserver'){ $Delimiter = 'GO' }
-	else { $Delimiter = ';' };
     $Content = Get-Content -Raw $TheFileName
-    try
-        {
-        $JSONObject=$Content|convertfrom-json
-        }
-    catch
-        {
-    	$JSONObject = Create-TestObject $Content $Delimiter
-        }
-    $DefaultPause = $JSONObject.Pause
+	try
+	{ #is it already JSON?
+		$JSONObject = $Content | convertfrom-json
+	}
+	catch #No, we have to convert it
+	{
+		$JSONObject = Create-TestObject $Content $Delimiter
+	}
+	$DefaultPause = $JSONObject.Pause
 	$DefaultTimes = $JSONObject.Times
 	$DefaultOrder = $JSONObject.TheOrder
 	
@@ -5861,33 +5870,74 @@ function Run-AnnotatedTestScript
 		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
 	}
 	if ($DefaultOrder -eq 'serially')
-        {$Tasks= $JSONObject.Tasks | where { $_.State -like 'Act' }}
-    else
-        {$Tasks= $JSONObject.Tasks | where { $_.State -like 'Act' }|  Sort-Object {Get-Random}}     
-    $SectionIterationsLeft=$DefaultTimes;
-    while ($SectionIterationsLeft -gt 0)
-        {
-    $Tasks | foreach{
-		    if (!([string]::IsNullOrEmpty($_.PauseBefore))) 
-                {if ($_.PauseBefore -gt 0)
-                    {Start-Sleep -seconds $_.PauseBefore;}
-                }
-		    $Iterations = $_.times
-		    if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
-		    while ($iterations -gt 0)
-		    {
-			    Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $true -muted $true;
-			    $iterations--;
+	{ $Tasks = $JSONObject.Tasks | where { $_.State -like 'Act' } }
+	else
+	{ $Tasks = $JSONObject.Tasks | where { $_.State -like 'Act' } | Sort-Object { Get-Random } }
+	if ($Tasks.count -gt 0)
+    {
+        $SectionIterationsLeft = $DefaultTimes;
+	    while ($SectionIterationsLeft -gt 0)
+	    {
+		    $Tasks | foreach{
+			    if (!([string]::IsNullOrEmpty($_.PauseBefore)))
+			    {
+				    if ($_.PauseBefore -gt 0)
+				    { Start-Sleep -seconds $_.PauseBefore; }
+			    }
+			    $Iterations = $_.times
+			    if ($Iterations -eq $null) { $Iterations = $DefaultTimes }
+			    while ($iterations -gt 0)
+			    {
+				    Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $true -muted $true;
+				    $iterations--;
+			    }
+			    $SectionIterationsLeft--
 		    }
-        $SectionIterationsLeft--
         }
 	}
+	$JSONObject.Tasks | where { $_.State -like 'Assert' } | foreach{
+        $TheComparisonName=$_.compare;
+		if ($TheDbDetails.rdbms -eq 'sqlserver')
+		# fix for a problem with getting JSON from SQL Server
+		{ $TheExpression = $_.expression -ireplace ';\s*?\z', ' for json path' }
+		else
+		{ $TheExpression = $_.expression };
+		# If there is no data to match with
+		if ([string]::IsNullOrEmpty($TheComparisonName))
+		{ Write output "No comparison specified for expression" }
+		else
+		{
+			$TheCompareFile = "$($TheDbDetails.TestsLocations.split(',')[0])\$TheComparisonName.json"
+			if (!(Test-path $TheCompareFile -PathType Leaf))
+			{
+				#if no test file yet exists, create it so in future it works. Replace this with the verified one
+				(Execute-SQLStatement $TheDbDetails $TheExpression `
+									 -simpleText $false)-ireplace '\AWarning:.+', '' >$TheCompareFile
+				$CorrectResult = get-content -raw $TheCompareFile  | ConvertFrom-Json
+				if ([string]::IsNullOrwhitespace($CorrectResult.Error))
+				{
+					Write output "comparison missing so written out for $TheComparisonName "
+				}
+				Else
+				{
+					Write output "Error in comparison - details in  $TheComparisonName "
+				}
+			} # we hadn't a comparison file
+			else
+			{
+				#we have a correct file we can test against.
+				$CorrectResult = get-content -raw $TheCompareFile | ConvertFrom-Json
+				$TestResult = Convertfrom-JSON (
+                    (Execute-SQLStatement $TheDbDetails $TheExpression -simpleText $false) -ireplace '\AWarning:.+', ''
+                    )
+				Compare-Resultsets -TestResult $TestResult -CorrectResult $CorrectResult|foreach{write-output "For $TheComparisonName, $($_)."}
+			} # we had the correct file
+		} # We had a comparison specified
+	} # We had some assertions
 	$JSONObject.Tasks | where { $_.State -like 'Teardown' } | foreach{
 		Execute-SQLStatement $TheDbDetails $_.Expression -simpleText $true -timing $false -muted $true
 	}
 }
-
-
 
 <#
 	.SYNOPSIS
@@ -6200,6 +6250,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.643'
+'FlywayTeamwork framework  loaded. V1.2.645'
 
 
