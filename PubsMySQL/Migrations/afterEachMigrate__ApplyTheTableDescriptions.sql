@@ -1,4 +1,5 @@
 -- now put the table comments into a temporary table called TableCommentsWanted
+DROP TABLE IF EXISTS TableCommentsWanted;
 CREATE TEMPORARY TABLE  TableCommentsWanted(Tablename VARCHAR(128), TheDescription VARCHAR(1024));
 INSERT INTO TableCommentsWanted (Tablename, TheDescription)-- used to store all the table comments
 VALUES -- all the tables either in place or planned in future work
@@ -19,6 +20,7 @@ VALUES -- all the tables either in place or planned in future work
   ('dbo.titleauthor', 'this is a table that relates authors to publications, and gives their order of listing and royalty')
   ;
 -- now put the table comments into a temporary table called ColumnCommentsWanted
+DROP TABLE IF EXISTS ColumnCommentsWanted;
 CREATE TEMPORARY TABLE ColumnCommentsWanted (TableObjectName varchar (128), `Type` varchar(20),
                                         `Column` VARCHAR(128), `comment` VARCHAR(1024) );
 INSERT INTO ColumnCommentsWanted (`TableObjectName`, `TYPE`, `Column`, `comment`)
@@ -134,6 +136,7 @@ VALUES
 
 -- now we determine what comments need to be inseted or updated into a table
 -- and insert the results into a temporary table WhatTableToDocument
+DROP TABLE IF EXISTS WhatTableToDocument;
 CREATE TEMPORARY TABLE  WhatTableToDocument (
 	TheOrder int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	Tablename varchar(80), 
@@ -173,6 +176,8 @@ CALL CommentEachTable; -- execute the temporary procedure
 /*now we need to insert or update all the comments. This is a bit more
 complicated because we need to recereate the colunm exactly as it existed
 with the addition of the comment */
+
+DROP TABLE IF EXISTS WhatColumnToDocument;
 Create temporary table WhatColumnToDocument (
 	TheOrder int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	Theexpression VARCHAR(255)); 
