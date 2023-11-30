@@ -17,6 +17,9 @@
 	
 	.PARAMETER HTMLFooter
 		The footer of the HTML document
+
+	.PARAMETER MaxLength
+		The maximum amount of the file that we bother with
 	
 	.EXAMPLE
 		Convert-SQLtoHTML -SQLScript 'Select * from The_Table'
@@ -43,17 +46,22 @@ function Convert-SQLtoHTML
 		[Parameter(HelpMessage = 'The footer of the HTML document')]
 		$HTMLFooter = '</pre>
 </body>
-</html>'
+</html>',
+        [Parameter(HelpMessage = 'The maximum length of the HTML document to be converted')]
+		[int]$MaxLength = 182400
 	)
 	
 	Begin
 	{
 	$HTMLHeader = $HTMLHeader -ireplace '<TheTitle>', 'My Splendid Title'
-    if ($SQLScript.Length -gt 182400) {
-        Write-warning "truncating huge migration of $($SQLScript.Length) bytes long"
-        $SQLScript=$SQLScript.Substring(0,182400)
-        }	
-	}
+    if ($MaxLength -ne $null)
+        {
+        if ($SQLScript.Length -gt $MaxLength) {
+            Write-verbose "truncating huge migration of $($SQLScript.Length) bytes long to $MaxLength"
+            $SQLScript=$SQLScript.Substring(0,$MaxLength)
+            }	
+	    }
+    }
 	Process
 	{
 		$HTMLString = $SQLScript

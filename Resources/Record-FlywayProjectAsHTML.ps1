@@ -13,7 +13,7 @@ detects any change, such as insertion, amendment or deletion, and maintains a lo
 	.EXAMPLE
 		    Record-FlywayProjectAsHTML -LocationOfTheProject 'c:\Users\Phil\Github\Pubs'
             Record-FlywayProjectAsHTML -TheDbDetails $DbDetails
-
+            Record-FlywayProjectAsHTML
 	
 #>
 function Record-FlywayProjectAsHTML
@@ -77,7 +77,7 @@ function Record-FlywayProjectAsHTML
 		{ $null = New-Item -ItemType Directory -Path "$Site\backup" -Force }
 		# Delete the existing content 
 		Del "$Site\backup\*.*" -Force -Recurse #delete the current backup
-		Move-Item -Path "$Site\*.*" -Destination "$Site\backup"
+		Move-Item -Path "$Site\*.*" -Destination "$Site\backup" #move any existing content
 		if (Test-Path "$Site\backup\Hashes.json" -PathType leaf) # get the existing hash table
 		{
 			#Read in the hash table and record the date 
@@ -87,8 +87,9 @@ function Record-FlywayProjectAsHTML
 		else #no hash table exists
 		{
 			$LastRecord = get-date
-			$OldHashes = @()
+			$OldHashes = @() # there is no previous record
 		}
+        #now we run a pipeline that does each migration file in turn
 		# Split the location list into locations
 		$TheDBDetails.locations -split ',' |
 		foreach{ $_ -replace 'filesystem:', '' } | # for each location
@@ -111,33 +112,39 @@ function Record-FlywayProjectAsHTML
 			} #get them all sorted in increasing version
 		} | Sort-Object -Property @{ Expression = "version"; Descending = $false } |
 		foreach {
-			# file object
+			# for each migration file in turn we do this (with the file object)
 <# do we actually need to create this #>
 			$what = $_
 			$State = 'unchanged'; # until proven otherwise
-			$ThisHash = $what.Hash; $ThisName = $what.Name
+			$ThisHash = $what.Hash; $ThisName = $what.Name;
+            $ThatHash=@{} #the hash of the backup file
             write-verbose "processing '$Thisname'"
 			$Hashes += @{ 'Hash' = $ThisHash; 'Name' = $ThisName } #add to the hashes
-			$ThatHash = $oldHashes | where { $_.Hash -eq $ThisHash } # has it got a match for the hash?
 			$GotToCreateIt = $True; #assume that we have to create it
-			if ($ThatHash -ne $nUll) #it got a match
-	        {
-		        if (Test-Path "$Site\backup\$($ThatHash.Name).HTML" -PathType leaf)
-                    {
-                    $GotToCreateIt = $False; #assume that it is available
-		            Copy-Item "$Site\backup\$($ThatHash.Name).HTML" -Destination "$site\$ThisName.HTML"
-                    }
-		        $ThatName = $ThatHash.Name
-                if ($ThatName -ne $ThisName) {$State='renamed'}
-	        }			
-            else
-			{
-				$GotToCreateIt = $True;
-				$FileExists = $oldHashes | where { $_.Name -eq $ThisName }
-				if ($FileExists -ne $Null) { $State = 'changed Content' }
-				else
-				{ $State = 'new file' }
-			}
+            if ($OldHashes.count -eq 0) {$State = 'unknown'}
+                else
+                {
+                $ThatHash = $oldHashes | where { $_.Hash -eq $ThisHash }
+                 # has it got a match for the hash?
+			    if ($ThatHash -ne $nUll) #it got a match
+	            {
+		            if (Test-Path "$Site\backup\$($ThatHash.Name).HTML" -PathType leaf)
+                        {
+                        $GotToCreateIt = $False; #assume that it is available
+		                Copy-Item "$Site\backup\$($ThatHash.Name).HTML" -Destination "$site\$ThisName.HTML"
+                        }
+		            $ThatName = $ThatHash.Name
+                    if ($ThatName -ne $ThisName) {$State='renamed'}
+	            }			
+                else
+			    { #it wasn't the same hash so something has changed
+				    $GotToCreateIt = $True;
+				    $FileExists = $oldHashes | where { $_.Name -eq $ThisName }
+				    if ($FileExists -ne $Null) { $State = 'changed Content' }
+				    else
+				    { $State = 'new file' }
+			    }
+            }
 			$TypeDescription = switch ($what.Type)
 			{
 				'U' { 'Undo' }
@@ -149,7 +156,7 @@ function Record-FlywayProjectAsHTML
 			$FileDescription = "$TypeDescription file for $($what.Description) - version $($what.Version)"
 			if ($GotToCreateIt)
 			{
-				write-warning "Ooh; we must generate $FileDescription. Here goes"
+				write-verbose "generating $FileDescription."
 				if (($oldHashes | where { $_.Name -eq $ThisName }) -ne $nUll)
 				{
 					$State = 'Content changed';
@@ -157,8 +164,15 @@ function Record-FlywayProjectAsHTML
 				}
 				else
 				{
-					$State = "New file since $LastRecord"
-					$Log += "New file $ThisName created since $LastRecord";
+					if ($State -ne 'unknown')
+                        {
+                        $State = "New file since $LastRecord"
+					    $Log += "New file $ThisName created since $LastRecord";
+                        }
+                    else
+                        {
+                        $Log += "first time $ThisName seen"
+                        }
 				}
 				#we first find out what type it is 
 				$OutputFile = "$Site\$ThisName.HTML"
@@ -170,7 +184,7 @@ function Record-FlywayProjectAsHTML
     <body>
         <p>$($_.Version) version - $($TheDBDetails.Branch) branch of $($TheDBDetails.Project) at $LastRecord</p>
         <pre>"
-				Convert-SQLtoHTML  (Get-Content -Raw $What.Path) $HTMLHeader  > $OutputFile
+				Convert-SQLtoHTML  (Get-Content -Raw $What.Path) -TheTitle $FileDescription  -HTMLHeader $HTMLHeader  > $OutputFile
 			}
 			Else # it has already been done and hasn't changed
 			{
@@ -186,15 +200,15 @@ function Record-FlywayProjectAsHTML
 					$Log += "$Thatname has been changed to $Thisname"
 					Copy-Item "$Site\backup\$ThatName.HTML" -Destination "$site\$ThisName.HTML"
 				};
+            }
 				
-				$Catalogue += @"
+			$Catalogue += @"
     <tr>
 		    <td>$TypeDescription</td>
 		    <td><a href="file:///$OutputFile">$($What.Name)</a></td>
             <td>$State</td>
 	    </tr>
 "@
-			}
 		}
 		#Now we can write out the catalogue
 		$Catalogue += @"
