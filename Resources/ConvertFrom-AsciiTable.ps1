@@ -39,9 +39,13 @@ then be turned into a JSON file or any other format you want #>
 			else
 			{
 				#read the line into a hashtable
+                $column=1;
 				$data = ($_.trim('|')).split('|') | foreach{ $_.trim().Replace('&#124;', '|') };
 				$Datarow = @{ } #Save every element
-				1 .. $keys.count | foreach { $DataRow.Add($Keys[$_ - 1], $data[$_ - 1]) };
+				1 .. $keys.count | foreach {
+                $TheKey='Column '+ $column++;
+                if ($Keys[$_ - 1] -ne $null){ $TheKey= $Keys[$_ - 1]}
+                $DataRow.Add($TheKey, $data[$_ - 1]) };
 				$Result += [psCustomObject]$Datarow
 			}
 		}
