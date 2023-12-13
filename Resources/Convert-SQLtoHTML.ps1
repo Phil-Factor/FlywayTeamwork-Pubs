@@ -116,7 +116,7 @@ function Convert-SQLtoHTML
 }
 
 #---Sanity checks 
-if ((Convert-SQLtoHTML -SQLScript 'Select * from The_Table' -SavedTokenStream 'MyTokens') -ne @'
+if ((Convert-SQLtoHTML -SQLScript 'Select * from The_Table') -ne @'
 <!DOCTYPE html>
 <html>
 <head>
