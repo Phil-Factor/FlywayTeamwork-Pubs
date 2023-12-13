@@ -1,29 +1,38 @@
 ﻿<#
 	.SYNOPSIS
-		This creates a SQL script into an HTML document (string) suitably colourised just like the IDE 
+		This creates a SQL script into an HTML document (string) suitably colourised just like the IDE
 	
 	.DESCRIPTION
-		This routine is designed to convert a sQL script into HTML that can be viewed in a browser or browser-based IDE. At the moment, the colours are based on SSMS, but it is easy to tweak it for the colourisation scheme that developers are used to. 
+		This routine is designed to convert a sQL script into HTML that can be viewed in a browser or browser-based IDE. At the moment, the colours are based on SSMS, but it is easy to tweak it for the colourisation scheme that developers are used to.
 		The HTML header and footer can be specified
-	
-	.DEPENDENCY
+		
+		.DEPENDENCY
 		uses the SQL Tokenizer Tokenize_SQLString
-
-    .PARAMETER SQLScript
+	
+	.PARAMETER SQLScript
 		A description of the SQLScript parameter.
+	
+	.PARAMETER TheTitle
+		The Title the HTML  document
 	
 	.PARAMETER HTMLHeader
 		The header of the HTML  document
 	
 	.PARAMETER HTMLFooter
 		The footer of the HTML document
-
+	
 	.PARAMETER MaxLength
 		The maximum amount of the file that we bother with
 	
+	.PARAMETER SavedTokenStream
+		If not null, the file to save your token stream to 
+	
 	.EXAMPLE
-		Convert-SQLtoHTML -SQLScript 'Select * from The_Table'
-        Start-Process -FilePath "C:\Users\andre\Documents\colorised.html"
+		Convert-SQLtoHTML -SQLScript 'Select * from The_Table' -SavedTokenStream 'MyTokens'
+		Start-Process -FilePath "C:\Users\andre\Documents\colorised.html"
+	
+	.NOTES
+		Additional information about the function.
 #>
 function Convert-SQLtoHTML
 {
@@ -33,9 +42,9 @@ function Convert-SQLtoHTML
 		[Parameter(Mandatory = $true,
 				   ValueFromPipeline = $true)]
 		[string]$SQLScript,
-        [Parameter(HelpMessage = 'The Title the HTML  document')]
+		[Parameter(HelpMessage = 'The Title the HTML  document')]
 		[string]$TheTitle = 'The SQL Code',
-        [Parameter(HelpMessage = 'The header of the HTML  document')]
+		[Parameter(HelpMessage = 'The header of the HTML  document')]
 		[string]$HTMLHeader = '<!DOCTYPE html>
 <html>
 <head>
@@ -47,25 +56,29 @@ function Convert-SQLtoHTML
 		$HTMLFooter = '</pre>
 </body>
 </html>',
-        [Parameter(HelpMessage = 'The maximum length of the HTML document to be converted')]
-		[int]$MaxLength = 182400
+		[Parameter(HelpMessage = 'The maximum length of the HTML document to be converted')]
+		[int]$MaxLength = 182400,
+		[Parameter(HelpMessage = 'If not null, the file to save your token stream to ')]
+		[string]$SavedTokenStream =$null
 	)
 	
 	Begin
 	{
-	$HTMLHeader = $HTMLHeader -ireplace '<TheTitle>', 'My Splendid Title'
-    if ($MaxLength -ne $null)
-        {
-        if ($SQLScript.Length -gt $MaxLength) {
-            Write-verbose "truncating huge migration of $($SQLScript.Length) bytes long to $MaxLength"
-            $SQLScript=$SQLScript.Substring(0,$MaxLength)
-            }	
-	    }
-    }
+		$HTMLHeader = $HTMLHeader -ireplace '<TheTitle>', $TheTitle
+		if ($MaxLength -ne $null)
+		{
+			if ($SQLScript.Length -gt $MaxLength)
+			{
+				Write-verbose "truncating huge migration of $($SQLScript.Length) bytes long to $MaxLength"
+				$SQLScript = $SQLScript.Substring(0, $MaxLength)
+			}
+		}
+	}
 	Process
 	{
 		$HTMLString = $SQLScript
 		$tokens = Tokenize_SQLString $HTMLString
+		if ($SavedTokenStream -ne $null) { $tokens | ConvertTo-json -Compress >$SavedTokenStream}
 		[array]::Reverse($tokens)
 		$tokens | foreach -Begin { $NextColor = ''; }{
 			$TokenName = $_.name;
@@ -77,11 +90,11 @@ function Convert-SQLtoHTML
 				'EndOfLineComment' { 'darkgreen' }
 				'String'{ 'red' }
 				'number'{ 'black' }
-				'custom' {'Magenta'}
-				'standard' {'Black'}
-                'expression'{ ' Grey'}
-                'Query'{ 'Blue'}
-                'reference'{ 'black' }
+				'custom' { 'Magenta' }
+				'standard' { 'Black' }
+				'expression'{ ' Grey' }
+				'Query'{ 'Blue' }
+				'reference'{ 'black' }
 				'Identifier' { 'black' }
 				'Operator' { 'black' }
 				'Punctuation' { 'Gray' }
@@ -98,7 +111,7 @@ function Convert-SQLtoHTML
 				$nextcolor = $CurrentColor;
 			}
 			$previousToken = $_.Value;
-		} -End { "$HTMLHeader<font color=`"$nextcolor`">$HTMLString$HTMLfooter"}
-				
+		} -End { "$HTMLHeader<font color=`"$nextcolor`">$HTMLString$HTMLfooter" }
+		
 	}
 }
