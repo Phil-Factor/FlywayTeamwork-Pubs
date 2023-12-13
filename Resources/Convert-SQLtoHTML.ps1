@@ -10,10 +10,10 @@
 		uses the SQL Tokenizer Tokenize_SQLString
 	
 	.PARAMETER SQLScript
-		A description of the SQLScript parameter.
+		The SQL Script as a string that you wish to colourize as HTML.
 	
 	.PARAMETER TheTitle
-		The Title the HTML  document
+		The Title of the HTML  document
 	
 	.PARAMETER HTMLHeader
 		The header of the HTML  document
@@ -25,14 +25,13 @@
 		The maximum amount of the file that we bother with
 	
 	.PARAMETER SavedTokenStream
-		If not null, the file to save your token stream to 
+		If not null, the file to save your token stream to.
 	
 	.EXAMPLE
-		Convert-SQLtoHTML -SQLScript 'Select * from The_Table' -SavedTokenStream 'MyTokens'
-		Start-Process -FilePath "C:\Users\andre\Documents\colorised.html"
+		Convert-SQLtoHTML -SQLScript 'Select * from The_Table' -SavedTokenStream 'MyTokens' > "<myPathTo>colorised.html"
+		Start-Process -FilePath "<myPathTo>colorised.html"
 	
-	.NOTES
-		Additional information about the function.
+
 #>
 function Convert-SQLtoHTML
 {
@@ -77,7 +76,7 @@ function Convert-SQLtoHTML
 	Process
 	{
 		$HTMLString = $SQLScript
-		$tokens = Tokenize_SQLString $HTMLString
+		$tokens = Tokenize_SQLString $SQLScript
 		if ($SavedTokenStream -ne $null) { $tokens | ConvertTo-json -Compress >$SavedTokenStream}
 		[array]::Reverse($tokens)
 		$tokens | foreach -Begin { $NextColor = ''; }{
@@ -115,3 +114,16 @@ function Convert-SQLtoHTML
 		
 	}
 }
+
+#---Sanity checks 
+if ((Convert-SQLtoHTML -SQLScript 'Select * from The_Table' -SavedTokenStream 'MyTokens') -ne @'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The SQL Code</title>
+</head>
+<body>
+    <pre><font color="Blue">Select</font><font color="black"> *</font><font color="Blue"> from</font><font color="black"> The_Table</font></pre>
+</body>
+</html>
+'@) {Write-warning "Something isn't right with Convert-SQLtoHTML"}
