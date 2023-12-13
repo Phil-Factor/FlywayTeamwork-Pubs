@@ -7,7 +7,7 @@
 		The HTML header and footer can be specified
 		
 		.DEPENDENCY
-		uses the SQL Tokenizer Tokenize_SQLString
+		uses the SQL Tokenizer Tokenize-SQLString
 	
 	.PARAMETER SQLScript
 		The SQL Script as a string that you wish to colourize as HTML.
@@ -76,7 +76,7 @@ function Convert-SQLtoHTML
 	Process
 	{
 		$HTMLString = $SQLScript
-		$tokens = Tokenize_SQLString $SQLScript
+		$tokens = (Tokenize-SQLString $SQLScript);
 		if ($SavedTokenStream -ne $null) { $tokens | ConvertTo-json -Compress >$SavedTokenStream}
 		[array]::Reverse($tokens)
 		$tokens | foreach -Begin { $NextColor = ''; }{

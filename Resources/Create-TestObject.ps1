@@ -50,7 +50,7 @@ how many times)(?<Quantity>\d{1,10})\s{0,10}(?#
 ignore this)(?<TimesOrSecs>TIMES|SECS)?\s{0,5}(?#
 do we do it random order?)(?<RandomOrSerial>randomly|serially)?
 '@
-	Tokenize_SQLString $Content | where {
+	Tokenize-SQLString $Content | where {
 		$_.value -eq $Terminator -or $_.name -eq 'BlockComment'
 	} | foreach -begin { $State = 'Act'; $StartIndex = 0 } {
 		if ($_.value -eq $Terminator)

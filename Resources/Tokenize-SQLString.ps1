@@ -15,12 +15,12 @@
 		A description of the ReservedWords parameter.
 	
 	.EXAMPLE
-		PS C:\> Tokenize_SQLString -SQLString 'Value1'
-	Tokenize_SQLString -SQLString$SecondSample
+		PS C:\> Tokenize-SQLString -SQLString 'Value1'
+	Tokenize-SQLString -SQLString$SecondSample
 	.NOTES
 		Additional information about the function.
 #>
-function Tokenize_SQLString
+function Tokenize-SQLString
 {
 	[CmdletBinding()]
 	param
@@ -237,6 +237,8 @@ Blue--Query        4
         }
 }
 
+
+
 #-----sanity checks
 $Correct="CREATE VIEW [dbo].[titleview] /* this is a test view */ AS --with comments select 'Report' , title , au_ord , au_lname , price , ytd_sales , pub_id from authors , titles , titleauthor where authors.au_id = titleauthor.au_id AND titles.title_id = titleauthor.title_id ;"
 $values = @'
@@ -247,11 +249,12 @@ from authors, titles, titleauthor
 where authors.au_id = titleauthor.au_id
    AND titles.title_id = titleauthor.title_id
 ;
-'@ | Tokenize_SQLString | Select -ExpandProperty Value
+'@ | Tokenize-SQLString | Select -ExpandProperty Value
 $resultingString=($values -join ' ')
 if ($resultingString -ne $correct)
 { write-warning "ooh. that first test to check the values in the output stream wasn't right"}
 
+Set-alias -Name 'Tokenize_SQLString' -Value 'Tokenize-SQLString'
 
 $result=@'
 /* we no longer access NotMyServer.NotMyDatabase.NotMySchema.NotMyTable */
@@ -268,7 +271,7 @@ Select * from MySchema."MyTable"
 --of course we don't access NotMyDatabase..[NotMyTable]
 
 '@ |
-Tokenize_SQLString | 
+Tokenize-SQLString | 
      where {$_.type -like '*Part Dotted Reference'}|
         Select Value, line, Type
 $ReferenceObject=@'
@@ -292,7 +295,7 @@ $TestValues=[ordered]@{}
 $Correct=@'
 [{"Name":"Query","Value":"CREATE"},{"Name":"Query","Value":"TABLE"},{"Name":"reference","Value":"tricky"},{"Name":"Punctuation","Value":"("},{"Name":"Expression","Value":"\"NULL\""},{"Name":"Query","Value":"[INT]"},{"Name":"Query","Value":"DEFAULT"},{"Name":"Expression","Value":"NULL"},{"Name":"Punctuation","Value":")"},{"Name":"Query","Value":"INSERT"},{"Name":"Standard","Value":"INTO"},{"Name":"reference","Value":"tricky"},{"Name":"Punctuation","Value":"("},{"Name":"Expression","Value":"\"NULL\""},{"Name":"Punctuation","Value":")"},{"Name":"Query","Value":"VALUES"},{"Name":"Punctuation","Value":"("},{"Name":"Expression","Value":"NULL"},{"Name":"Punctuation","Value":")"},{"Name":"Query","Value":"SELECT"},{"Name":"Expression","Value":"NULL"},{"Name":"Query","Value":"AS"},{"Name":"Query","Value":"\"VALUE\""},{"Name":"Punctuation","Value":","},{"Name":"Expression","Value":"[null]"},{"Name":"Punctuation","Value":","},{"Name":"Expression","Value":"\"null\""},{"Name":"Punctuation","Value":","},{"Name":"String","Value":"\u0027NULL\u0027"},{"Name":"Query","Value":"as"},{"Name":"reference","Value":"\"String\""},{"Name":"Query","Value":"FROM"},{"Name":"reference","Value":"tricky"},{"Name":"Punctuation","Value":";"}]
 '@|convertfrom-json 
-$TestValues= Tokenize_SQLString @'
+$TestValues= Tokenize-SQLString @'
  CREATE TABLE tricky ("NULL" [INT] DEFAULT NULL)
  INSERT INTO tricky ("NULL") VALUES (NULL)
  SELECT NULL AS "VALUE",[null],"null",'NULL'as "String" FROM tricky;
@@ -321,7 +324,7 @@ SELECT fname
 	ON person.LegacyIdentifier='em-'+employee.emp_id
 	WHERE pub_name LIKE '%'+@company+'%'
 )
-'@ |Tokenize_SQLString |Where {$_.Type -eq 'LocalIdentifier'}|select  -ExpandProperty value|sort -Unique
+'@ |Tokenize-SQLString |Where {$_.Type -eq 'LocalIdentifier'}|select  -ExpandProperty value|sort -Unique
 if ($result -ne '@company')  { write-warning "ooh. that fourth test checking for '@' variables wasn't right"}
 
 
@@ -349,7 +352,7 @@ AS (SELECT title_id, AVG (qty) AS avg_qty FROM dbo.sales GROUP BY title_id)
         ON ta2.title_id = t.title_id
       JOIN avg_sales s
         ON t.title_id = s.title_id;
-'@  |Tokenize_SQLString  |Where {$_.Type -eq 'LocalIdentifier'}|select  -ExpandProperty value|sort -Unique
+'@  |Tokenize-SQLString  |Where {$_.Type -eq 'LocalIdentifier'}|select  -ExpandProperty value|sort -Unique
 if ($result[0] -ne 'avg_sales' -or $result[1] -ne 'top_authors' )
       { write-warning "ooh. that fifth test about the WITH wasn't right"}
 

@@ -5752,7 +5752,7 @@ do we do it random order?)(?<RandomOrSerial>randomly|serially)?
     $RegexForGettingComparisonFilename=[regex]@'
 Compare with\s{1,80}?(?<ComparisonFile>[\w\s]{1,80})
 '@
-	Tokenize_SQLString $Content | where {
+	Tokenize-SQLString $Content | where {
 		$_.value -eq $Terminator -or $_.name -eq 'BlockComment'
 	} | foreach -begin { $State = 'Act'; $StartIndex = -1 } {
 		if ($_.value -eq $Terminator)
@@ -5987,7 +5987,7 @@ function Run-EachSQLExpression
 	    }
     }
 	$Tasks = @()
-	Tokenize_SQLString $Content | where {
+	Tokenize-SQLString $Content | where {
 		$_.value -in $Terminators
 	} | foreach -begin { $Sections = @(); $StartIndex = 0 } {
 		if ($_.value -eq 'GO') {$TerminatorLength=2} else {$TerminatorLength=0}
