@@ -1492,7 +1492,7 @@ $GetCurrentVersion = {
 	Param ($param1) # $GetCurrentVersion parameter is a hashtable 
 	$problems = @();
 	$doit = $true;
-	@('server', 'rdbms', 'database') | foreach{
+	@('rdbms','flywaytable') | foreach{
 		if ($param1.$_ -in @($null, ''))
 		{
 			$Problems += "no value for '$($_)'";
@@ -2879,6 +2879,9 @@ $SaveDatabaseModelIfNecessary = {
 	#check that you have the  entries that we need in the parameter table.
 	$Essentials = @('server', 'database', 'RDBMS', 'flywayTable')
     if ($param1.RDBMS -ne 'sqlite'){$Essentials +='schemas'}
+    if ($param1.RDBMS -eq 'Oracle') 
+        {$Essentials= @('RDBMS', 'flywayTable')}
+	
 	$WeHaveToCalculateADestination = $false; #assume default report locations
 	if ($MyOutputReport -eq $null -or $MyCurrentReport -eq $null -or $MyModelPath -eq $null)
 	{
@@ -6250,6 +6253,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.645'
+'FlywayTeamwork framework  loaded. V1.2.646'
 
 

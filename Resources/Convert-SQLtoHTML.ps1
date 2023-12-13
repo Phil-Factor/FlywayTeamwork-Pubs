@@ -115,7 +115,7 @@ function Convert-SQLtoHTML
 	}
 }
 
-#---Sanity checks 
+<#---Sanity checks 
 if ((Convert-SQLtoHTML -SQLScript 'Select * from The_Table') -ne @'
 <!DOCTYPE html>
 <html>
@@ -127,3 +127,4 @@ if ((Convert-SQLtoHTML -SQLScript 'Select * from The_Table') -ne @'
 </body>
 </html>
 '@) {Write-warning "Something isn't right with Convert-SQLtoHTML"}
+#>
