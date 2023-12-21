@@ -1,5 +1,5 @@
 /* Arrange */
-drop view if exists dbo.Book_Purchases_By_Date;
+DROP VIEW IF EXISTS dbo.Book_Purchases_By_Date;
 drop view if exists dbo.TitlesTopicsAuthorsAndEditions;
 drop view if exists dbo.SalesByMonthAndYear;
 drop function if exists dbo.PublishersEmployees;
