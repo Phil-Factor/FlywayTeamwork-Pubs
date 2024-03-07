@@ -7,6 +7,9 @@ To turn the toggle on, use flyway.placeholders.Turnit=on otherwise
 flyway.placeholders.Turnit=on
 in the commandline, this will look like …
 flyway info '-placeholders.Toggle=Yes' '-placeholders.Turnit=on' 
+You will, of course, need to add the DCL code that adds or removes
+membership of the users roles (e.g. HR, Accounts) to the role that
+allows access
 
 */
 
