@@ -1,4 +1,4 @@
-﻿param ($ListOfSources= @()) #these are extra configuration files, usually decripted en-route and  read in as parameters.
+﻿param ($ListOfSources= @()) #these are extra configuration files, usually decrypted en-route and  read in as parameters.
 <# Principles:
 one 'resource' directory with all the scripting tools we need for the project
 each branch needs its own place for reports, source and scripts
@@ -13,6 +13,7 @@ if (test-path 'env:FP__ParameterConfigItem__')
     if ("$env:FP__ParameterConfigItem__" -notin $ListOfSources)
        {$ListOfSources+="$env:FP__ParameterConfigItem__"}
     }
+
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
@@ -128,6 +129,8 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 	{
 		$RDBMS = 'sqlserver';
 		$server = 'LocalHost';
+        $Database=$env:FP__flyway_database__
+        
 	}
 }
 

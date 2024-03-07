@@ -24,6 +24,9 @@
 		Get-ODBCSourceMetadata -ODBCConnection $connpsql
 	
 	.NOTES
+
+        this will give the name of the user-Type if you've defined them 
+        which can be a problem. 
 		
 #>
 
