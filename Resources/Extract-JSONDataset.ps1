@@ -7,25 +7,24 @@
 	
 	.EXAMPLE
 
-$Parameters= @{
-	'SourceDSN'=$env:FP__SourceDSN__;
-	'Database'=$Env:FP__flyway_database__;
-	'Schemas'=$Env:FP__schemas__;
-	'ReportDirectory'=$env:FP__ReportDirectory__;
-	'User'=$env:FLYWAY_USER;
-	'Password'=$env:FLYWAY_PASSWORD;
-}
-Extract-JSONDataset @Parameters
+		$Parameters= @{
+			'SourceDSN'=$env:FP__SourceDSN__;
+			'Database'=$Env:FP__flyway_database__;
+			'Schemas'=$Env:FP__schemas__;
+			'ReportDirectory'=$env:FP__ReportDirectory__;
+			'User'=$env:FLYWAY_USER;
+			'Password'=$env:FLYWAY_PASSWORD;
+		}
+		Extract-JSONDataset @Parameters
 
-$Parameters= @{
-	'SourceDSN'='PubsDSN';
-	'Database'='Adventureworks2016';
-	'Schemas'='*';
-	'ReportDirectory'='J:\JSONDataExperiments\AdventureWorks';;
-	'User'='PhilFactor';
-	'Password'='ismellofpoo4U';
-}
-Extract-JSONDataset @Parameters	
+		$Parameters= @{
+			'TargetDSN'='MyDSN';
+			'Database'='MyDatabase';
+			'ReportDirectory'='MyLocation';
+			'User'='MyUserName';
+			'Password'='MyUnguessablePassword';
+		}
+		Extract-JSONDataset @Parameters	
 	.NOTES
 		Additional information about the function.
 #>
@@ -39,11 +38,22 @@ function Extract-JSONDataSet
 		[Parameter(Mandatory = $true)]
 		[String]$Database,
 		[Parameter(Mandatory = $true)]
-		[String]$Schemas='*',
-		[String]$ReportDirectory=$PWD,
+		[String]$Schemas = '*',
+		# or a list of schemas as in Flyway
+
+		[String]$ReportDirectory = $PWD,
+		#where you want the report to go
+
 		[String]$User,
+		#the user for the connection
+
 		[String]$Password,
-		[string]$Secretsfile =$null
+		#The password for the connection
+
+		[string]$Secretsfile = $null,
+		#if you use a flyway secrets file.
+
+		[string]$TablesToExtract = '*' #single wildcard string schema and table
 	)
 	
 	# Firstly, determine the connection
@@ -66,19 +76,20 @@ function Extract-JSONDataSet
 	$WhereToStoreIt = $ReportDirectory;
 	If (-Not (Test-path "$Wheretostoreit" -Pathtype Container))
 	{ $null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
-    #if we have our secrets in a flyway config file 
-    if (!([string]::IsNullOrEmpty($SecretsFile)))
-        {
-        $OurSecrets = get-content "$env:USERPROFILE\$SecretsFile" | where {
-	    ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '')
-        } |
-        foreach{ $_ -replace '\\', '\\' -replace '\Aflyway\.', '' } |
-        ConvertFrom-StringData
-        }
-     else
-        {$OurSecrets = @{'Password'=$Password;'User'=$User}
-        }
- 	# we need to define what is a legal SQL identifier. Otherwise we need to delimit it 
+	#if we have our secrets in a flyway config file 
+	if (!([string]::IsNullOrEmpty($SecretsFile)))
+	{
+		$OurSecrets = get-content "$env:USERPROFILE\$SecretsFile" | where {
+			($_ -notlike '#*') -and ("$($_)".Trim() -notlike '')
+		} |
+		foreach{ $_ -replace '\\', '\\' -replace '\Aflyway\.', '' } |
+		ConvertFrom-StringData
+	}
+	else
+	{
+		$OurSecrets = @{ 'Password' = $Password; 'User' = $User }
+	}
+	# we need to define what is a legal SQL identifier. Otherwise we need to delimit it 
 	$LegalSQLNameRegex = '^(\A[\p{N}\p{L}_][\p{L}\p{N}@$#_]{0,127})$'
 	
 	#start by creating the ODBC Connection
@@ -91,15 +102,15 @@ function Extract-JSONDataSet
 		"database=$Database;"
 	}
 	else { '' }; #take the database from the DSN
-    Write-verbose "connection via $SourceDSN to $TheDatabase"
+	Write-verbose "connection via $SourceDSN to $TheDatabase"
 	$conn.ConnectionString = "DSN=$SourceDSN; $TheDatabase pwd=$($OurSecrets.Password); UID=$($OurSecrets.User)";
 	#Crunch time. 
 	$conn.open(); #open the connection 
 	# we check that the DSN supports what we need to do 
 	$MetadataCollections = $Conn.GetSchema('MetaDataCollections')
-    $ActualDatabase=($Conn.GetSchema('Tables')|select -first 1).'TABLE_CAT' 
-    if ($ActualDatabase -ne $database)
-        {Write-Error "we connected to $ActualDatabase, not  $database"}
+	$ActualDatabase = ($Conn.GetSchema('Tables') | select -first 1).'TABLE_CAT'
+	if ($ActualDatabase -ne $database)
+	{ Write-Error "we connected to $ActualDatabase, not  $database" }
 <# we check that the collections that we need are there. Trigger an error if not #>
 	$MetadataCollections.CollectionName | foreach -Begin {
 		$CanDoDatatypes = $False; $CanDoTables = $False; $CanDoColumns = $False; $CanDoReservedWords = $False
@@ -200,26 +211,27 @@ $WhereClause  AND TABLE_TYPE = 'BASE TABLE';
 	$DependencyData = New-Object system.Data.DataSet;
 	(New-Object system.Data.odbc.odbcDataAdapter($DependencyCommand)).fill($DependencyData) | out-null;
 	$TheListOfDependencies = $DependencyData.Tables[0] | Select @{ n = "Table"; e = { $_.item(0) } }, @{ n = "Referrer"; e = { $_.item(1) } }
-    $TheOrderOfDependency=@() # our manifest table
+	$TheOrderOfDependency = @() # our manifest table
     <# Now create the manifest table #>
-    $TheRemainingTables=$TheListOfDependencies|select Table -unique # Get the list of tables
-    $TableCount=$TheRemainingTables.count # Get the number so we know when they are all listed
-    $DependencyLevel=1 #start at 1 - meaning they make no foreign references
-    while ($TheOrderOfDependency.count -lt $TableCount -and $DependencyLevel -lt 30) {
-        $TheRemainingTables=$TheRemainingTables|where {$_.Table -notin $TheOrderOfDependency.Table} 
-        #select tables that are not making references to surviving objects 
-        $TheRemainingForegnReferences=$TheListOfDependencies |
-           where {$_.Table -notin $TheOrderOfDependency.Table}  |
-           Select Referrer -unique|where {!([string]::IsNullOrEmpty($_.Referrer))}
-        $TheOrderOfDependency+=$TheRemainingTables| where {$_.Table -notin $TheRemainingForegnReferences.Referrer}|
-            Select Table, @{ n = "Sequence"; e = { $DependencyLevel } }
-        $DependencyLevel++
-        }
+	$TheRemainingTables = $TheListOfDependencies | select Table -unique # Get the list of tables
+	$TableCount = $TheRemainingTables.count # Get the number so we know when they are all listed
+	$DependencyLevel = 1 #start at 1 - meaning they make no foreign references
+	while ($TheOrderOfDependency.count -lt $TableCount -and $DependencyLevel -lt 30)
+	{
+		$TheRemainingTables = $TheRemainingTables | where { $_.Table -notin $TheOrderOfDependency.Table }
+		#select tables that are not making references to surviving objects 
+		$TheRemainingForegnReferences = $TheListOfDependencies |
+		where { $_.Table -notin $TheOrderOfDependency.Table } |
+		Select Referrer -unique | where { !([string]::IsNullOrEmpty($_.Referrer)) }
+		$TheOrderOfDependency += $TheRemainingTables | where { $_.Table -notin $TheRemainingForegnReferences.Referrer } |
+		Select Table, @{ n = "Sequence"; e = { $DependencyLevel } }
+		$DependencyLevel++
+	}
 	
 	$TheOrderOfDependency | ConvertTo-Json -Depth 5 > "$($ReportDirectory)\Manifest.JSON"
 <# Now, with this list of the datatables, we can iterate through the tables, and write out the 
 schema. We use the information about #>
-	$TheOrderOfDependency | foreach {
+	$TheOrderOfDependency | where { $_.table -like $TablesToExtract } | foreach {
 		$ThisTable = $_.'Table' -split '\.';
 		$ThisSchemaname = $ThisTable[0] #make sure the identifier is legal
 		if ($ThisSchemaname -notmatch $LegalSQLNameRegex -or ($ThisSchemaname -in $ReservedWords))
@@ -253,7 +265,7 @@ schema. We use the information about #>
 			$Nullable = $_.'NULLABLE';
 			$Description = $_.'REMARKS';
 			$ColumnNo = $_.'ORDINAL_POSITION';
-			if ($RDBMS -in  'SQL Server','SQLserver')
+			if ($RDBMS -in 'SQL Server', 'SQLserver')
 			{
 				$identity = $_.'SS_IS_IDENTITY'; #SQL Server only
 				$Computed = $_.'SS_IS_COMPUTED'; #SQL Server only
@@ -280,7 +292,7 @@ schema. We use the information about #>
 			}
 			$Typename = $_.TYPE_Name;
 			$Datatype = $Datatypes | where Typename -like $Typename | Select -ExpandProperty datatype | Select -first 1
-            if ( [string]::IsNullOrEmpty($Datatype)){ $Datatype=$typename}  
+			if ([string]::IsNullOrEmpty($Datatype)) { $Datatype = $typename }
 			$JsonType = "$(
 				switch ($Datatype) # Missing geography and hierarchyid
 				{
@@ -293,11 +305,11 @@ schema. We use the information about #>
 					{ 'number' }
 					{ $PSItem -eq 'System.Boolean' }
 					{ 'boolean' } #true or false
-                    { $PSItem -eq 'Time' }
+					{ $PSItem -eq 'Time' }
 					{ 'System.String' } #true or false
-                    { $PSItem -eq 'hierarchyid' }
+					{ $PSItem -eq 'hierarchyid' }
 					{ 'System.String' }
-                    { $PSItem -eq 'geography' }
+					{ $PSItem -eq 'geography' }
 					{ 'System.String' }
 					Default { 'System.String'; Write-Warning "Unknown datatype '$PSitem' ($Datatype - $Typename) in $ThisTable" }
 				})$(if ($Nullable -eq 1) { ',null' })" -split ',';
@@ -379,9 +391,11 @@ Conditional Validation: JSON Schema supports conditional validation using keywor
 					$Columname = $_.ColumnName;
 					switch ($_.SQLType)
 					{
-						'varbinary'{ " cast ($Columname as Varbinary(max)) as `"$Columname`"" }
-						'varbinary(max)'{ " cast ($Columname as Varbinary(max)) as `"$Columname`"" }
-                        'time'  { " cast ($Columname as nvarchar(10)) as `"$Columname`"" }
+						'geography'{ " cast ($Columname as NVARCHAR(MAX)) as `"$Columname`"" }
+						'geometry'{ " cast ($Columname as NVARCHAR(MAX))  as `"$Columname`"" }
+						'Hierarchyid'{ " cast ($Columname as NVARCHAR(MAX)) as `"$Columname`"" }
+						#'varbinary'{ " cast ($Columname as NVARCHAR(MAX)) as `"$Columname`"" }
+						'time'  { " cast ($Columname as nvarchar(10)) as `"$Columname`"" }
 						default { $Columname }
 					}
 				}) -join ', ') + " From $DelimitedTableName"
@@ -394,9 +408,9 @@ Conditional Validation: JSON Schema supports conditional validation using keywor
 		$TableObject = $ds.Tables[0] | select $ds.Tables[0].Columns.ColumnName
 		if (!($TableObject -is [system.array])) { $TableObject = @($TableObject) }
 		if ($PSVersionTable.PSVersion.Major -gt 6)
-		{ $TableData = $TableObject | ConvertTo-Json -AsArray -Depth 5 }
+		{ $TableData = $TableObject | ConvertTo-Json -Compress -AsArray -Depth 5 }
 		else
-		{ $TableData = $TableObject | ConvertTo-Json -Depth 5 };
+		{ $TableData = $TableObject | ConvertTo-Json -Compress -Depth 5 };
 		if ([string]::IsNullOrWhiteSpace($TableData)) { $TableData = '[]' }
 		$TableData> "$($ReportDirectory)\$($_.FileName).JSON"
 		#now verify what we've done
@@ -412,3 +426,4 @@ Conditional Validation: JSON Schema supports conditional validation using keywor
 		
 	};
 }
+
