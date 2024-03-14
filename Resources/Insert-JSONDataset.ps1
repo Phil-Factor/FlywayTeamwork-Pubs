@@ -16,6 +16,13 @@
 cls
 Insert-JSONDataset @Parameters
 
+	$Parameters= @{
+    'TargetDSN'='PostgreSQL';
+	'Database'='pubsdev';
+	'ReportDirectory'='J:\JSONDataExperiments\PGPubsDev';
+    'SecretsFile'='\Pubs_PostgreSQL_Develop_MyServer.conf'
+}
+Insert-JSONDataset @Parameters
 
 type 'J:\JSONDataExperiments\AdventureWorks\manifest.json'| convertfrom-json
 	
@@ -37,13 +44,13 @@ function Insert-JSONDataSet
 		[String]$Password,
 		[string]$Secretsfile = $null
 	)
-
-	$DSN = Get-OdbcDsn $TargetDSN -ErrorAction SilentlyContinue
+	$DSN = Get-OdbcDsn  $TargetDSN -ErrorAction SilentlyContinue
 if ($DSN -eq $Null) { Throw "Sorry but we need a valid DSN installed, not '$TargetDSN'" }
 # find out the server and database
 $DefaultDatabase = $DSN.Attribute.Database
 $DefaultServer = $DSN.Attribute.Server
 if ($DefaultServer -eq $Null) { $DefaultServer = $DSN.Attribute.Servername }
+if ($DefaultServer -eq $Null) { $DefaultServer = $DSN.Attribute.Description }
 <# Now what RDBMS is being requested? Examine the driver name (Might need alteration)
    if the driver name is different or if you use a different RDBMS #>
 $RDBMS = 'SQL Server','SQLServer', 'Sqlite', 'DocumentDB', 'MongoDB', 'MariaDB', 'PostgreSQL' | foreach{
@@ -91,7 +98,7 @@ else
 	$conn = New-Object System.Data.Odbc.OdbcConnection;
 	#now we create the connection string, using our DSN, the credentials and anything else we need
 	#we have our secrets in a flyway config file 
-	if (!([string]::IsNullOrEmpty("$env:USERPROFILE\$SecretsFile")))
+	if (!([string]::IsNullOrEmpty($SecretsFile)))
 	{
 		$OurSecrets = get-content "$env:USERPROFILE\$SecretsFile" | where {
 			($_ -notlike '#*') -and ("$($_)".Trim() -notlike '')
@@ -107,7 +114,7 @@ else
 
 	#Crunch time. 
     $conn.open(); #open the connection 
-    Write-Verbose "conntected to $($Conn.Datasource) $($Conn.Database)"
+    Write-Verbose "conntected to $($Conn.Datasource) to server '$DefaultServer' database $($Conn.Database)"
     
 
 if (!([string]::IsNullOrEmpty($SQLForPrequel))){
@@ -187,9 +194,13 @@ troublesome datatypes such as the CLRs #>
 					'geometry'{ "Cast($TheName as geometry) AS $TheName" }
 					'geography' { "Cast($TheName as geography) AS $TheName" }
 					'image' { "Cast($TheName as Varbinary(max)) AS $TheName" }
-					'text' { "Cast($TheName as Varchar(max)) AS $TheName" }
+					#'text' { "Cast($TheName as Varchar(max)) AS $TheName" }
+                    'bit' {"Cast($TheName  AS bit) AS $TheName"}
                     'bool' {"Cast($TheName  AS BOOLEAN) AS $TheName"}
-                    'timestamp' {"TO_TIMESTAMP($TheName, 'DD/MM/YYYY HH24:MI:ss') AS $TheName"}
+                    'date'{if ($RDBMS -eq 'PostgreSQL') {"TO_DATE($TheName, 'MM/DD/YYYY HH24:MI:ss') AS $TheName"}
+                            else {$TheName}}
+                    'bytea'{"convert_to($TheName, 'LATIN1') AS $TheName"}
+                    'timestamp' {"TO_TIMESTAMP($TheName, 'MM/DD/YYYY HH24:MI:ss') AS $TheName"}
 					'ntext' { "Cast($TheName as Nvarchar(max)) AS $TheName" }
 					default { $TheName }
 				}
@@ -209,7 +220,7 @@ troublesome datatypes such as the CLRs #>
 			{$prescript = "Set identity_insert $($TheSchema.SQLTableName) on;`n "
 			$PostScript = "Set identity_insert $($TheSchema.SQLTableName) off;`n "
             }
-		if ($IsIdentity -and ($RDBMS -eq 'postgreSQL'))
+		elseif ($IsIdentity -and ($RDBMS -eq 'postgreSQL'))
             {
             $WeaselClause= "`nOVERRIDING SYSTEM VALUE`n"
             }
@@ -267,17 +278,21 @@ troublesome datatypes such as the CLRs #>
             $InsertStatement> "$($ReportDirectory)\$($TheSchema.SQLTableName).SQL"
             $WhatWasExecuted>"$($ReportDirectory)\$($TheSchema.SQLTableName)Batch.SQL"
             $conn.close()	
-            Throw "Oh! What's the use?"} 
+            Throw "Data insert terminated. Comand saved in $($ReportDirectory)\$($TheSchema.SQLTableName)Batch.SQL"} 
             }
         $DBCmd.Dispose()
     }
+    #$Inserts = New-object System.Data.Odbc.OdbcCommand("SELECT count(*) as written from $($TheSchema.SQLTableName)", $conn)
+	#$ReturnedData = New-Object system.Data.DataSet;
+	#(New-Object system.Data.odbc.odbcDataAdapter($Inserts)).fill($ReturnedData) | out-null;
+	#	$written = $ReturnedData.Tables[0] | Select written
     Write-verbose "written out  $TheDataRowcount rows to $($TheSchema.SQLTableName)"
-	}
-
 
 if (!([string]::IsNullOrEmpty($SQLForSequel))){
-   $Sequel= $Conn.CreateCommand(); $Sequel.CommandText=$SQLForSequel; $Sequel.ExecuteReader();}
-
+       $Sequel= $Conn.CreateCommand(); $Sequel.CommandText=$SQLForSequel; $Sequel.ExecuteReader();
+       }
+    }
+   
 $conn.close()	
 }
 
