@@ -102,13 +102,13 @@ function Do-AFlywayCommand
 		[Parameter(Mandatory = $false,
 				   HelpMessage = 'The name of the description of the  flyway action  being done')]
 		[String]$Name = 'current database',
-        [Parameter(Mandatory = $false,
+		[Parameter(Mandatory = $false,
 				   HelpMessage = 'Do we announce the work to be done?')]
-		[String]$quiet = $False	)
+		[String]$quiet = $False)
 	
 	$ExtraParameters = { $parameters }.Invoke() # get any extra parameters
-    if ('outputype=json' -in $ExtraParameters){$Quiet=$true};
-	if (-not $quiet) {write-verbose "now doing flyway command $Parameters with $Name"}
+	if ('outputype=json' -in $ExtraParameters) { $Quiet = $true };
+	if (-not $quiet) { write-verbose "now doing flyway command $Parameters with $Name" }
 	if (!([string]::IsNullOrEmpty($Secrets))) # if you've specified an extra .conf file 
 	{
 		if (-not (Test-Path $Secrets))

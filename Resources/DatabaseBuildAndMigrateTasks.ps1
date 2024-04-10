@@ -6253,6 +6253,6 @@ USE [$(DatabaseName)];
 }
 
 
-'FlywayTeamwork framework  loaded. V1.2.646'
+'FlywayTeamwork framework  loaded. V1.2.652'
 
 

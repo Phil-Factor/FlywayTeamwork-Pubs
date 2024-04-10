@@ -70,6 +70,8 @@ function Redo-EveryFlywayMigrationSingly
 		cd $ProjectLocation #make the correct directory the project directory
 		#Make the directory your current working directory
 		#define where your Flyway config secrets should be 
+        if (!(test-path $SecretsPath -PathType Leaf)) 
+            {$SecretsPath="$env:USERPROFILe\$SecretsPath"}
 		Flyway ($SecretsPath | get-conf) info #check that you've got a connection
 		$ExecutedWell = $?
 		if ($ExecutedWell)
@@ -115,7 +117,7 @@ function Redo-EveryFlywayMigrationSingly
 				Flyway ($SecretsPath | get-conf) migrate "-target=$($_.version)" | Where { $_ -notlike '1 row updated*' } | foreach{
 					if ($_ -like '*(SQL State: S0001 - Error Code: 0)*') # SQL Server print statement 
 					{ Write-Verbose "$($_ -ireplace 'Warning: DB: (?<BodyOfMessage>.+?)\(SQL State: S0001 - Error Code: [50]0{0,5}\)', '${BodyOfMessage}')" }
-					elseif ($_ -like 'WARNING*') # Some other Flyway warning
+					elseif (($_ -like 'WARNING*') -or ($_ -imatch '\A[*\-\s]{0,10}?error')) # Some other Flyway warning
 					{ write-warning ("$($_ -ireplace 'Warning: (?<BodyOfMessage>.*)', '${BodyOfMessage}')") }
 					elseif ($_ -match '(?m:^)\||(?m:^)\+-') # result
 					{ write-output $_ }
