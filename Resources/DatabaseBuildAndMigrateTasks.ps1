@@ -30,7 +30,9 @@ this task checks to see if a Source folder already exists for this version of th
 to do comparisons and check that a version has not drifted. It saves the Source folder as a subfolder for the supplied version, so it needs **$GetCurrentVersion** to have been run beforehand in the chain of tasks.
 
 **$CreateBuildScriptIfNecessary**: *(PostgreSQL, MySQL, MariaDB,SQL Server, SQLite)*
-produces a build script from the database, using SQL Compare. It saves the build script in the Scripts folder, as a subfolder for the supplied version, so it needs $GetCurrentVersion to have been run beforehand in the chain of tasks.
+produces a build script from the database. The SQL Server versionuses uses SQL Compare. 
+It saves the build script in the Scripts folder, as a subfolder for the supplied version, so it needs $GetCurrentVersion 
+to have been run beforehand in the chain of tasks.
 
 **$ExecuteTableSmellReport** *(SQL Server only)*
 This scriptblock executes SQL that produces a report in XML or JSON from the database that alerts you to tables that may have issues
@@ -42,8 +44,8 @@ for the documentation.
 **$FetchAnyRequiredPasswords** *(all RDBMSs)*
 This checks the hash table to see if there is a username without a password. If so, the task asks for it in a query window and stores it, encrypted, in the user area it. If the user already has the password stored for this username and database, it uses it.
 
-**$ExecuteTableSmellReport** *(SQL Server only)*
-This scriptblock executes SQL that produces a report in XML or JSON from the database
+**$GetAllDatabaseSchemas** *(all RDBMSs)*
+find out what schemas are actually present in the database 
 
 **$GetCurrentVersion** *(PostgreSQL, Oracle, MySQL, MariaDB,SQL Server, SQLite)*
 This contacts the database and determines its current version, and previous version by interrogating the flyway_schema_history data table in the database. If it is an empty database,or there is just no Flyway data, then it returns a version of 0.0.0.
@@ -238,8 +240,8 @@ In order to execute tasks, you just load them up in the order you want. It is li
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number
     #it does this by reading the Flyway schema history table. 
-	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
-    #uses SQL Compare
+	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. Thr
+    #SQL Server version uses SQL Compare
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
     #this uses SQL Compare
 	$ExecuteTableSmellReport, #checks for table-smells
@@ -388,6 +390,8 @@ set 'simpleText' to true
 		}
 		else
 		{
+        $query=$query -replace ';[\s]*\Z', ''
+         #remove trailing ;
 		$FullQuery = "Set nocount on;SET QUOTED_IDENTIFIER ON; Declare @Json nvarchar(max) 
         Select @Json=($query) Select @JSON"
         };
@@ -397,20 +401,22 @@ set 'simpleText' to true
 		else
 		{ $TempInputFile = "$($env:Temp)\TempInput.sql" }
 		#If we can't pass a query string directly, or we have a file ...
+        $ServerAndPort="$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})";
 		if ($FullQuery -like '*"*' -or (!([string]::IsNullOrEmpty($FileBasedQuery))))
 		{
 			#Then we can't pass a query as a string. It must be passed as a file
+                       
 			#Deal with query strings 
 			if ([string]::IsNullOrEmpty($FileBasedQuery)) { $FullQuery>$TempInputFile; }
 			if (-not [string]::IsNullOrEmpty($TheArgs.uid)) #if we need to use credentials
 			{
-				sqlcmd -S $TheArgs.server -d $TheArgs.database `
+				sqlcmd -S $ServerAndPort -d $TheArgs.database `
 					   -i $TempInputFile -U $TheArgs.Uid -P $TheArgs.pwd `
 					   -o "$TempOutputFile" -u -y0 -b $profile
 			}
 			else #we are using integrated security
 			{
-				sqlcmd -S $TheArgs.server -d $TheArgs.database `
+				sqlcmd -S $ServerAndPort -d $TheArgs.database `
 					   -i $TempInputFile -E -o "$TempOutputFile" -u -y0 -b $profile
 			}
             $Succeeded=$?
@@ -422,13 +428,13 @@ set 'simpleText' to true
 		{
 			if (-not [string]::IsNullOrEmpty($TheArgs.uid)) #if we need to use credentials
 			{
-				sqlcmd -S $TheArgs.server -d $TheArgs.database `
+				sqlcmd -S $ServerAndPort -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -U $TheArgs.uid -P $TheArgs.pwd `
 					   -o `"$TempOutputFile`" -u -y0 -b $profile
 			}
 			else #we are using integrated security
 			{
-				sqlcmd -S $TheArgs.server -d $TheArgs.database `
+				sqlcmd -S $ServerAndPort -d $TheArgs.database `
 					   -Q "`"$FullQuery`"" -o `"$TempOutputFile`" -u -y0 -b $profile
 			}
             $Succeeded=$?
@@ -512,7 +518,7 @@ explicitly open a connection. it will take either SQL files or queries.  #>
 		else
 		{ $problems += 'You must have provided a path to MySQL for $MySQLAlias in the ToolLocations.ps1 file in the resources folder' }
 	}
-	@('server', 'database', 'port', 'user', 'pwd') |
+	@('server', 'database', 'port', 'uid', 'pwd') |
 	foreach{ if ($TheArgs.$_ -in @($null, '')) { $problems += "Can't do this: no value for '$($_)'" } }
 	
 	if ($problems.Count -eq 0)
@@ -617,7 +623,7 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 		else
 		{ $problems += 'You must have provided a path to psql in the ToolLocations.ps1 file in the resources folder' }
 	}
-	@('server', 'database', 'port', 'user', 'pwd') |
+	@('server', 'database', 'port', 'uid', 'pwd') |
 	foreach{ if ($TheArgs.$_ -in @($null, '')) { $problems += "Can't do this: no value for '$($_)'" } }
 	
 	if ($problems.Count -eq 0)
@@ -632,9 +638,9 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 		{
 			$Params = @(
 				"--command=\timing $(if ($timing) { 'on' } else { 'off' })",
-				"--dbname=$($TheArgs.database)",
+				"--dbname=$($TheArgs.database.ToLower())",
 				"--host=$($TheArgs.server)",
-				"--username=$($TheArgs.user)",
+				"--username=$($TheArgs.uid)",
 				"--password=$($TheArgs.pwd)",
 				"--port=$($TheArgs.Port -replace '[^\d]', '')",
 				"--file=$TempInputFile",
@@ -679,9 +685,9 @@ $query='SELECT  * FROM dbo.authors WHERE city=''Tacoma'';'
 	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromPsql' += $problems }
 }
 
+
 $GetdataFromOracle = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get JSON results without having to 
 explicitly open a connection. it will take SQL files and queries. 
-$TheArgs=$DBDetails
 
 #>
 	Param ($Theargs,
@@ -708,19 +714,18 @@ $TheArgs=$DBDetails
 	$Theservice = $TheArgs.service
 	$TheUID = $TheArgs.uid
 	$ThePassword = $TheArgs.pwd
-	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
+	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -and [string]::IsNullOrEmpty($TheArgs.service))
 	{
 		$Problems += "Cannot continue because name of either service ('$TheService'
     )  User ('$TheUID'), Password ('$ThePassword') or wallet ('$TheWallet') is not provided";
-	}
-	else
-	{
-		#the alias must be set to the path of your installed version of SQL Cmd
-	    if ($OracleCmdAlias -eq $null -or (!(Test-Path -Path $OracleCmdAlias)) )
+    }
+    $CloudConnection=$True;
+    if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation)) {$CloudConnection=$false;}
+	#the alias must be set to the path of your installed version of SQL Cmd
+	if ($OracleCmdAlias -eq $null -or (!(Test-Path -Path $OracleCmdAlias)) )
 	    {
 		    $problems += "'$OracleCmdAlias' is not a valid path. You must have provided a path to Oracle''s sqlcl.exe as OracleCmdAlias in the ToolLocations.ps1 file in the resources folder"
 	    }
-	}
 	if ($problems.count -eq 0)
 	{
 		$TempSpoolOutputFile = "TempOutput$(Get-Random -Minimum 1 -Maximum 900).json"
@@ -751,9 +756,18 @@ exit
 		{ $query = [System.IO.File]::ReadAllLines($FileBasedQuery) }
 		[System.IO.File]::WriteAllLines("$pwd\$TempQueryFile", $Query)
 		$env:SQLPATH = "$pwd"
+        if ($CloudConnection)
+        {
         cmd.exe /c @"
 `"$OracleCmdAlias`" -noupdates -S -L  -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice  @$pwd/$TempQueryFile 
 "@
+        }
+        else
+        {
+        cmd.exe /c @"
+`"$OracleCmdAlias`" -noupdates -S -L  $TheService  @$pwd/$TempQueryFile 
+"@
+        }
 		#we can't pass a query string directly so we have a file ...
 		If (Test-Path -Path "$pwd/$TempQueryFile")
 		{ Remove-Item "$pwd/$TempQueryFile" }
@@ -778,12 +792,14 @@ exit
 	If (Test-Path -Path "$pwd\login.sql")
         {Remove-Item "$pwd\login.sql"}
 	}
+	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromPsql' += $problems }
 }
+
 
 $ExecutePLSQLScript = {<# a Scriptblock way of accessing oracle via Oracle SQLcl to get a set of
  JSON results without having to explicitly open a connection every time. it will take SQL files and queries 
  and also take an array of queries and filenames for the results. 
- $TheArgs=$DBDetails
+
 #>
 	Param ($Theargs,
 		#this is the same ubiquitous hashtable 
@@ -794,31 +810,28 @@ $ExecutePLSQLScript = {<# a Scriptblock way of accessing oracle via Oracle SQLcl
 		$Multiple = @()
 		
 	) # $ExecutePLSQLScript: (Don't delete this)
-	$problems = @();
-    $FilesToCleanUp = @()
-	#check to see that we have the requisites
 	$TheWallet = $TheArgs.ZippedWalletLocation;
 	$Theservice = $TheArgs.service
 	$TheUID = $TheArgs.uid
 	$ThePassword = $TheArgs.pwd
-	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -or [string]::IsNullOrEmpty($TheArgs.service))
+	if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation) -and [string]::IsNullOrEmpty($TheArgs.service))
 	{
 		$Problems += "Cannot continue because name of either service ('$TheService'
     )  User ('$TheUID'), Password ('$ThePassword') or wallet ('$TheWallet') is not provided";
-	}
-	else
+    }
+    $CloudConnection=$True;
+    if ([string]::IsNullOrEmpty($TheArgs.ZippedWalletLocation)) {$CloudConnection=$false;}
+
+	if ([string]::IsNullOrEmpty($OracleCmdAlias))
 	{
-		if ([string]::IsNullOrEmpty($OracleCmdAlias))
+		$OracleSqlPath = Get-Command 'sql.exe' -ErrorAction Ignore
+		if ($OracleSqlPath -eq $null) #have you set the path
 		{
-			$OracleSqlPath = Get-Command 'sql.exe' -ErrorAction Ignore
-			if ($OracleSqlPath -eq $null) #have you set the path
-			{
-				$problems += " please either provide a path for SqlCl or provide a OracleCmdAlias in the ToolLocations.ps1 file in the resources folder"
-			}
-			else
-			{
-				$OracleCmdAlias = $OracleSqlPath.Source #use the path 
-			}
+			$problems += " please either provide a path for SqlCl or provide a OracleCmdAlias in the ToolLocations.ps1 file in the resources folder"
+		}
+		else
+		{
+			$OracleCmdAlias = $OracleSqlPath.Source #use the path 
 		}
 	}
 	if ($Multiple.count -gt 0)
@@ -876,9 +889,14 @@ set longchunksize 4000
 	if ($problems.count -eq 0)
 	{
 		$env:SQLPATH = "$pwd" #Use any local configuration you need
-        $cmd = @"
+        if ($CloudConnection)
+            {$cmd = @"
 `"$OracleCmdAlias`"  -noupdates -S -L    -cloudconfig $TheWallet   $TheUID/$ThePassword@$Theservice   @$FinalscriptFile
-"@
+"@;}
+        else {$cmd = @"
+`"$OracleCmdAlias`"  -noupdates -S -L   $TheService     @$FinalscriptFile
+"@;}
+
 	    cmd.exe /c $cmd
         
  	}
@@ -888,6 +906,7 @@ set longchunksize 4000
                   Remove-Item "$_"
             }
         }
+	if ($problems.Count -gt 0) { $Theargs.Problems.'GetdataFromPsql' += $problems }
 }
 <# 
 Note: now deprecated!
@@ -975,6 +994,82 @@ $FetchOrSaveDetailsOfParameterSet = {
 <# Sometimes we need to run Flyway, and the easiest approach is to create a hashtable
 of the information Flyway needs. It is different to the one we use for each of these
 scriptblocks  #>
+
+<# This scriptblock gets the current schemas of the database
+$param1=$DBDetails
+ #>
+$GetAllDatabaseSchemas = {
+	Param ($param1) # $GetAllDatabaseSchemas parameter is a hashtable 
+	$problems = @();
+	$doit = $true;
+	@('server', 'rdbms') | foreach{
+		if ($param1.$_ -in @($null, ''))
+		{
+			$Problems += "no value for '$($_)'";
+			$DoIt = $False;
+		}
+	}
+	switch -Regex ($param1.RDBMS)
+	{
+		'sqlserver'   {
+        # SQL Server:
+        # In SQL Server, schemas are organized within a database. You can 
+        # query the INFORMATION_SCHEMA.SCHEMATAs system view to retrieve a list of schemas:
+
+			$ListOfAllSchemas = Execute-SQL $param1 @'
+    SELECT schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_OWNER = 'dbo'
+    FOR JSON PATH
+'@ | Convertfrom-json
+		}
+        'oracle'
+        {
+ 			# Do it the oracle way
+            try
+			{$ListOfAllSchemas = Execute-SQL $param1 @'
+            SELECT Username as schema_name FROM all_users where ORACLE_MAINTAINED ='N';
+'@ | Convertfrom-json}
+            catch
+            {$Problems += "Error. returned '$ListOfAllSchemas'"}
+        }    
+
+
+		'postgresql'
+		{
+        #In PostgreSQL, schemas are used to organize database objects. You can query the 
+        #information_schema.SCHEMATA view to get a list of schemas:
+			$ListOfAllSchemas = Execute-SQL $param1 @'
+            SELECT json_agg(e) 
+            FROM (SELECT schema_name FROM information_schema.schemata 
+               WHERE SCHEMA_NAME NOT IN ('pg_toast','pg_catalog','public','information_schema'))e; 
+'@ | Convertfrom-json
+			}
+		'mysql|mariadb'
+		{
+        # In MySQL, schemas are referred to as databases. You can query the information_schema.SCHEMATA table 
+        # to get a list of databases:
+			$ListOfAllSchemas = Execute-SQL $param1 @'
+             SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('information_schema','mysql','performance_schema','sys');
+'@ | Convertfrom-json
+		
+		}
+		Default { $problems += "$($param1.RDBMS) is not supported yet. " }
+    }
+
+	if ($problems.Count -gt 0)
+	{
+		$Param1.Problems.'$GetAllDatabaseSchemas' += $problems;
+	}
+	else
+	{
+        $param1.AllSchemas=$ListOfAllSchemas.Schema_name -join ','
+        #if no flyway schema list has been declared
+        if ([string]::IsNullOrEmpty($param1.Schemas)) {$param1.Schemas=$param1.AllSchemas}
+		$Param1.feedback.'$GetAllDatabaseSchemas' = "The list of all schemas is $($param1.AllSchemas)"
+	}
+}
+
+
+
 
 $FormatTheBasicFlywayParameters = {
 	Param ($param1) # $FormatTheBasicFlywayParameters (Don't delete this)
@@ -1188,7 +1283,7 @@ $CheckCodeInDatabase = {
         else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if ($MyDatabasePath -like '*\\*'){ } { $Problems += "created an illegal path '$MyDatabasePath'" }
     $Arguments = @{
-		server = $($param1.server) #The server name to connect
+		server = "$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})" #The server name to connect
 		Database = $($param1.database) #The database name to analyze
 		outfile = "$MyDatabasePath\codeAnalysis.xml" <#
         The file name in which to store the analysis xml report#>
@@ -1794,7 +1889,7 @@ $IsDatabaseIdenticalToSource = {
 		$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
 			"/Scripts1:$MyDatabasePath",
-			"/server2:$($param1.server)",
+			"/server2:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
 			"/database2:$($param1.database)",
 			"/Assertidentical",
 			"/force",
@@ -1903,8 +1998,7 @@ $CreateScriptFoldersIfNecessary = {
 					else
 					{ $problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder' }
 				}
-				$CLIArgs = @(
-					"/server1:$($param1.server)",
+				$CLIArgs = @("/server1:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
 					"/database1:$($param1.database)",
 					"/Makescripts:$($MyDatabasePath)", #special command to make a scripts directory
 					"/force",
@@ -1934,11 +2028,11 @@ $CreateScriptFoldersIfNecessary = {
 				
 				if ($problems.Count -eq 0) #if it doesn't already erxist
 				{
-					Sqlcompare @CLIArgs #write an object-level  script folder that represents the vesion of the database
+					$Returnstring=Sqlcompare @CLIArgs #write an object-level  script folder that represents the vesion of the database
 					if (!($?))
 					{
 						#report a problem and send back the args for diagnosis (hint, only for script development)
-						$problems += "SQL Compare responded with error code $LASTEXITCODE "
+						$problems += "when creating script folders, SQL Compare responded with error code $LASTEXITCODE from commandline ... `n $Returnstring `nSQLCompare $($CLIArgs -join '  ')"
 					}
 				}
 			}
@@ -2001,7 +2095,7 @@ $CreateScriptFoldersIfNecessary = {
 				$Params = @(
 					"--dbname=$($param1.database)",
 					"--host=$($param1.server)",
-					"--username=$($param1.user)",
+					"--username=$($param1.uid)",
 					"--file=$MyDatabasePath\FullBuild.sql",
 					"--port=$($param1.Port -replace '[^\d]', '')",
 					'--encoding=UTF8',
@@ -2209,7 +2303,7 @@ $CreateBuildScriptIfNecessary = {
 	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 	$scriptsPath = if ([string]::IsNullOrEmpty($param1.scriptsPath)) { 'scripts' }
 	else { "$($param1.scriptsPath)" }
-	if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
+	if ($param1.DirectoryStucture -in ('classic', $null)) #If the $ReportDirectory has a value
 	    {$MyDatabasePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath";
          $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$scriptsPath";}
 	else {$MyDatabasePath = "$($param1.reportLocation)\$($param1.Version)\$scriptsPath";
@@ -2244,7 +2338,7 @@ $CreateBuildScriptIfNecessary = {
                 }
 				$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 					# can use a hash-table 
-					"/server1:$($param1.server)",
+					"/server1:$($param1.server)$( if ($param1.Port -ne $null) {','+$param1.port} else {''})",
 					"/database1:$($param1.database)",
 					"/empty2",
 					"/force", # 
@@ -2252,7 +2346,6 @@ $CreateBuildScriptIfNecessary = {
 					"/LogLevel:Warning",
 					"/ScriptFile:$MyDatabasePath\V$($param1.Version)__Build.sql"
 				)
-				
 				if ($param1.uid -ne $NULL) #add the arguments for credentials where necessary
 				{
 					$CLIArgs += @(
@@ -2283,7 +2376,7 @@ $CreateBuildScriptIfNecessary = {
 					#report a problem and send back the args for diagnosis (hint, only for script development)
 					$Arguments = '';
 					$Arguments += $CLIArgs | foreach{ $_ }
-					$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments."
+					$Problems += "SQLCompare didn't go well doing a build script. (code $LASTEXITCODE) with paramaters $Arguments."
 				}
 				break;
 			}
@@ -2303,7 +2396,7 @@ $CreateBuildScriptIfNecessary = {
                 $Params=@(
                     "--dbname=$($param1.database)",
                     "--host=$($param1.server)",
-                    "--username=$($param1.user)",
+                    "--username=$($param1.uid)",
                     "--port=$($param1.Port -replace '[^\d]','')",
                     "--file=$MyDatabasePath\V$($param1.Version)__Build.sql",
                     '--encoding=UTF8',
@@ -2316,7 +2409,7 @@ $CreateBuildScriptIfNecessary = {
                 }
 				else # if no errors then simple message, otherwise....
 				{
-					$Problems += "pg_dump Went badly. (code $LASTEXITCODE)"
+					$Problems += "pg_dump Went badly.executing... `n pg_dump (code $LASTEXITCODE) for $($params -join ' ')"
 				}
 				break;
 			}
@@ -2365,6 +2458,32 @@ $CreateBuildScriptIfNecessary = {
                 else
                 {$problems += "SQLite couldn't create the build script for $($param1.Version) $($param1.RDBMS)"}
             }
+            'oracle' #use oracle 
+            {
+            $OurSchemas =$Param1.schemas -join "','"
+            $ExecuteResult=$ExecutePLSQLScript.invoke($Param1, $null, @(
+		@{
+		ResultFile = 'Build.SQL';
+		SQL =@"
+SET LONG 100000
+SET PAGESIZE 0
+SET LINESIZE 100
+SET HEADING OFF
+SET FEEDBACK OFF
+
+SPOOL $MyDatabasePath\V$($param1.Version)__Build.sql
+
+SELECT DBMS_METADATA.GET_DDL(object_type, object_name, owner)
+FROM dba_objects
+WHERE owner in ('$OurSchemas')
+AND object_type IN ('TABLE', 'INDEX', 'SEQUENCE', 'VIEW', 'PROCEDURE', 'FUNCTION', 'PACKAGE', 'PACKAGE BODY');
+
+SPOOL OFF
+"@}))
+       Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
+
+            }
+
             default
                 {
                 $problems += "cannot do a build script for $($param1.Version) $($param1.RDBMS) "
@@ -2389,19 +2508,13 @@ $CreateBuildScriptIfNecessary = {
 $ExecuteTableSmellReport = {
 	Param ($param1) # $ExecuteTableSmellReport - parameter is a hashtable 
 	$problems = @()
+    if ($Param1.RDBMS -notin 'sqlserver', 'MSSQL')
+        {$Problems+="Only SQL Server supported so far."}
 	@('server', 'database', 'version', 'project') | foreach{
 		if ($param1.$_ -eq $null)
-		{ write-error "no value for '$($_)'" }
+		{$Problems+="no value for '$($_)'" }
 	}
-	<#if ($param1.EscapedProject -eq $null) #check that escapedValues are in place
-	{
-		$EscapedValues = $param1.GetEnumerator() |
-		where { $_.Name -in ('server', 'Database', 'Project') } | foreach{
-			@{ "Escaped$($_.Name)" = ($_.Value.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') }
-		}
-		$EscapedValues | foreach{ $param1 += $_ }
-	}#>
-    $EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
+	$EscapedProject=($Param1.Project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.','-'
 	$MyDatabasePath = 
         if  ($param1.directoryStructure -in ('classic',$null)) #If the $ReportDirectory has a value
           {"$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\Reports"} 
@@ -2412,19 +2525,10 @@ $ExecuteTableSmellReport = {
 		# not there, so we create the directory 
 		$null = New-Item -ItemType Directory -Force $MyDatabasePath;
 	}
+
 	$MyOutputReport = "$MyDatabasePath\TableIssues.JSON"
-	#the alias must be set to the path of your installed version of SQL Compare
-	$command=$null;
-    $command = get-command SQLCmd -ErrorAction Ignore 
-	if ($command -eq $null)
-	{  if ($SQLCmdAlias -ne $null)
-        {Set-Alias SQLCmd   $SQLCmdAlias  }
-    else
-        {$problems += 'You must have provided a path to SQLcmd.exe in the ToolLocations.ps1 file in the resources folder'}
-        }
-	#is that alias correct?
-	$query = @'
-SET NOCOUNT ON
+if ($problems.Count -eq 0){
+     $MyJSON= Execute-SQL $param1 @'
 /**
 summary:   >
  This query finds the following table smells
@@ -2614,42 +2718,15 @@ INSERT INTO @TableSmells (object_id, problem)
         SELECT sys.tables.object_id, 'can''t be indexed'
           FROM sys.tables /* see whether the table has a primary key */
           WHERE ObjectProperty(object_id, 'IsIndexable') = 0
-DECLARE @json NVARCHAR(MAX)
-SELECT @json = (SELECT TableName, problem from
+   SELECT TableName, problem from
 	(SELECT DISTINCT  Object_Schema_Name(Object_ID) + '.' + Object_Name(Object_ID) AS TableName,object_id, Count(*) AS smells
 FROM @TableSmells GROUP BY Object_ID)f(TableName,Object_id, Smells)
 INNER JOIN @TableSmells AS problems ON f.object_id=problems.object_id
-ORDER BY smells desc
-FOR JSON AUTO)
-SELECT @Json
-'@
-	
-	if (!([string]::IsNullOrEmpty($param1.uid)) -and ([string]::IsNullOrEmpty($param1.pwd)))
-	{ $problems += 'No password is specified' }
-	If (!(Test-Path -PathType Leaf  $MyOutputReport) -and ($problems.Count -eq 0))
+ORDER BY smells desc FOR JSON AUTO
+'@}
+		If (!(Test-Path -PathType Leaf  $MyOutputReport) -and ($problems.Count -eq 0))
 	{
-		if (!([string]::IsNullOrEmpty($param1.uid)))
-		{
-			$MyJSON = sqlcmd -S "$($param1.server)" -d "$($param1.database)" `
-							 -Q `"$query`" -U $($param1.uid) -P $($param1.pwd) -o $MyOutputReport -u -y0
-			$arguments = "$($param1.server) -d $($param1.database) -U $($param1.uid) -P $($param1.pwd) -o $MyOutputReport"
-		}
-		else
-		{
-			$MyJSON = sqlcmd -S "$($param1.server)" -d "$($param1.database)" -Q `"$query`" -E -o $MyOutputReport -u -y0
-			$arguments = "$($param1.server) -d $($param1.database) -o $MyOutputReport"
-		}
-		if (!($?))
-		{
-			#report a problem and send back the args for diagnosis (hint, only for script development)
-			$Problems += "sqlcmd failed with code $LASTEXITCODE, $Myversions, with parameters $arguments"
-		}
-		$possibleError = Get-Content -Path $MyOutputReport -raw
-		if ($PossibleError -like '*Sqlcmd: Error*')
-		{
-			$Problems += $possibleError;
-			Remove-Item $MyOutputReport;
-		}
+		 $MyJSON>$MyOutputReport
 		
 	}
 	if ($problems.Count -gt 0)
@@ -2886,7 +2963,7 @@ $SaveDatabaseModelIfNecessary = {
 	if ($MyOutputReport -eq $null -or $MyCurrentReport -eq $null -or $MyModelPath -eq $null)
 	{
 		#slightly less required for an ad-hoc model.
-		$Essentials += @('project', 'Reportdirectory');
+		$Essentials += @('project', 'ReportLocation');
 		$WeHaveToCalculateADestination = $true;
 	}
 	
@@ -2898,7 +2975,7 @@ $SaveDatabaseModelIfNecessary = {
 	{# by default, we need to calculate destinations from the param1
 		$escapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 		# if any of the optional parameters aren't given
-		if ($param1.directoryStructure -in ('classic', $null)) #If the $ReportDirectory has a classic or NULL value
+		if ($param1.directoryStructure -in ('classic', $null) -and $param1.Reportdirectory -ne $null) #If the $ReportDirectory has a classic or NULL value
 		{ $where = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)" }
 		else { $where = "$($param1.reportLocation)" }
 		
@@ -4401,7 +4478,7 @@ $ExtractFromSQLServerIfNecessary = { <#
 		"/SourcePassword:$($param1.pwd)",
     <#   For SQL Server Auth scenarios, defines the password to use to access the
          Source database. (short form /sp) #>
-		"/SourceServerName:$($param1.Server)", <#
+		"/SourceServerName:$($param1.Server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})", <#
          Defines the name of the server hosting the source database. (short form
          /ssn) #>
 		"/SourceDatabaseName:$($param1.database)", <#
@@ -4579,7 +4656,7 @@ $CreateUndoScriptIfNecessary = {
         $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		    # can use a hash-table 
             "/Scripts1:$PreviousDatabasePath"
-		    "/server2:$($param1.server)",
+		    "/server2:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
             '/include:identical',#a migration may just be data, no metadata.
 		    "/database2:$($param1.database)",
 		    "/force", # 
@@ -4623,7 +4700,7 @@ $CreateUndoScriptIfNecessary = {
 			#report a problem and send back the args for diagnosis (hint, only for script development)
 			$Arguments = '';
 			$Arguments += $CLIArgs | foreach{ $_ }
-			$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments"
+			$Problems += "SQLCompare Went badly trying to do a script. (code $LASTEXITCODE) with paramaters $Arguments"
 		}
 		if ($problems.count -gt 0)
 		{ $Param1.Problems.'CreateUNDOScriptIfNecessary' += $problems; }
@@ -4671,7 +4748,7 @@ $CreatePossibleMigrationScript = {
     $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		# can use a hash-table 
         "/Scripts2:$CurrentVersionPath\$SourcePath"
-		"/server1:$($param1.server)",
+		"/server1:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
         '/include:identical',#a migration may just be data, no metadata.
 		"/database1:$($param1.database)",
         "/report:$CurrentVersionPath\Drift.xml",
@@ -4717,7 +4794,7 @@ $CreatePossibleMigrationScript = {
 		#report a problem and send back the args for diagnosis (hint, only for script development)
 		$Arguments = '';
 		$Arguments += $CLIArgs | foreach{ $_ }
-		$Problems += "SQLCompare Went badly. (code $LASTEXITCODE) with paramaters $Arguments"
+		$Problems += "SQLCompare hit a problem. (code $LASTEXITCODE) with paramaters $Arguments"
 	}
 	if ($problems.count -gt 0)
 	{ $Param1.Problems.'CreatePossibleMigrationScript' += $problems; }
@@ -5661,6 +5738,7 @@ function Execute-SQLStatement
 	if ($Error.Count -gt $ErrorsSoFar)
 	{ 0 .. ($Error.Count - $ErrorsSoFar-1) | foreach{ Write-warning "$($error[$_])" } }
 }
+
 function Execute-SQLTimedStatement
 {
 	[CmdletBinding()]
@@ -6043,8 +6121,8 @@ function Run-TestsForMigration
 		[string]$Script = '*'
 	)
     $Problems=@()
-    if ([string]::IsNullOrEmpty($DBDetails.version))
-    {Process-FlywayTasks $DBDetails $GetCurrentVersion}
+    if ([string]::IsNullOrEmpty($DatabaseDetails.version))
+    {Process-FlywayTasks $DatabaseDetails $GetCurrentVersion}
     #check the report directory to make sure it exists
 	$OurReportDirectory = "$($DatabaseDetails.reportLocation)\$($DatabaseDetails.version)\reports\tests"
 	if (-not (Test-Path $OurReportDirectory -PathType Container))
@@ -6252,7 +6330,6 @@ USE [$(DatabaseName)];
     @($problems, $Feedback, $WriteLocations)
 }
 
-
-'FlywayTeamwork framework  loaded. V1.2.652'
+'FlywayTeamwork framework  loaded. V1.2.661'
 
 

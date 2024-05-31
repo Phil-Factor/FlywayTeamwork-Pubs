@@ -221,5 +221,8 @@ $DBDetails.'defaultSchema'=$defaultSchema;
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
 
 $env:FLYWAY_PASSWORD=$DBDetails.Pwd
+$env:FLYWAY_URL=$DBDetails.Url
+$env:FLYWAY_USER=$DBDetails.user
 if (![string]::IsNullOrEmpty($env:FLYWAY_CONFIG_FILES))
     {write-warning "Environment variable FLYWAY_CONFIG_FILES is set as '$env:FLYWAY_CONFIG_FILES'."}
+
