@@ -1,4 +1,25 @@
 ﻿$TestingImportPSONObject=$False;
+<#
+	.SYNOPSIS
+		Converts from PSD1 (PSON) to an object
+	
+	.DESCRIPTION
+		Takes a string of object notation and converts
+    it into an object safely. It will not execute random
+    Powershell - only object notation
+	
+	.PARAMETER contents
+	The string containing the PowerShell object notation.
+	
+	.EXAMPLE
+	Import-PSONObject -fileName 'MyFileOfPSON'
+	
+.NOTES
+		returns a hash table by default but you can specify
+        the object type in Powershell object notation.
+
+		
+#>
 function Import-PSONObject
 {
 	[CmdletBinding()]

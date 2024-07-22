@@ -8,7 +8,7 @@
       "rawVersion": "",
       "description": "<< Flyway Schema Creation >>",
       "type": "SCHEMA",
-      "installedOnUTC": "2023-06-08T11:44:39.283390Z",
+      "installedOnUTC": "2023-11-08T15:48:36.995245Z",
       "state": "Success",
       "undoable": "",
       "filepath": "",
@@ -22,13 +22,13 @@
       "rawVersion": "1.1.1",
       "description": "Initial Build",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:44:39.627839Z",
+      "installedOnUTC": "2023-11-08T15:48:37.294937Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.1__Initial_Build.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 1130
+      "executionTime": 1699
     },
     {
       "category": "Versioned",
@@ -36,13 +36,13 @@
       "rawVersion": "1.1.2",
       "description": "Pubs Original Data",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:44:41.041844Z",
+      "installedOnUTC": "2023-11-08T15:48:39.213572Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.2__Pubs_Original_Data.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 587
+      "executionTime": 1004
     },
     {
       "category": "Versioned",
@@ -50,13 +50,13 @@
       "rawVersion": "1.1.3",
       "description": "UseNVarcharetc",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:44:41.804964Z",
+      "installedOnUTC": "2023-11-08T15:48:40.427424Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.3__UseNVarcharetc.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 817
+      "executionTime": 1144
     },
     {
       "category": "Versioned",
@@ -64,13 +64,13 @@
       "rawVersion": "1.1.4",
       "description": "RenameConstraintsAdd tables",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:44:42.722166Z",
+      "installedOnUTC": "2023-11-08T15:48:41.747663Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.4__RenameConstraintsAdd tables.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 419
+      "executionTime": 784
     },
     {
       "category": "Versioned",
@@ -78,13 +78,13 @@
       "rawVersion": "1.1.5",
       "description": "Add New Data",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:44:43.255006Z",
+      "installedOnUTC": "2023-11-08T15:48:42.688203Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.5__Add_New_Data.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 74366
+      "executionTime": 83767
     },
     {
       "category": "Versioned",
@@ -92,13 +92,13 @@
       "rawVersion": "1.1.6",
       "description": "Add Tags Etc",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:00.183259Z",
+      "installedOnUTC": "2023-11-08T15:50:07.897139Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.6__Add_Tags_Etc.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 821
+      "executionTime": 1109
     },
     {
       "category": "Versioned",
@@ -106,13 +106,13 @@
       "rawVersion": "1.1.7",
       "description": "Add Indexes",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:01.180884Z",
+      "installedOnUTC": "2023-11-08T15:50:09.198071Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.7__Add_Indexes.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 264
+      "executionTime": 628
     },
     {
       "category": "Versioned",
@@ -120,13 +120,13 @@
       "rawVersion": "1.1.8",
       "description": "AddEditions",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:01.565989Z",
+      "installedOnUTC": "2023-11-08T15:50:09.927037Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.8__AddEditions.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 344
+      "executionTime": 731
     },
     {
       "category": "Versioned",
@@ -134,13 +134,13 @@
       "rawVersion": "1.1.9",
       "description": "AddconditionalVersion",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:02.046376Z",
+      "installedOnUTC": "2023-11-08T15:50:10.749482Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.9__AddconditionalVersion.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 42
+      "executionTime": 324
     },
     {
       "category": "Versioned",
@@ -148,13 +148,13 @@
       "rawVersion": "1.1.10",
       "description": "AddAddressesPhonesEtc",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:02.166259Z",
+      "installedOnUTC": "2023-11-08T15:50:11.164368Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.10__AddAddressesPhonesEtc.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 1460
+      "executionTime": 1733
     },
     {
       "category": "Versioned",
@@ -162,13 +162,13 @@
       "rawVersion": "1.1.11",
       "description": "AddProcedureWithTest",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:03.902104Z",
+      "installedOnUTC": "2023-11-08T15:50:13.021965Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.11__AddProcedureWithTest.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 164
+      "executionTime": 482
     },
     {
       "category": "Versioned",
@@ -176,13 +176,13 @@
       "rawVersion": "1.1.12",
       "description": "AddTestData",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:46:04.322502Z",
+      "installedOnUTC": "2023-11-08T15:50:13.622778Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.12__AddTestData.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 285032
+      "executionTime": 311215
     },
     {
       "category": "Versioned",
@@ -190,13 +190,13 @@
       "rawVersion": "1.1.13",
       "description": "Accounting",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:50:55.140142Z",
+      "installedOnUTC": "2023-11-08T15:55:28.255600Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.13__Accounting.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 470
+      "executionTime": 847
     },
     {
       "category": "Versioned",
@@ -204,13 +204,13 @@
       "rawVersion": "1.1.14",
       "description": "AccountingData",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:50:55.841251Z",
+      "installedOnUTC": "2023-11-08T15:55:29.575056Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.14__AccountingData.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 71582
+      "executionTime": 81145
     },
     {
       "category": "Versioned",
@@ -218,22 +218,20 @@
       "rawVersion": "1.1.16",
       "description": "AddStoreAndSalesData",
       "type": "SQL",
-      "installedOnUTC": "2023-06-08T11:52:09.031926Z",
+      "installedOnUTC": "2023-11-08T15:56:51.916415Z",
       "state": "Success",
       "undoable": "No",
       "filepath": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\.\\Migrations\\V1.1.16__AddStoreAndSalesData.sql",
       "undoFilepath": "",
       "installedBy": "Phil Factor",
-      "executionTime": 140502
+      "executionTime": 165699
     }
   ],
   "flywayVersion": "9.19.1",
   "database": "pubs",
   "allSchemasEmpty": false,
-  "timestamp": "2023-06-28T14:25:51.579004500",
+  "timestamp": "2024-01-17T15:01:36.692623700",
   "operation": "info",
   "exception": null,
-  "licenseFailed": false,
-  "jsonReport": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\report.json",
-  "htmlReport": "S:\\work\\Github\\FlywayTeamwork\\PubsPG\\Branches\\Develop\\report.html"
+  "licenseFailed": false
 }

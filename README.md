@@ -1,7 +1,18 @@
 # FlywayTeamwork
+
+### Getting Started
+
+The root directory of Flyway holds all the information that is required for every project in a directory called Resources
+
+it also holds a file that tells Flyway Framework  where all the installed utilities are kept that do the heavy lifting, called MyToolLocations.ps1
+
+This currently has entries for SQLCmd,  CodeGuard, SQLCompare,  SQLDataCompare, psql, sqlite, OracleCmd, MySQLDump, MySQL and SQLPackage.  However, you only need the entries for the RDBMS that you’re actually using.
+
+You then just add directories for every project that you need.
+
+Every project folder needs a copy of preliminary, which you execute at the start of every PowerShell session. This gives you the library. The Library is read from the  Resources directory.  Because callbacks and Scripts are executed in the current working folder/directory, you need this discipline of having each project in a separate directory. 
+
 ###  Powershell-based Database Development with Branches using Flyway
-
-
 
 This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses for its examples the old Pubs database, originally a demo database from Sybase. The whole purpose of doing this  is  to demonstrate and explore the features of Flyway. As a result,  it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get over the initial culture-shock.
 

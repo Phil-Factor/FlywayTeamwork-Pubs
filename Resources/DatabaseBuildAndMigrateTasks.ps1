@@ -2019,12 +2019,12 @@ $CreateScriptFoldersIfNecessary = {
 						"/filter:$($param1.filterpath)"
 					)
 				}
-				else
+				<# else
 				{
 					$CLIArgs += @(
 						"/exclude:table:$(( $schemaAndName[1],$schemaAndName[0] -ne $null)[0])",
 						'/exclude:ExtendedProperty') #trivial}
-				}
+				} #>
 				
 				if ($problems.Count -eq 0) #if it doesn't already erxist
 				{
@@ -2078,6 +2078,7 @@ $CreateScriptFoldersIfNecessary = {
 			'postgresql'
 			{
 				$command=$null;
+                $TempLogFile = "$pwd\Log$(Get-Random -Minimum 1 -Maximum 900).txt"
                 #Remove-Item Alias:pg_dump
                 $command = get-command pg_dump -ErrorAction Ignore 
 				if ($command -eq $null)
@@ -2093,7 +2094,7 @@ $CreateScriptFoldersIfNecessary = {
 				if (-not (Test-Path "$MyDatabasePath" -PathType Container))
 				{ $null = New-Item -ItemType directory -Path "$MyDatabasePath" -Force }
 				$Params = @(
-					"--dbname=$($param1.database)",
+					"--dbname=$($param1.database.ToLower())",
 					"--host=$($param1.server)",
 					"--username=$($param1.uid)",
 					"--file=$MyDatabasePath\FullBuild.sql",
@@ -2101,12 +2102,16 @@ $CreateScriptFoldersIfNecessary = {
 					'--encoding=UTF8',
 					'--schema-only'
 				)
-				pg_dump @Params
+				pg_dump @Params 2>$TempLogFile 
 				if (!($?))
 				{
 					#report a problem and send back the args for diagnosis (hint, only for script development)
 					$problems += "pg_dump responded with error code $LASTEXITCODE "
 				}
+                if (Test-path $TempLogFile -Pathtype Leaf)
+                    {$problems += "$(Get-Content $TempLogFile -Raw)"
+                    Remove-Item  $TempLogFile -Force
+                    }
 				#Read in the build script 
 				$FullBuild = [IO.File]::ReadAllText("$MyDatabasePath\FullBuild.sql")
 				#Each statement has a header with useful information. This saves a lot of work, so we parse it
@@ -2392,21 +2397,28 @@ $CreateBuildScriptIfNecessary = {
                     {$problems += 'You must have provided a path to pg_dump.exe in the ToolLocations.ps1 file in the resources folder'
                     }
                 }
+                $TempLogFile = "$pwd\Log$(Get-Random -Minimum 1 -Maximum 900).txt"
                 $env:PGPASSWORD="$($param1.pwd)"
                 $Params=@(
-                    "--dbname=$($param1.database)",
+                    "--dbname=$($param1.database.ToLower())",
                     "--host=$($param1.server)",
                     "--username=$($param1.uid)",
                     "--port=$($param1.Port -replace '[^\d]','')",
                     "--file=$MyDatabasePath\V$($param1.Version)__Build.sql",
                     '--encoding=UTF8',
                     '--schema-only')
-                 pg_dump  @Params 
+                 pg_dump  @Params 2>$TempLogFile
 				if ($?) 
                 { 
                 $Param1.feedback.'CreateBuildScriptIfNecessary'="Written PG build script for $($param1.Project) $($param1.Version) to $MyDatabasePath" 
                 Copy-Item -Path "$MyDatabasePath\V$($param1.Version)__Build.sql" -Destination "$MyCurrentPath\current__Build.sql" -Force
                 }
+                elseif (Test-path $TempLogFile -Pathtype Leaf)
+                    {$problems += (Get-Content $TempLogFile -Raw)
+                    Remove-Item  $TempLogFile -Force
+                    }
+
+                
 				else # if no errors then simple message, otherwise....
 				{
 					$Problems += "pg_dump Went badly.executing... `n pg_dump (code $LASTEXITCODE) for $($params -join ' ')"
@@ -3375,7 +3387,7 @@ SELECT
 		MD5('') AS HASH -- ,
 		-- TABLE_Comment AS COMMENT
 	FROM information_schema.tables
-	WHERE Table_type='base table' 
+	WHERE TABLE_TYPE LIKE '%TABLE%' 
 		AND Table_Schema IN ($ListOfSchemas) 
 		AND TABLE_NAME NOT LIKE '$FlywayTableName' 
 UNION ALL

@@ -64,3 +64,34 @@ function Get-FlywayConfContent
 	$FlywayConfContent
 	
 }
+
+
+$FlywaylinesToParse |
+	where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
+	foreach{ $_ -replace '\\', '\\' } |
+	ConvertFrom-StringData | foreach {
+		if ($FlywayConfContent."$($_.Keys)" -eq $null)
+		{ $FlywayConfContent += $_ }
+	}
+
+@'
+# Settings are simple key-value pairs
+flyway.key=value
+# Single line comment start with a hash
+
+# Long properties can be split over multiple lines by ending each line with a backslash
+flyway.locations=filesystem:my/really/long/path/folder1,\
+    filesystem:my/really/long/path/folder2,\
+    filesystem:my/really/long/path/folder3
+
+# These are some example settings
+flyway.url=jdbc:mydb://mydatabaseurl
+flyway.schemas=schema1,schema2
+flyway.placeholders.keyABC=valueXYZ
+'@  -split "`n"| where {
+ ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '')
+  } | foreach -begin {$Folding=''}{
+  if ($_ -match '\\[\\\s]*')
+  {$folding="$folding$(($_ -ireplace '\\[\\\s]*','').trim())"}
+  else { "$folding$($_.trim())"; $Folding=''}
+  }| foreach{ $_ -replace '\\', '\\' } | ConvertFrom-StringData 
