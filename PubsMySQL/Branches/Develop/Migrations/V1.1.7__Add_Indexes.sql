@@ -33,14 +33,14 @@ END $$
 
 DELIMITER ;
 
-call createindex('dbo','editions','Publicationid_index','publication_id');
-call createindex('dbo','prices','Editionid_index','edition_id');
-call createindex('dbo','discounts','Storid_index','Stor_id');
-call createindex('dbo','TagTitle','Titleid_index','Title_id');
-call createindex('dbo','TagTitle','TagName_index','Tagname_id');    
-call createindex('dbo','employee','Jobid_index','Job_id');    
-call createindex('dbo','employee','pub_id_index','pub_id');  
-call createindex('dbo','publications','pubid_index','pub_id'); 
+call dbo.createindex('dbo','editions','Publicationid_index','publication_id');
+call dbo.createindex('dbo','prices','Editionid_index','edition_id');
+call dbo.createindex('dbo','discounts','Storid_index','Stor_id');
+call dbo.createindex('dbo','TagTitle','Titleid_index','Title_id');
+call dbo.createindex('dbo','TagTitle','TagName_index','Tagname_id');    
+call dbo.createindex('dbo','employee','Jobid_index','Job_id');    
+call dbo.createindex('dbo','employee','pub_id_index','pub_id');  
+call dbo.createindex('dbo','publications','pubid_index','pub_id'); 
 
 DROP PROCEDURE IF EXISTS dbo.CreateIndex;
 

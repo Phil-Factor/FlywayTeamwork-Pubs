@@ -1,0 +1,30 @@
+﻿[
+    {
+        "Version":  "1.1.1",
+        "Revision":  "rev.1"
+    },
+    {
+        "Version":  "1.1.2",
+        "Revision":  "rev.2"
+    },
+    {
+        "Version":  "1.1.3",
+        "Revision":  "rev.3"
+    },
+    {
+        "Version":  "1.1.4",
+        "Revision":  "rev.4"
+    },
+    {
+        "Version":  "1.1.7",
+        "Revision":  "rev.5"
+    },
+    {
+        "Version":  "1.1.8",
+        "Revision":  "rev.6"
+    },
+    {
+        "Version":  "1.1.10",
+        "Revision":  "rev.7"
+    }
+]

@@ -1,5 +1,5 @@
 
-DROP INDEX if exists aunmind on dbo.authors;
+DROP INDEX aunmind on dbo.authors;
 
 ALTER TABLE dbo.authors MODIFY COLUMN au_lname character varying(80) NOT NULL;
 ALTER TABLE dbo.authors MODIFY COLUMN au_fname  character varying(80) NOT NULL;

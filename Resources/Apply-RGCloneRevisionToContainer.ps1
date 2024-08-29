@@ -31,6 +31,7 @@ function Apply-RGCloneRevisionToContainer
 when writing files that are then read by Flyway. #>
    $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
    $Credentials = "$env:USERPROFILE\" + (($CloneProject -split '-' | select -first 4) -join '_') + '.conf'
+   $ContainerName = "$CloneProject-container"
 <# we get the current version number #>
    Write-Verbose "Establishing the current Flyway schema version"
    # get the connection details and credentials and pass them to Flyway

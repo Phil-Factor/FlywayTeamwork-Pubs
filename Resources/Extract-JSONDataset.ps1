@@ -40,23 +40,22 @@ function Extract-JSONDataSet
 		[Parameter(Mandatory = $true)]
 		[String]$Schemas = '*',
 		# or a list of schemas as in Flyway
-
+        [string]$Server = $Null,
 		[String]$ReportDirectory = $PWD,
 		#where you want the report to go
-
-		[String]$User,
+		[String]$User = $null,
 		#the user for the connection
-
-		[String]$Password,
+		[String]$Password = $null,
 		#The password for the connection
-
 		[string]$Secretsfile = $null,
 		#if you use a flyway secrets file.
-
 		[string]$TablesToExtract = '*' #single wildcard string schema and table
 	)
 	
+	
 	# Firstly, determine the connection
+    # $DSN=Get-odbcDSN 'Clone Server'
+
 	$DSN = Get-OdbcDsn $SourceDSN -ErrorAction SilentlyContinue
 	if ($DSN -eq $Null) { Throw "Sorry but we need a valid DSN installed, not '$SourceDSN'" }
 	
@@ -64,6 +63,9 @@ function Extract-JSONDataSet
 	$DefaultDatabase = $DSN.Attribute.Database
 	$DefaultServer = $DSN.Attribute.Server
 	if ($DefaultServer -eq $Null) { $DefaultServer = $DSN.Attribute.Servername }
+    if ($Server -ne $null) 
+      {$DefaultServer=$Server; $ServerDefinition="server=$Server; "} 
+    else {$ServerDefinition=""}
 <# Now what RDBMS is being requested? Examine the driver name (Might need alteration)
    if the driver name is different or if you use a different RDBMS #>
 	$RDBMS = 'SQLserver', 'SQL Server', 'MySQL', 'MariaDB', 'PostgreSQL' | foreach{
@@ -75,7 +77,11 @@ function Extract-JSONDataSet
 	#Make sure we have a valid place to store the dataset
 	$WhereToStoreIt = $ReportDirectory;
 	If (-Not (Test-path "$Wheretostoreit" -Pathtype Container))
-	{ $null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
+	{ try
+        {$null = New-Item -ItemType directory -Path "$WhereToStoreIt" -Force }
+      catch 
+        {Write-error "The file location "$Wheretostoreit" isn't there: $($_.Exception.Message)"}
+    }
 	#if we have our secrets in a flyway config file 
 	if (!([string]::IsNullOrEmpty($SecretsFile)))
 	{
@@ -92,7 +98,6 @@ function Extract-JSONDataSet
 	# we need to define what is a legal SQL identifier. Otherwise we need to delimit it 
 	$LegalSQLNameRegex = '^(\A[\p{N}\p{L}_][\p{L}\p{N}@$#_]{0,127})$'
 	
-	#start by creating the ODBC Connection
 	$conn = New-Object System.Data.Odbc.OdbcConnection;
 	#now we create the connection string, using our DSN, the credentials and anything else we need
 	#we access the sourceDSN to get the metadata.
@@ -102,8 +107,8 @@ function Extract-JSONDataSet
 		"database=$Database;"
 	}
 	else { '' }; #take the database from the DSN
-	Write-verbose "connection via $SourceDSN to $TheDatabase"
-	$conn.ConnectionString = "DSN=$SourceDSN; $TheDatabase pwd=$($OurSecrets.Password); UID=$($OurSecrets.User)";
+	Write-verbose "connection via $SourceDSN to  server=$DefaultServer  $TheDatabase"
+	$conn.ConnectionString = "DSN=$SourceDSN; $ServerDefinition $TheDatabase pwd=$($OurSecrets.Password); UID=$($OurSecrets.User)";
 	#Crunch time. 
 	$conn.open(); #open the connection 
 	# we check that the DSN supports what we need to do 
