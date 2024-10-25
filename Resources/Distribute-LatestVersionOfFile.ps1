@@ -21,10 +21,13 @@
 		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
         Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -Verbose
         Distribute-LatestVersionOfFile @("s:\work\Github","s:\work\FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -Verbose
-	
+        Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -JustListTheLatest $true
+
 	.NOTES
 		Additional information about the function.
 #>
+
+
 function Distribute-LatestVersionOfFile
 {
 	[CmdletBinding()]
@@ -33,7 +36,9 @@ function Distribute-LatestVersionOfFile
 		[Parameter(Mandatory = $true)]
 		[string[]]$BaseDirectories,
 		[Parameter(Mandatory = $true)]
-		[string]$Filename
+		[string]$Filename,
+		[Parameter(Mandatory = $false)]
+		[bool]$JustListTheLatest=$False
 	)
 	
 	$SortedList = @() # the complete list of the locations of the file specified
@@ -45,11 +50,17 @@ function Distribute-LatestVersionOfFile
 	select-object -first 1 #we get one of the collection with the latest date
 	$VersionDate = $canonicalVersion.LastWriteTime #get the date of the file
 	#now update every file of the same name with an earlier date
-	$SortedList |
-	where { $_.LastWriteTime -lt $VersionDate } |
-	foreach{
-		Write-Verbose "Updating $($_.FullName) to the version in $($canonicalVersion.FullName)";
-		Copy-Item -path $canonicalVersion -destination $_ -force
+    if ($JustListTheLatest) {
+        write-output $canonicalVersion.Fullname
+        }
+    else
+        {
+	    $SortedList |
+	    where { $_.LastWriteTime -lt $VersionDate } |
+	    foreach{
+		    Write-Verbose "Updating $($_.FullName) to the version in $($canonicalVersion.FullName)";
+		    Copy-Item -path $canonicalVersion -destination $_ -force
+        }
 	}
 }
 

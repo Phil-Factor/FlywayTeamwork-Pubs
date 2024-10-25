@@ -1,7 +1,9 @@
-﻿param ($ListOfSources= @()) #these are extra configuration files, usually decripted en-route and  read in as parameters.
-<# Principles:
-one 'resource' directory with all the scripting tools we need for the project
-each branch needs its own place for reports, source and scripts
+﻿param ($ListOfExtraSources= @()) 
+#these are extra configuration files, usually decripted en-route and  read in as parameters.
+<#
+ Principles:
+  one 'resource' directory with all the scripting tools we need for the project
+  each branch needs its own place for reports, source and scripts
 Each branch must maintain its own copy of the database to preserve isolation
 Each branch 'working directory' should be the same structure.
 All data is based on the Current working directory.
@@ -10,8 +12,8 @@ Use flyway.conf where possible #>
 #gci env:F* | sort-object name
 if (test-path 'env:FP__ParameterConfigItem__')
     {
-    if ("$env:FP__ParameterConfigItem__" -notin $ListOfSources)
-       {$ListOfSources+="$env:FP__ParameterConfigItem__"}
+    if ("$env:FP__ParameterConfigItem__" -notin $ListOfExtraSources)
+       {$ListOfExtraSources+="$env:FP__ParameterConfigItem__"}
     }
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
@@ -96,10 +98,10 @@ if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
 $Filterpath =$null
 if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 {$Filterpath= dir "$Dir\$ResourcesPath\*.scpf" |select -first 1|foreach{$_.FullName}}
-
-$FlywayConfContent=Get-FlywayConfContent($ListOfSources);
+# Get any configuration in .Conf files
+$FlywayConfContent=Get-FlywayConfContent($ListOfExtraSources);
 # use this information for our own local data
-if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
+if (!([string]::IsNullOrEmpty($FlywayConfContent.'url')))
 {
 	$FlywayURLRegex ='jdbc:(?<RDBMS>[\w]{1,20}):(//(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)|thin:@)((;.*databaseName=|/)(?<database>[\w]{1,20}))?'
 	#jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
@@ -107,7 +109,7 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\/\.]{1,80})';
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing
-	$ConnectionInfo = $FlywayConfContent.'flyway.url' #get the environment variable
+	$ConnectionInfo = $FlywayConfContent.'url' #get the environment variable
 	
 	if ($ConnectionInfo -imatch $FlywayURLRegex) #This copes with having no port.
 	{
@@ -131,7 +133,6 @@ if (!([string]::IsNullOrEmpty($FlywayConfContent.'flyway.url')))
 	}
 }
 
-
 # the SQL files need to have consistent encoding, preferably utf-8 unless you set config 
 
 $DBDetails = @{
@@ -151,7 +152,7 @@ $DBDetails = @{
     'reportDirectory'=$Reportdirectory;
     'reportLocation'=$ReportLocation; # part of path from user area to project artefacts folder location 
 	'Port' = $port
-	'uid' = $FlywayConfContent.'flyway.user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
+	'uid' = $FlywayConfContent.'user'; #The User ID. you only need this if there is no domain authentication or secrets store #>
 	'pwd' = ''; # The password. This gets filled in if you request it
 	'version' = ''; # TheCurrent Version. This gets filled in if you request it
     'previous'=''; # The previous Version. This gets filled in if you request it
@@ -160,8 +161,8 @@ $DBDetails = @{
     'variant'= 'default'
 	'schemas' = 'dbo,classic,people';
 	'project' = $project; #Just the simple name of the project
-	'projectDescription' = $FlywayConfContent.'flyway.placeholders.projectDescription' #A sample project to demonstrate Flyway Teams, using the old Pubs database'
-	'projectFolder' = $FlywayConfContent.'flyway.locations'.Replace('filesystem:',''); #parent the scripts directory
+	'projectDescription' = $FlywayConfContent.placeholders.ProjectDescription #A sample project to demonstrate Flyway Teams, using the old Pubs database'
+	'projectFolder' = switch ( $FlywayConfContent.'locations' ){  $null {'./migrations' } default { $psItem.Replace('filesystem:','') }}; #parent the scripts directory
 	'resources' = "$Dir\$ResourcesPath"
     'testsLocations'= ($testsLocations -join ',') ;
 	'feedback' = @{ }; # Just leave this be. Filled in for your information                                                                                                                                                                                                          
@@ -170,48 +171,30 @@ $DBDetails = @{
 	'writeLocations' = @{ }; # Just leave this be. Filled in for your information
 }
 
-if (!($FlywayConfContent.'flyway.user' -in @("''",'',$null)) -and $FlywayConfContent.'flyway.password' -in @("''",'',$null) ) #if there is a UID then it needs credentials
-    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.'flyway.user' $server $RDBMS)"}
+if (!($FlywayConfContent.user -in @("''",'',$null)) -and $FlywayConfContent.password -in @("''",'',$null) ) #if there is a UID then it needs credentials
+    {$DBDetails.pwd = "$(GetorSetPassword $FlywayConfContent.user $server $RDBMS)"}
     else
-    {$DBDetails.pwd = $FlywayConfContent.'flyway.password'}
-$FlywayConfContent | 
-foreach{
-	$what = $_;
-	$variable = $what.Keys;
-	$Variable = $variable -ireplace '(flyway\.placeholders\.|flyway\.)(?<variable>.*)', '${variable}'
-	$value = $what."$($what.Keys)"
-	$dbDetails."$variable" = $value;
-}
+    {$DBDetails.pwd = $FlywayConfContent.password}
 
-#now add in any values passed as environment variables
-try{
-$EnvVars=@{};
-@(  'env:FP__*',
-    'env:Flyway_*')|
-    Get-ChildItem | 
-        foreach{$envVars."$($_.Key)" = $_.Value}
-$envVars |
- foreach{
-	if ($_.name -imatch '(FP__flyway_(?<Variable>[\w]*)__|FP__(?<Variable>[\w]*)__|FLYWAY_(?<Variable>[\w]*))')
-	{
-		$FlywayName = $matches['Variable'];
-		if ($FlywayName -imatch 'PLACEHOLDERS_') { $FlywayName = $FlywayName -replace 'PLACEHOLDERS_' }
-		if ($FlywayName -imatch '\w*_\w*' -or $FlywayName -cmatch '(?m:^)[A-Z]')
-		{
-			$FlywayName = $FlywayName.ToLower().Split() | foreach -Begin { $ii = $false; $res = '' }{
-				$res += if ($ii) { (Get-Culture).TextInfo.ToTitleCase($_) }
-				else { $_; $ii = $true };
-			} -End { $res }
-		}
-		@{ $FlywayName = $_.Value }
-		
-	}
-} | foreach{ $dbDetails."$($_.Keys)" = $_."$($_.Keys)" }
-}
-catch
-    { 
-    write-warning "$($PSItem.Exception.Message) getting environment variables at line $($_.InvocationInfo.ScriptLineNumber)"
+# We now add all the values we've gotten from the environment variables and 
+# configuration files
+
+#Add in the placeholder key/values if they don't already exist
+if ($FlywayConfContent.placeholders -ne $null)
+    {$FlywayConfContent.placeholders.Keys | foreach{
+    if ([string]::IsNullOrEmpty($DBDetails[$_])) {
+    $DBDetails[$_]=$FlywayConfContent.placeholders[$_]}
+        }
     }
+#Add in the key/values if they don't already exist
+$FlywayConfContent.Keys | where {$_ -ne 'Placeholders'}|foreach{
+    if ([string]::IsNullOrEmpty($DBDetails[$_])) {
+    $DBDetails[$_]=$FlywayConfContent[$_]}
+        }
+@(@('user','uid'),@('password','pwd'))|foreach{
+    if ($dbDetails[$_[0]] -ne $dbDetails[$_[1]]) {$dbDetails[$_[1]]=$dbDetails[$_[0]]}
+}
+    
 $defaultSchema = if ([string]::IsNullOrEmpty($DBDetails.'defaultSchema'))
                      {($DBDetails.schemas -split ','|select -First 1)} 
                      else {"$($DBDetails.'defaultSchema')"}
@@ -219,7 +202,3 @@ $defaultTable = if ([string]::IsNullOrEmpty($DBDetails.'table')) {'flyway_schema
 $DBDetails.'flywayTableName'=$defaultTable;
 $DBDetails.'defaultSchema'=$defaultSchema;
 $DBDetails.'flywayTable'="$($defaultSchema)$(if ($defaultSchema.trim() -in @($null,'')){''}else {'.'})$($defaultTable)"
-
-$env:FLYWAY_PASSWORD=$DBDetails.Pwd
-if (![string]::IsNullOrEmpty($env:FLYWAY_CONFIG_FILES))
-    {write-warning "Environment variable FLYWAY_CONFIG_FILES is set as '$env:FLYWAY_CONFIG_FILES'."}

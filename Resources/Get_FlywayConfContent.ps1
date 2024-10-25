@@ -5,73 +5,118 @@
 	.DESCRIPTION
 		This gathers up all of the Flyway configuration values  frtom file or environment variable in order of precendence. It uses the current working folder to get its values
 	
-	.PARAMETER ListOfSources
+	.PARAMETER ListOfExtraSources
 		A list of extra resources with config information such as config information passed as parameters.
 	
 	.EXAMPLE
-		PS C:\> Get-FlywayConfContent 
+		PS C:\> Get-FlywayConfContent |convertTo-json
+        PS C:\> Get-FlywayConfContent -WeWantConfigInfo $false #just give the environment variables
+
 	
 #>
 function Get-FlywayConfContent
 {
 	param
 	(
-		[array]$ListOfSources = @()
+		[array]$ListOfExtraSources = @(),
+		[boolean]$WeWantConfigInfo = $true
 	)
 	
 	$FlywaylinesToParse = @()
+	$FlywayConfContent = @{ 'Placeholders' = @{ } };
 	
 	if (test-path 'env:FP__ParameterConfigItem__')
+	# make sure an extra config file hasn't been specified
 	{
-		if ("$env:FP__ParameterConfigItem__" -notin $ListOfSources)
-		{ $ListOfSources += "$env:FP__ParameterConfigItem__" }
+		if ("$env:FP__ParameterConfigItem__" -notin $ListOfExtraSources)
+		{ $ListOfExtraSources += "$env:FP__ParameterConfigItem__" }
 	}
-	#We need to add unencrypted file import too 
-	#has the placeholder been set to explain that an encrypted file was imported into Flyway?
-	#Flyway will do placeholder substitutions 
-	if (!([string]::IsNullOrEmpty("$env:FP__dpeci__")))
-	{
-		$secureString = Import-Clixml "$env:FP__dpeci__"
-		$bstrPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-		try
+	#Firstly we get the environment variables as they take precedence
+	# get all the Flyway variable and placeholder values held in the session environment
+	('env:FLYWAY_*', 'env:FP__*') | foreach{ gci $_ } | sort-object name | foreach-object -Process {
+		#take each relevant environment variable and strip out the actual name
+		if ($_.Name -match @'
+(?m:^)(?#
+    Old-style Flyway placeholder user parameter
+    )FLYWAY_PLACEHOLDERS_(?<FlywayParameter>.+)|(?#
+    Old-style Flyway parameter
+    )(FLYWAY_(?<FlywayVariable>.+)|(?#
+    Flyway placeholder var1able passed to callback or script
+    )FP__flyway_(?<FlywayPlaceholder>.+)__|(?#
+    user placeholder var1able passed to callback or script
+    )FP__(?<UserPlaceholder>.+)__)
+'@)
 		{
-			$originalText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstrPtr)
+			# process according to the type of value
+			if ($matches['FlywayVariable'] -ne $null) #Old-style Flyway parameter
+			{ $FlywayConfContent.([regex]::Replace($matches['FlywayVariable'].ToLower(), '_(.)', { param ($matches) $matches.Groups[1].Value.ToUpper() })) = $_.Value }
+			elseif ($matches['FlywayPlaceholder'] -ne $null) # Old-style Flyway Placeholder
+			{ $FlywayConfContent.([regex]::Replace($matches['FlywayPlaceholder'].ToLower(), '_(.)', { param ($matches) $matches.Groups[1].Value.ToUpper() })) = $_.Value }
+			elseif ($matches['FlywayParameter'] -ne $null) # Old-style Flyway placeholder user parameter
+			{ $FlywayConfContent.Placeholders.($matches['FlywayParameter'].ToLower()) = $_.Value }
+			elseif ($matches['UserPlaceholder'] -ne $null) #user placeholder var1able passed to callback or script
+			{ $FlywayConfContent.Placeholders.($matches['userPlaceholder'].ToLower()) = $_.Value }
+			else { Write-Warning "unrecognised Flyway environment variable $($_.Name)" }
 		}
-		finally
+		else
 		{
-			[System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPtr)
-			
+			Write-Warning "mystery Flyway environment variable $($_.Name)"
 		}
-		$FlywaylinesToParse += $originalText -split "`n"
-	}
-	if ($ListOfSources.count -gt 0 -and !([string]::IsNullOrEmpty($ListOfSources)))
-	{
-		$ListOfSources | foreach { $FlywaylinesToParse += Get-content "$_" }
-	}
-	$FlywaylinesToParse += gci env:FLYWAY* | foreach{ "flyway.$($_.Name.ToLower() -replace 'FLYWAY_', '') = $($_.value)" }
-	$FlywaylinesToParse += gci env:FP_* | foreach{ "$($_.Name -replace 'FP__flyway_', '') = $($_.value)" }
-	$FlywaylinesToParse += Get-Content "flyway.conf"
-	$FlywaylinesToParse += Get-content "$env:userProfile\flyway.conf"
-	$FlywayConfContent = @()
-	$FlywaylinesToParse |
-	where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
-	foreach{ $_ -replace '\\', '\\' } |
-	ConvertFrom-StringData | foreach {
-		if ($FlywayConfContent."$($_.Keys)" -eq $null)
-		{ $FlywayConfContent += $_ }
 	}
 	
+	#if we also want to get config information
+	If ($WeWantConfigInfo)
+	{
+		#We need to add unencrypted file import too 
+		#has the placeholder been set to explain that an encrypted file was imported into Flyway?
+		#Flyway will do placeholder substitutions 
+		if (!([string]::IsNullOrEmpty("$env:FP__dpeci__")))
+		{
+			$secureString = Import-Clixml "$env:FP__dpeci__"
+			$bstrPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
+			try
+			{
+				$originalText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstrPtr)
+			}
+			finally
+			{
+				[System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstrPtr)
+				
+			}
+			$FlywaylinesToParse += $originalText -split "`n"
+		}
+		
+		if ($ListOfExtraSources.count -gt 0 -and !([string]::IsNullOrEmpty($ListOfExtraSources)))
+		{
+			$ListOfExtraSources | foreach { $FlywaylinesToParse += Get-content "$_" }
+		}
+		if (test-path "flyway.conf" -PathType Leaf)
+		{
+			$FlywaylinesToParse += Get-Content "flyway.conf"
+		}
+		if (test-path "$env:userProfile\flyway.conf" -PathType Leaf)
+		{
+			$FlywaylinesToParse += Get-content "$env:userProfile\flyway.conf"
+		}
+		$FlywaylinesToParse |
+		where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
+		foreach{ $_ -replace '\\', '\\' } |
+		ConvertFrom-StringData | foreach {
+			$TheValue = "$($_.Values)"
+			if ("$($_.keys)" -like 'flyway.placeholders*')
+			{
+				$Key = "$($_.keys)" -replace ('flyway.placeholders.')
+				if ($FlywayConfContent.Placeholders.$Key -eq $null)
+				{ $FlywayConfContent.Placeholders.$Key = $TheValue }
+			}
+			else
+			{
+				$Key = "$($_.keys)" -replace ('flyway.')
+				if ($FlywayConfContent.$Key -eq $null)
+				{ $FlywayConfContent.$Key = $TheValue }
+			}
+		}
+	}
 	$FlywayConfContent
-	
 }
-
-
-$FlywaylinesToParse |
-	where { ($_ -notlike '#*') -and ("$($_)".Trim() -notlike '') } |
-	foreach{ $_ -replace '\\', '\\' } |
-	ConvertFrom-StringData | foreach {
-		if ($FlywayConfContent."$($_.Keys)" -eq $null)
-		{ $FlywayConfContent += $_ }
-	}
-
 

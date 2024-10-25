@@ -33,7 +33,7 @@
 		how many rows to insert at a time are optimal
 	
 	.PARAMETER Inserting
-		the number of seconds before a timeout.
+		Are we inserting or just deleting the existing data
 	
 	.PARAMETER TablesToAvoid
 		A description of the TablesToAvoid parameter.
@@ -77,7 +77,7 @@ function Insert-JSONDataSet
 		[String]$User = $null,
 		[String]$Password = $null,
 		[string]$Secretsfile = $null,
-		[int]$Chunk = 5000,
+		[int]$Chunk = 500,
 		[int]$QueryTimeout = 120,
 		[bool]$Inserting = $True, #are we inserting after the clean-out of the existing data?,
 		[array]$TablesToAvoid =@()
@@ -140,6 +140,8 @@ EXEC sp_MSforeachtable @command1='ALTER TABLE ? DISABLE TRIGGER ALL';
 			[pscustomObject]@{ 'TableName' = $TheSchema.sqlTableName; 'Level' = $TheSchema.'DependencyLevel'; 'Filename' = $_.FullName }
 		} | Sort-Object -Property Level
 	}
+    if ($Manifest.Count-eq 0) 
+        {Write-Error "No details of tables could be found at $ReportDirectory" } 
 	#start by creating the ODBC Connection
 	$conn = New-Object System.Data.Odbc.OdbcConnection;
 	#now we create the connection string, using our DSN, the credentials and anything else we need
@@ -224,15 +226,27 @@ END `$`$;
 	Write-verbose "Deleted existing data from tables";
 	If ($Inserting)
 	{
+
+    	Write-verbose "Now inserting data into the empty tables";
 		$ExistingTables = $conn.GetSchema('Tables') | where { $_.TABLE_SCHEM -notin ('pg_catalog', 'information_schema', 'performance_schema', 'mysql') } | Select  @{ n = "Table"; e = { "$($_.'TABLE_SCHEM').$($_.'TABLE_NAME')" } }
  <# The Column list. In making up the select list, you may need to do explicit conversions for 
 troublesome datatypes such as the CLRs #>
-		$Manifest | where { $_.Table -in $ExistingTables.Table } | where { "$($_.Schema).$($_.Table)" -notin $TablesToAvoid } | foreach{
-			Write-verbose "Filling table $($_.Table) at level $($_.Sequence)"
+        if ($ExistingTables.count-eq 0 ) {write-error "there are no tables in the destination"}
+		$Manifest | where { $_.Table -in $ExistingTables.Table } | where {
+             "$($_.Schema).$($_.Table)" -notin $TablesToAvoid } | foreach -begin{$ii=0} {
+            $SourceTable=$_.Table;
+			Write-verbose "Filling table $SourceTable at level $($_.Sequence)"
+            $ii++; # count the number we do 
 			$TheSchema = [IO.File]::ReadAllText($_.'Filename') | convertfrom-json
-			$TheData = [IO.File]::ReadAllText(($_.'Filename' -ireplace '_Schema\.JSON', '.JSON')) | convertfrom-json
+            $TheDataFile=$_.'Filename' -ireplace '_Schema\.JSON', '.JSON';
+			$TheData = [IO.File]::ReadAllText($TheDataFile) | convertfrom-json
+            if ($Thedata -isnot [array]) {
+                $Thedata = @($Thedata)
+            }
 			$TheDataRowcount = $TheData.Count
-			#omit any computed columns
+            if ($TheDataRowcount -eq 0) {Write-verbose "there was no data provided for $SourceTable in $TheDataFile "}
+			if ($TheDataRowcount -eq $null) {Write-warning "null count for $SourceTable in $TheDataFile "}
+            #omit any computed columns
 			$TheSelectList = ($TheSchema.items.properties.psobject.Properties.value | where { $_.Computed -eq 0 } | Foreach -Begin { $IsIdentity = $False }{
 					$TheSQLType = $_.sqltype
 					$TheName = $_.ColumnName;
@@ -286,8 +300,10 @@ troublesome datatypes such as the CLRs #>
 			
 			$InsertStatement = "$Prescript";
 			$ii = 1;
-			$InsertStatement += 0..$TheData.Count | Where-Object { $_ % $Chunk -eq 0 } | foreach{
-				$TheChunk = $TheData | Select -first $Chunk -Skip $_;
+			$InsertStatement += 0..$TheDataRowcount | Where-Object { $_ % $Chunk -eq 0 } | foreach{
+				if ($TheDataRowcount -eq 1){$TheChunk = $TheData}
+                else
+                {$TheChunk = $TheData | Select -first $Chunk -Skip $_;}
 				if ($ii -gt 1) { write-verbose "chunk $ii" }
 				$ii++;
 				if ($TheChunk.count -gt 0)
@@ -351,14 +367,16 @@ troublesome datatypes such as the CLRs #>
 			#$ReturnedData = New-Object system.Data.DataSet;
 			#(New-Object system.Data.odbc.odbcDataAdapter($Inserts)).fill($ReturnedData) | out-null;
 			#	$written = $ReturnedData.Tables[0] | Select written
-			Write-verbose "written out  $TheDataRowcount rows to $($TheSchema.SQLTableName)"
+			Write-verbose "written out  $TheDataRowcount of rows to $($TheSchema.SQLTableName)"
 			
 			if (!([string]::IsNullOrEmpty($SQLForSequel)))
 			{
 				$Sequel = $Conn.CreateCommand(); $Sequel.CommandText = $SQLForSequel; $Sequel.ExecuteReader();
 			}
-		}
+		} -end{if ($ii -eq 0) {Write-error "no tables matched in the source and target  databases"}}
 	}
+    else
+    {Write-verbose "Just cleared out the tables ready for insertion"}
 	$conn.close()
 }
 

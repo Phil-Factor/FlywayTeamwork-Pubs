@@ -2301,19 +2301,18 @@ $CreateBuildScriptIfNecessary = {
 	        # End the script.
 	        break
         }
-    @('version', 'server', 'database', 'project') |
+    @('version', 'server', 'database', 'rdbms', 'project') |
 	foreach{ if ($param1.$_ -in @($null, '')) { $Problems += "no value for '$($_)'" } }
 
 	#the database scripts path would be up to you to define, of course
 	$EscapedProject = ($Param1.project.Split([IO.Path]::GetInvalidFileNameChars()) -join '_') -ireplace '\.', '-'
 	$scriptsPath = if ([string]::IsNullOrEmpty($param1.scriptsPath)) { 'scripts' }
 	else { "$($param1.scriptsPath)" }
-	if ($param1.DirectoryStucture -in ('classic', $null)) #If the $ReportDirectory has a value
+	if ($param1.DirectoryStructure -in ('classic', $null)) #If the $ReportDirectory has a value
 	    {$MyDatabasePath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\$($param1.Version)\$scriptsPath";
          $MyCurrentPath = "$($env:USERPROFILE)\$($param1.Reportdirectory)$($escapedProject)\current\$scriptsPath";}
 	else {$MyDatabasePath = "$($param1.reportLocation)\$($param1.Version)\$scriptsPath";
           $MyCurrentPath = "$($param1.reportLocation)\current\$scriptsPath"; } #else the simple version
-	
 	if (-not (Test-Path -PathType Leaf "$MyDatabasePath\V$($param1.Version)__Build.sql"))
 	{
 		if (-not (Test-Path -PathType Container $MyDatabasePath))
@@ -6342,6 +6341,6 @@ USE [$(DatabaseName)];
     @($problems, $Feedback, $WriteLocations)
 }
 
-'FlywayTeamwork framework  loaded. V1.2.661'
+'FlywayTeamwork framework  loaded. V1.2.682'
 
 
