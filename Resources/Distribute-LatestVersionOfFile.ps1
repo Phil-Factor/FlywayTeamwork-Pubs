@@ -6,13 +6,13 @@
 		This is a way of ensuring that the latest version of the file is updated everywhere within the directory structure
 	
 	.PARAMETER BaseDirectories
-		A description of the BaseDirectories parameter.
+		the base directory from which to start looking; the location where the alterations can take place.
 	
 	.PARAMETER Filename
 		The name of the file that you want synchronized across the location
 	
-	.PARAMETER BaseDirectory
-		The base directory of the location where the alterations can take place
+	.PARAMETER JustListTheLatest
+		we just want to see what the latest file is, as a precaution
 	
 	.EXAMPLE
 		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'DatabaseBuildAndMigrateTasks.ps1'
@@ -21,12 +21,10 @@
 		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
         Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -Verbose
         Distribute-LatestVersionOfFile @("s:\work\Github","s:\work\FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -Verbose
+        #Identify the latest version 
         Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -JustListTheLatest $true
 
-	.NOTES
-		Additional information about the function.
 #>
-
 
 function Distribute-LatestVersionOfFile
 {
@@ -64,3 +62,5 @@ function Distribute-LatestVersionOfFile
 	}
 }
 
+
+$env:USERPROFILE\FlywayUser.json

@@ -1,4 +1,6 @@
-﻿<#
+﻿
+
+<#
 	.SYNOPSIS
 		Adds a number of Environment vartiables that are read as parameters by Flyway.
         removes the existing Flyway parameters and placeholders. It also parses the URL
