@@ -61,6 +61,3 @@ function Distribute-LatestVersionOfFile
         }
 	}
 }
-
-
-$env:USERPROFILE\FlywayUser.json

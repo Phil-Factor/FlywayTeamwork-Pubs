@@ -4,8 +4,11 @@
 		Converts a database model to a build script
 	
 	.DESCRIPTION
-		This will parse a model and create from it a build scripts. Obviopusly, this isn't the full script, just a standard SQL98 representation of what is in the model. Because the code of all troutines and views is in the model, this is easier than it sounds, but the effort is in the tables.
-		This is mostly used to test out the model to make sure it is correct. I haven't yet attempted to conform with individual dialects. Nope, this is just an elaborate test harness for the framework
+		This will parse a model and create from it a build scripts. Obviopusly, this isn't the full script, just a standard SQL98 
+        representation of what is in the model. Because the code of all routines and views is in the model, this is easier than it
+        sounds, but the effort is in the tables.
+		This is mostly used to test out the model to make sure it is correct. I haven't yet attempted to conform with individual
+        dialects. Nope, this is just an elaborate test harness for the framework
 	
 	.PARAMETER PathToModel
 		A description of the PathToModel parameter.
@@ -15,14 +18,14 @@
 	
 	.EXAMPLE
 		cls;
-		'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON'|
+		"$env:FlywayWorkPath\Pubs\Versions\1.1\Reports\DatabaseModel.JSON"|
 		Convert-ModelToScript
-		Convert-ModelToScript -PathToModel 'S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON'
+`	cls
+		Convert-ModelToScript -PathToModel "$env:FlywayWorkPath\Pubs\Versions\1.3\Reports\DatabaseModel.JSON"
 		
     .NOTES
 		
 #>
-
 function Convert-ModelToScript
 {
 	[CmdletBinding()]
@@ -35,7 +38,7 @@ function Convert-ModelToScript
 		[string]$RDBMS = 'sqlserver'
 	)
 	
-	#$PathToModel=' S:\work\Github\FlywayTeamwork\Pubs\Versions\1.1\Reports\DatabaseModel.JSON';$RDBMS='SQLServer';
+	#$PathToModel="$env:FlywayWorkPath\Pubs\Versions\1.3\Reports\DatabaseModel.JSON";
 	$Terminator = if ($RDBMS -eq 'sqlserver') { "GO" }
 	else { "" }
 	$PreliminaryTypes = @('UserType');
