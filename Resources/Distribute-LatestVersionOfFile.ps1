@@ -15,14 +15,15 @@
 		we just want to see what the latest file is, as a precaution
 	
 	.EXAMPLE
-		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'DatabaseBuildAndMigrateTasks.ps1'
-		Distribute-LatestVersionOfFile '<MyPathTo>Github' 'preliminary.ps1'
-		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1'
-		Distribute-LatestVersionOfFile @("<MyPathTo>Github","<MyPathTo>FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
-        Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -Verbose
-        Distribute-LatestVersionOfFile @("s:\work\Github","s:\work\FlywayDevelopments") 'DatabaseBuildAndMigrateTasks.ps1' -Verbose
+		Distribute-LatestVersionOfFile '$env:GithubPath' 'DatabaseBuildAndMigrateTasks.ps1'
+		Distribute-LatestVersionOfFile '$env:GithubPath' 'preliminary.ps1'
+		Distribute-LatestVersionOfFile @("$env:GithubPath","$env:FlywayWorkPath") 'DatabaseBuildAndMigrateTasks.ps1'
+		Distribute-LatestVersionOfFile @("$env:GithubPath","$env:FlywayWorkPath") 'DatabaseBuildAndMigrateTasks.ps1' -verbose
+        Distribute-LatestVersionOfFile @("$env:GithubPath","$env:FlywayWorkPath") 'preliminary.ps1' -Verbose
+        Distribute-LatestVersionOfFile @("$env:GithubPath","$env:FlywayWorkPath") 'DatabaseBuildAndMigrateTasks.ps1' -Verbose
         #Identify the latest version 
-        Distribute-LatestVersionOfFile @("s:\work\Github","S:\work\Github\FlywayTeamwork") 'preliminary.ps1' -JustListTheLatest $true
+        Distribute-LatestVersionOfFile @("$env:GithubPath","$env:FlywayWorkPath") 'preliminary.ps1' -JustListTheLatest $true
+
 
 #>
 
