@@ -72,40 +72,27 @@ function Redo-EveryFlywayMigrationSingly
 		#define where your Flyway config secrets should be 
         if (!(test-path $SecretsPath -PathType Leaf)) 
             {$SecretsPath="$env:USERPROFILe\$SecretsPath"}
-		Flyway ($SecretsPath | get-conf) info #check that you've got a connection
+
+		$Info=Flyway ($SecretsPath | get-conf) '-outputType=json' info | convertFrom-json #check that you've got a connection
 		$ExecutedWell = $?
 		if ($ExecutedWell)
 		{
 			Flyway ($SecretsPath | get-conf) clean #clean the existing 
             if (Test-Path -Path .\versions -PathType Container)
-                {del .\versions\*.* -Recurse} #remove any reports for all the versions
+                {del .\versions\*.* -Recurse -ErrorAction Ignore} #remove any reports for all the versions
 		}
 		else
 		{
 			write-verbose "Could not connect properly, using the $($_.Name) database"
 		}
+        
         if ($PostMigrationTasks -ne $null)
 		#we would only need to do this for every migration file if using Flyway Community
 				{ . '.\preliminary.ps1'; $OurDBDetails=$DBDetails}
         
       <# now we are going to do each version in turn so that we are sure of 
       getting a report and list of changes for each version #>
-      $Configuration= Get-FlywayConfContent $SecretsPath
-        $Configuration.'flyway.locations'-split ','|
-            foreach{$_ -replace 'filesystem:', ''} |
-		foreach{Dir "$_\V*.sql" -Recurse} |
-		foreach{
-			[pscustomobject]@{
-				'file' = $_.Name;
-				'version' = [version]($_.Name -ireplace '(?m:^)V(?<Version>.*)__.*', '${Version}')
-			}
-		} |
-        <#where {
-			(!($StartVersion -ne $null -and $_.version -lt $StartVersion) -and
-				!($EndVersion -ne $null -and $_.version -gt $EndVersion))
-		} #>
-		
-		where {
+        $Info.migrations | where { $_.category -eq 'Versioned' -and
 			(!($ThereIsAStartVersionForMigrations -and $_.version -lt $StartVersion) -and
 				!($ThereIsAnEndVersionForMigrations -and $_.version -gt $EndVersion))
 		} |
@@ -113,7 +100,7 @@ function Redo-EveryFlywayMigrationSingly
 			if ($ExecutedWell)
 			{
 				# Now we have a list of versions, we do each single migration in turn
-				Write-Verbose "migrating $Name database to $($_.version)"
+				Write-Verbose "migrating $($Info.database) database to $($_.version)"
 				Flyway ($SecretsPath | get-conf) migrate "-target=$($_.version)" | Where { $_ -notlike '1 row updated*' } | foreach{
 					if ($_ -like '*(SQL State: S0001 - Error Code: 0)*') # SQL Server print statement 
 					{ Write-Verbose "$($_ -ireplace 'Warning: DB: (?<BodyOfMessage>.+?)\(SQL State: S0001 - Error Code: [50]0{0,5}\)', '${BodyOfMessage}')" }
@@ -133,7 +120,7 @@ function Redo-EveryFlywayMigrationSingly
 			}
 		}
 	}
-	End
+    End
 	{
 		
 	}

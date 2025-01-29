@@ -41,33 +41,43 @@ function ConvertFrom-INI
   
 		# first we define our scriptblocks, used for private routines within the task 
 		
-        <#$UnwrappedInlineTables = {<# unwrap inline tables into separate lines to
-			conform with the old INI file conventions 
-			Param ([string]$String)
-			([regex]'(?<Section>.*?)=\s*?{(?<List>.+?)}\s*(?m:$)').matches($String) |
-			sort-object -property index -Descending | foreach{ #do this from the end
-				$_.Groups
-			} | foreach { #process each inline statement into a section  and key/value pairs
-				if ($_.name -eq 'Section') { $substring = "[$($_.value.trim())]`n" }
-				elseif ($_.name -eq 'list') #the list of key/value pairs 
-				{
-					($ParseStringArray.Invoke($_.value)) | foreach { $substring += "$($_)`n" }
-					# now we replace the inline table with thw standard line-by-line version
-					$BeforeRange = $String.Substring(0, $index)
-					$AfterRange = $String.Substring($index + $Length)
-					# Concatenate the parts with the new substring
-					$String = $BeforeRange + $SubString + $AfterRange
-					$Index = 0; $length = 0;
-				}
-				elseif ($_.name -eq '0')
-				{# find out where the original string was 
-					$Index = $_.Index; $length = $_.Length;
-				}
-				else { write-warning "unknown syntax in inline table" };
-			}
-			$string # and return the altered string.
-		}#>
-		
+	
+$ConvertStringToNativeValue = {
+    param (
+        [string]$InputString
+    )
+
+    # Remove underscores for readability (applies to all formats)
+    $cleanedInput = $InputString.Replace('_', '')
+
+    if ($cleanedInput -match '^(?:\+|-)?\d+$') {
+        # Integer (e.g., +99, -17, 0)
+        return [int]$cleanedInput
+    } elseif ($cleanedInput -match '^0x[0-9a-fA-F]+$') {
+        # Hexadecimal (e.g., 0xDEADBEEF)
+        return [convert]::ToInt64($cleanedInput, 16)
+    } elseif ($cleanedInput -match '^0o[0-7]+$') {
+        # Octal (e.g., 0o755)
+        return [convert]::ToInt64($cleanedInput.Substring(2), 8)
+    } elseif ($cleanedInput -match '^0b[01]+$') {
+        # Binary (e.g., 0b11010110)
+        return [convert]::ToInt64($cleanedInput.Substring(2), 2)
+    } elseif ($cleanedInput -match '^(?:\+|-)?\d*\.?\d+(?:e[+-]?\d+)?$') {
+        # Float or scientific notation (e.g., 3.1415, 5e+22)
+        return [double]$cleanedInput
+    } elseif ($cleanedInput -match '[ +1\r\n]inf') {
+        # Infinity (e.g., +inf, -inf)
+        if ($cleanedInput -like '-inf') 
+        {return [double]::NegativeInfinity } 
+        else {return [double]::PositiveInfinity }
+    } elseif ($cleanedInput -match '^(?:\+|-)?nan$') {
+        # NaN (e.g., nan, +nan, -nan)
+        return [double]::NaN
+    } else {
+        return $InputString -replace "^[`"\'](.*)[`"\']$", '$1' 
+    }
+}
+
 <#	
 	.DESCRIPTION
 	===========================================================================
@@ -140,11 +150,15 @@ Separator         )|(?<Separator>,)
 			default { '' }
 		}
         $ArrayEnd=$false
+        #we emulate a recursive technique 
 		if ($name -eq 'ArrayEnd') { $TheStack[++$Stackpointer] = 'array'; $ArrayEnd=$true }
 		elseif ($name -eq 'TableEnd') { $TheStack[++$Stackpointer] = 'table' }
 		elseif ($name -in @('ArrayStart', 'TableStart')) { $Stackpointer-- }
-		$BeforeRange = $Conversion.Substring(0, $index)
-		$AfterRange = $Conversion.Substring($index + $Length)
+        #remove existing delimiters
+        if ($name -in @('MultiLineDelimitedLiteral','MultiLineQuotedLiteral'))
+            {$offset=3} else {$offset=0};
+		$BeforeRange = $Conversion.Substring(0, $index-$offset)
+		$AfterRange = $Conversion.Substring($index+$offset + $Length)
 		# Concatenate the parts with the new substring
 		$Conversion = $BeforeRange + $insertion + $AfterRange
 	} -end {
@@ -153,7 +167,7 @@ Separator         )|(?<Separator>,)
 		# Convert the array to a List<string> using array cast
 		$allowedCommandsList = [System.Collections.Generic.List[string]]($allowedCommands)
 		$lookingDodgy = $false
-        #write-verbose "conversion was $Conversion"
+        # write-verbose "conversion was $Conversion"
 		$scriptBlock = [scriptblock]::Create($Conversion)
 		try { $scriptBlock.CheckRestrictedLanguage($allowedCommandsList, $null, $true) }
 		catch
@@ -168,7 +182,7 @@ Separator         )|(?<Separator>,)
 		}
 	} #End of the (end of the) foreach loop
 } # end of the scriptblock
-		
+	
 #a utility scriptblock to convert escaped characters in delimited strings
 		$ConvertEscapedChars = {
 			Param ([string]$String)
@@ -243,7 +257,7 @@ a dotted notation. #>
 )|(?<DelimitedKeyValuePair>(?m:^)[ ]*?[^=\r\n]{1,200}[ ]*?=[ ]*?'.+?')(?# Delimited Key-Value Pair
 )|(?<KeyCommaDelimitedValuePair>(?m:^).{1,40}=(?:'[^']*'|\b\w+\b)\s*,\s*(?:'[^']*'|\b\w+\b)(?:\s*,\s*(?:'[^']*'|\b\w+\b))*)(?# 
 Matches key-value pairs where the value is a simple comma-delimited list
-)|(?<KeyValuePair>(?m:^)[^=\r\n]{1,200}[ ]*?=[ ]*?.{1,200})(?# Matches key-value pairs separated by =.
+)|(?<KeyValuePair>(?m:^)[^=\r\n]{1,200}[ ]*?=[ ]*?[^#\r\n]{1,200})(?# Matches key-value pairs separated by =.
 )
 '@
 # was
@@ -362,20 +376,26 @@ or key-value pair) and process accordingly.#>
 					# if the value has no dot, it is a relative reference. if it  starts with a dot, it is
 					# a relative reference, otherwise it must be an absolute reference
 					# Split the expression into key and value, removing leading dot if present
-					Write-verbose $MatchName
+					Write-verbose "The matchname was '$MatchName'"
 					#$Assignment = "$($_.Value)" -ireplace '\A\s*\.', '' -split '=' | foreach{ "$($_)".trim() }
 					$Assignment = $MatchValue  -split '=', 2 | foreach { "$($_)".trim() }
 					# if there is no section, the lvalue contains the location 
 					# or if the lvalue is relative just combine the two
 					$Rvalue = "$($Assignment[1])".Trim();
 					$Lvalue = $Assignment[0].trim();
-					if ($Matchname -in ('InlineTable', 'ArrayPair')) #it is an array, assigned to a key
+					if ($Matchname -in ('InlineTable')) #it is an array, assigned to a key
 					{
-						Write-verbose "Arraypair for '$lvalue' '$Rvalue' being processed"
-						$Rvalue = $BuildInlineTableorArray.invoke($RValue)
+						Write-verbose "InlineTable for '$lvalue' '$Rvalue' being processed"
+						$Rvalue = ($BuildInlineTableorArray.invoke($RValue))[0]####
 					}
+                    elseif ($Matchname -in ('arraypair'))
+                    {
+                        Write-verbose "Arraypair for '$lvalue' '$Rvalue' being processed"
+					    $Rvalue = ($BuildInlineTableorArray.invoke($RValue))
+                    }
+
 					elseif ($Matchname -in ( 'MultilineQuotedKeyValuePair',	'QuotedKeyValuePair',
-                                             'MultilineDelimitedKeyValuePair',	'DelimitedKeyValuePair'))
+                                             'MultilineLiteralKeyValuePair',	'DelimitedKeyValuePair'))
 					{
 						$RValue=$ConvertEscapedChars.Invoke($ConvertEscapedUnicode.Invoke($Rvalue)) -join "";
 					}
@@ -385,10 +405,10 @@ or key-value pair) and process accordingly.#>
                         $RValue = $BuildInlineTableorArray.invoke($RValue);
  					}
 					else
-					{
-						if ($RValue -like '*,*')
+					{   Write-verbose "$Matchname that is '$RValue'"
+						if ($RValue -like '*,*') #it is a list 
 						{ $RValue = $BuildInlineTableorArray.invoke($RValue) }
-						else { $RValue = $ParseStringArray.Invoke($RValue)[0] }
+						else { $RValue = $ConvertStringToNativeValue.invoke($RValue)[0] }#sreingarray
 					}
                     #$ParseStringArray.invoke('pinky,perky,bill,ben')
 					$ObjectHierarchy = $ParseStringArray.Invoke($LValue, '\.')
