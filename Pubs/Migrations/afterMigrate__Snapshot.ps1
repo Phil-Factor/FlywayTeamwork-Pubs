@@ -1,14 +1,23 @@
-﻿<# This callback demonstrates a way of taking a snapshot, create a model, and generate
+﻿<# 
+This callback demonstrates a way of taking a snapshot, create a model, and generate
 all the useful SQL Scripts that you might need for every version. It also provides
 the data that tells you what's changed.
 
-  This is powershell, but it can be executed as a callback from a Flywway task that
-  runs from Dos Commandline  or BASH. This makes it prudent to make sure you are using 
-  the latest flyway. Make sure that the next line has the path to your install directory.
-  The easiest approach for me is to define my  flyway installation an an environment 
-  variable #>
-$FlywayinstallDirectory = "$env:FlywayInstallation\flyway.commandline\tools"
+This is powershell, but it can be executed as a callback from a Flywway task that
+runs from Dos Commandline  or BASH. This makes it prudent to make sure you are using 
+the latest flyway. Make sure that the next line has the path to your install directory.
+The easiest approach for me is to define my  flyway installation an an environment 
+variable 
 
+The opening section of the script determines and uses the latest Flyway installation
+and then runs flyway info, captures its JSON output and extracts from it the metadata
+needed to run the tasks, such as the current schema version, previous successful version,
+schema name, and the description of the latest applied migration.
+It then defines paths for storing generated files and ensures all outputs (snapshots,
+reports, scripts, models) are versioned.
+#>
+<#-- Preparations to use Flyway --#>
+$FlywayinstallDirectory = "$env:FlywayInstallation\flyway.commandline\tools"
 <# This seems necessary if you install flyway the way I do (I like to store old versions
 and be able to revert in an emergency) with the rapidity of releases it's convenient #>
 $Latest = (Dir "$FlywayinstallDirectory\flyway-*\flyway.cmd" | ` # lets see them all
@@ -16,7 +25,6 @@ $Latest = (Dir "$FlywayinstallDirectory\flyway-*\flyway.cmd" | ` # lets see them
 Set-Alias -Name 'Flyway' -Value $Latest
 
 <#-- we use 'info' to fetch the essential details we need for the various operations --#>
-
 # we establish what the current version of the database is, the name of the migration
 # file that prtoduced it, the previous version and the list of schemas.
 $ContentsOfOutput = (flyway  '-outputType=json'  info)# also catches flyway execution errrors
@@ -41,17 +49,25 @@ if ($WeHaveAllRequiredInfo) #only if we got the info we need
     $schemas=$Info.schemaName
 	# .. and the description of the version
 	$description = $Info.migrations | where { $_.rawVersion -eq $version } | foreach { $_.description }
-	
+    $CurrentDirectories=@('Scripts','Reports','Model')
+
+    $PresentVersionLocation = "$pwd\versions\current"           #the 'current' directory with a copy of the current version
 	$CurrentArtefactLocation = "$pwd\Versions\$Version\Reports" #where the reports go
 	$CurrentScriptsLocation = "$pwd\Versions\$Version\Scripts"  #where the scripts go
 	$CurrentModelLocation = "$pwd\Versions\$Version\Model"      #where the models go
-    $PresentVersionLocation = "$pwd\versions\current"           #the 'current' directory with a copy of the currentversion
+    $CurrentChangesLocation = "$pwd\Versions\$Version\Changes"     #where the change reports go (set to null if not wanted)
+    $CurrentBuildLocation = "$pwd\Versions\$Version\Build"      #where the Build reports go (set to null if not wanted)
+    $OurDirectories=@($CurrentArtefactLocation, $CurrentScriptsLocation, $CurrentModelLocation,
+        "$PresentVersionLocation\Scripts","$PresentVersionLocation\Reports",
+        "$PresentVersionLocation\Model")
+
+    if ($CurrentChangesLocation -ne $null) {$OurDirectories+=$CurrentChangesLocation; $CurrentDirectories+='Changes'}
+    if ($CurrentBuildLocation -ne $null) {$OurDirectories+=$CurrentBuildLocation; $CurrentDirectories+='Build'}
+
 
 <#--    Now we create the snapshot      --#>
 	#Create the directory if it doesn't exist.
-    ($CurrentArtefactLocation, $CurrentScriptsLocation, $CurrentModelLocation,
-    "$PresentVersionLocation\Scripts","$PresentVersionLocation\Reports",
-    "$PresentVersionLocation\Model")| Foreach {
+     $OurDirectories|Foreach {
 	    if (!(Test-Path -Path $_ -PathType Container))
 	    {
 		    $null = md $_ -Force
@@ -173,13 +189,31 @@ The source to use for the diff operation. 'empty', 'schemamodel', 'migrations'
 	)
 	# we do a chained command for both the DIFF and MODEL
 	flyway $Diffparams diff model >"$CurrentModelLocation\log.txt"
-<#--    Now we can update the directory with the current model      --#>	
+<#--    Now we can update the directory with the current model      --#>
+if ($CurrentChangesLocation -ne $null -and $PreviousVersion -ne $null)
+    { 	
+    $snapshot_source="$CurrentArtefactLocation\Snapshot.json"
+    $snapshot_target="$PreviousArtefactLocation\Snapshot.json"
+    flyway check -changes "-check.nextSnapshot=$snapshot_source" `
+           "-check.deployedSnapshot=$snapshot_target" `
+           "-reportFilename=`"$CurrentChangesLocation\report.html`"">"$CurrentChangesLocation\report.txt"
+    }
+
+
+<#--    Now we can update the directory with the current model      --#>
+
     del "$PresentVersionLocation" -Recurse -Force 
-    @('Scripts','Reports','Model')|Foreach {
+    #now add the directories we want
+    $CurrentDirectories|Foreach {
         if (!(test-path -path "$PresentVersionLocation\$($_)" -PathType Container))
             {
             $null=md "$PresentVersionLocation\$($_)"
             }
+        }
+	
+    if ($CurrentBuildLocation -ne $null)
+        { 	
+        Copy-Item -Path  "$CurrentscriptsLocation\b*" -destination "$PresentVersionLocation\Build\build.sql" -Force
         }
 	Copy-Item "$pwd\versions\$Version\scripts\*.sql" `
 			  -Destination "$PresentVersionLocation\Scripts" -Force
@@ -189,4 +223,5 @@ The source to use for the diff operation. 'empty', 'schemamodel', 'migrations'
 			  -Destination "$PresentVersionLocation\Model" -Recurse -Force
 } 
 #--end the 'if $WeHaveAComparison' 
-
+ 
+ 
