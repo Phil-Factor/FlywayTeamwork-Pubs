@@ -1,7 +1,4 @@
 ﻿. '.\preliminary.ps1'
-
-$dbDetails
-gci env:* | sort-object name
 <#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  
@@ -38,6 +35,7 @@ below are the tasks you want to execute. Some, like the on getting credentials, 
 execute others
 in order to execute tasks, you just load them up in the order you want. 
 #>
+$DBDetails|convertTo-json
 
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number

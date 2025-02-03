@@ -1,32 +1,32 @@
 /*
     Generated on 05/Jun/2020 14:35 by Redgate SQL Change Automation v3.2.19130.7523
 */
-SET NUMERIC_ROUNDABORT OFF
+SET NUMERIC_ROUNDABORT OFF;
 GO
-SET ANSI_PADDING, ANSI_WARNINGS, CONCAT_NULL_YIELDS_NULL, ARITHABORT, QUOTED_IDENTIFIER, ANSI_NULLS ON
+SET ANSI_PADDING, ANSI_WARNINGS, CONCAT_NULL_YIELDS_NULL, ARITHABORT, QUOTED_IDENTIFIER, ANSI_NULLS ON;
 GO
-SET XACT_ABORT ON
+SET XACT_ABORT ON;
 GO
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 
 GO
-PRINT N'Creating types'
-GO
-
-GO
-CREATE TYPE [dbo].[tid] FROM varchar (6) NOT NULL
+PRINT N'Creating types';
 GO
 
 GO
-CREATE TYPE [dbo].[id] FROM varchar (11) NOT NULL
+CREATE TYPE [dbo].[tid] FROM varchar (6) NOT NULL;
 GO
 
 GO
-CREATE TYPE [dbo].[empid] FROM char (9) NOT NULL
+CREATE TYPE [dbo].[id] FROM varchar (11) NOT NULL;
 GO
 
 GO
-PRINT N'Creating [dbo].[employee]'
+CREATE TYPE [dbo].[empid] FROM char (9) NOT NULL;
+GO
+
+GO
+PRINT N'Creating [dbo].[employee]';
 GO
 CREATE TABLE [dbo].[employee]
 (
@@ -38,23 +38,23 @@ CREATE TABLE [dbo].[employee]
 [job_lvl] [tinyint] NULL CONSTRAINT [DF__employee__job_lv__267ABA7A] DEFAULT ((10)),
 [pub_id] [char] (4) COLLATE Latin1_General_CI_AS NOT NULL CONSTRAINT [DF__employee__pub_id__276EDEB3] DEFAULT ('9952'),
 [hire_date] [datetime] NOT NULL CONSTRAINT [DF__employee__hire_d__29572725] DEFAULT (getdate())
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating index [employee_ind] on [dbo].[employee]'
+PRINT N'Creating index [employee_ind] on [dbo].[employee]';
 GO
-CREATE CLUSTERED INDEX [employee_ind] ON [dbo].[employee] ([lname], [fname], [minit]) ON [PRIMARY]
-GO
-
-GO
-PRINT N'Creating primary key [PK_emp_id] on [dbo].[employee]'
-GO
-ALTER TABLE [dbo].[employee] ADD CONSTRAINT [PK_emp_id] PRIMARY KEY NONCLUSTERED  ([emp_id]) ON [PRIMARY]
+CREATE CLUSTERED INDEX [employee_ind] ON [dbo].[employee] ([lname], [fname], [minit]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[jobs]'
+PRINT N'Creating primary key [PK_emp_id] on [dbo].[employee]';
+GO
+ALTER TABLE [dbo].[employee] ADD CONSTRAINT [PK_emp_id] PRIMARY KEY NONCLUSTERED  ([emp_id]) ON [PRIMARY];
+GO
+
+GO
+PRINT N'Creating [dbo].[jobs]';
 GO
 CREATE TABLE [dbo].[jobs]
 (
@@ -62,17 +62,17 @@ CREATE TABLE [dbo].[jobs]
 [job_desc] [varchar] (50) COLLATE Latin1_General_CI_AS NOT NULL CONSTRAINT [DF__jobs__job_desc__1BFD2C07] DEFAULT ('New Position - title not formalized yet'),
 [min_lvl] [tinyint] NOT NULL,
 [max_lvl] [tinyint] NOT NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [PK__jobs__6E32B6A51A14E395] on [dbo].[jobs]'
+PRINT N'Creating primary key [PK__jobs__6E32B6A51A14E395] on [dbo].[jobs]';
 GO
-ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [PK__jobs__6E32B6A51A14E395] PRIMARY KEY CLUSTERED  ([job_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [PK__jobs__6E32B6A51A14E395] PRIMARY KEY CLUSTERED  ([job_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating trigger [dbo].[employee_insupd] on [dbo].[employee]'
+PRINT N'Creating trigger [dbo].[employee_insupd] on [dbo].[employee]';
 GO
 
 CREATE TRIGGER [dbo].[employee_insupd]
@@ -83,30 +83,30 @@ AS
 declare @min_lvl tinyint,
    @max_lvl tinyint,
    @emp_lvl tinyint,
-   @job_id smallint
+   @job_id smallint;
 select @min_lvl = min_lvl,
    @max_lvl = max_lvl,
    @emp_lvl = i.job_lvl,
    @job_id = i.job_id
 from employee e, jobs j, inserted i
-where e.emp_id = i.emp_id AND i.job_id = j.job_id
+where e.emp_id = i.emp_id AND i.job_id = j.job_id;
 IF (@job_id = 1) and (@emp_lvl <> 10)
 begin
-   raiserror ('Job id 1 expects the default level of 10.',16,1)
-   ROLLBACK TRANSACTION
-end
+   raiserror ('Job id 1 expects the default level of 10.',16,1);
+   ROLLBACK TRANSACTION;
+end;
 ELSE
 IF NOT (@emp_lvl BETWEEN @min_lvl AND @max_lvl)
 begin
    raiserror ('The level for job_id:%d should be between %d and %d.',
-      16, 1, @job_id, @min_lvl, @max_lvl)
-   ROLLBACK TRANSACTION
-end
+      16, 1, @job_id, @min_lvl, @max_lvl);
+   ROLLBACK TRANSACTION;
+end;
 
 GO
 
 GO
-PRINT N'Creating [dbo].[stores]'
+PRINT N'Creating [dbo].[stores]';
 GO
 CREATE TABLE [dbo].[stores]
 (
@@ -116,17 +116,17 @@ CREATE TABLE [dbo].[stores]
 [city] [varchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [state] [char] (2) COLLATE Latin1_General_CI_AS NULL,
 [zip] [char] (5) COLLATE Latin1_General_CI_AS NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPK_storeid] on [dbo].[stores]'
+PRINT N'Creating primary key [UPK_storeid] on [dbo].[stores]';
 GO
-ALTER TABLE [dbo].[stores] ADD CONSTRAINT [UPK_storeid] PRIMARY KEY CLUSTERED  ([stor_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[stores] ADD CONSTRAINT [UPK_storeid] PRIMARY KEY CLUSTERED  ([stor_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[discounts]'
+PRINT N'Creating [dbo].[discounts]';
 GO
 CREATE TABLE [dbo].[discounts]
 (
@@ -135,11 +135,11 @@ CREATE TABLE [dbo].[discounts]
 [lowqty] [smallint] NULL,
 [highqty] [smallint] NULL,
 [discount] [decimal] (4, 2) NOT NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[publishers]'
+PRINT N'Creating [dbo].[publishers]';
 GO
 CREATE TABLE [dbo].[publishers]
 (
@@ -148,34 +148,34 @@ CREATE TABLE [dbo].[publishers]
 [city] [varchar] (20) COLLATE Latin1_General_CI_AS NULL,
 [state] [char] (2) COLLATE Latin1_General_CI_AS NULL,
 [country] [varchar] (30) COLLATE Latin1_General_CI_AS NULL CONSTRAINT [DF__publisher__count__0519C6AF] DEFAULT ('USA')
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_pubind] on [dbo].[publishers]'
+PRINT N'Creating primary key [UPKCL_pubind] on [dbo].[publishers]';
 GO
-ALTER TABLE [dbo].[publishers] ADD CONSTRAINT [UPKCL_pubind] PRIMARY KEY CLUSTERED  ([pub_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[publishers] ADD CONSTRAINT [UPKCL_pubind] PRIMARY KEY CLUSTERED  ([pub_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[pub_info]'
+PRINT N'Creating [dbo].[pub_info]';
 GO
 CREATE TABLE [dbo].[pub_info]
 (
 [pub_id] [char] (4) COLLATE Latin1_General_CI_AS NOT NULL,
 [logo] [image] NULL,
 [pr_info] [text] COLLATE Latin1_General_CI_AS NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_pubinfo] on [dbo].[pub_info]'
+PRINT N'Creating primary key [UPKCL_pubinfo] on [dbo].[pub_info]';
 GO
-ALTER TABLE [dbo].[pub_info] ADD CONSTRAINT [UPKCL_pubinfo] PRIMARY KEY CLUSTERED  ([pub_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[pub_info] ADD CONSTRAINT [UPKCL_pubinfo] PRIMARY KEY CLUSTERED  ([pub_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[titles]'
+PRINT N'Creating [dbo].[titles]';
 GO
 CREATE TABLE [dbo].[titles]
 (
@@ -189,23 +189,23 @@ CREATE TABLE [dbo].[titles]
 [ytd_sales] [int] NULL,
 [notes] [varchar] (200) COLLATE Latin1_General_CI_AS NULL,
 [pubdate] [datetime] NOT NULL CONSTRAINT [DF__titles__pubdate__09DE7BCC] DEFAULT (getdate())
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_titleidind] on [dbo].[titles]'
+PRINT N'Creating primary key [UPKCL_titleidind] on [dbo].[titles]';
 GO
-ALTER TABLE [dbo].[titles] ADD CONSTRAINT [UPKCL_titleidind] PRIMARY KEY CLUSTERED  ([title_id]) ON [PRIMARY]
-GO
-
-GO
-PRINT N'Creating index [titleind] on [dbo].[titles]'
-GO
-CREATE NONCLUSTERED INDEX [titleind] ON [dbo].[titles] ([title]) ON [PRIMARY]
+ALTER TABLE [dbo].[titles] ADD CONSTRAINT [UPKCL_titleidind] PRIMARY KEY CLUSTERED  ([title_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[roysched]'
+PRINT N'Creating index [titleind] on [dbo].[titles]';
+GO
+CREATE NONCLUSTERED INDEX [titleind] ON [dbo].[titles] ([title]) ON [PRIMARY];
+GO
+
+GO
+PRINT N'Creating [dbo].[roysched]';
 GO
 CREATE TABLE [dbo].[roysched]
 (
@@ -213,17 +213,17 @@ CREATE TABLE [dbo].[roysched]
 [lorange] [int] NULL,
 [hirange] [int] NULL,
 [royalty] [int] NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating index [titleidind] on [dbo].[roysched]'
+PRINT N'Creating index [titleidind] on [dbo].[roysched]';
 GO
-CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[roysched] ([title_id]) ON [PRIMARY]
+CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[roysched] ([title_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[sales]'
+PRINT N'Creating [dbo].[sales]';
 GO
 CREATE TABLE [dbo].[sales]
 (
@@ -233,23 +233,23 @@ CREATE TABLE [dbo].[sales]
 [qty] [smallint] NOT NULL,
 [payterms] [varchar] (12) COLLATE Latin1_General_CI_AS NOT NULL,
 [title_id] [dbo].[tid] NOT NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_sales] on [dbo].[sales]'
+PRINT N'Creating primary key [UPKCL_sales] on [dbo].[sales]';
 GO
-ALTER TABLE [dbo].[sales] ADD CONSTRAINT [UPKCL_sales] PRIMARY KEY CLUSTERED  ([stor_id], [ord_num], [title_id]) ON [PRIMARY]
-GO
-
-GO
-PRINT N'Creating index [titleidind] on [dbo].[sales]'
-GO
-CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[sales] ([title_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[sales] ADD CONSTRAINT [UPKCL_sales] PRIMARY KEY CLUSTERED  ([stor_id], [ord_num], [title_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[authors]'
+PRINT N'Creating index [titleidind] on [dbo].[sales]';
+GO
+CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[sales] ([title_id]) ON [PRIMARY];
+GO
+
+GO
+PRINT N'Creating [dbo].[authors]';
 GO
 CREATE TABLE [dbo].[authors]
 (
@@ -262,23 +262,23 @@ CREATE TABLE [dbo].[authors]
 [state] [char] (2) COLLATE Latin1_General_CI_AS NULL,
 [zip] [char] (5) COLLATE Latin1_General_CI_AS NULL,
 [contract] [bit] NOT NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_auidind] on [dbo].[authors]'
+PRINT N'Creating primary key [UPKCL_auidind] on [dbo].[authors]';
 GO
-ALTER TABLE [dbo].[authors] ADD CONSTRAINT [UPKCL_auidind] PRIMARY KEY CLUSTERED  ([au_id]) ON [PRIMARY]
-GO
-
-GO
-PRINT N'Creating index [aunmind] on [dbo].[authors]'
-GO
-CREATE NONCLUSTERED INDEX [aunmind] ON [dbo].[authors] ([au_lname], [au_fname]) ON [PRIMARY]
+ALTER TABLE [dbo].[authors] ADD CONSTRAINT [UPKCL_auidind] PRIMARY KEY CLUSTERED  ([au_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[titleauthor]'
+PRINT N'Creating index [aunmind] on [dbo].[authors]';
+GO
+CREATE NONCLUSTERED INDEX [aunmind] ON [dbo].[authors] ([au_lname], [au_fname]) ON [PRIMARY];
+GO
+
+GO
+PRINT N'Creating [dbo].[titleauthor]';
 GO
 CREATE TABLE [dbo].[titleauthor]
 (
@@ -286,29 +286,29 @@ CREATE TABLE [dbo].[titleauthor]
 [title_id] [dbo].[tid] NOT NULL,
 [au_ord] [tinyint] NULL,
 [royaltyper] [int] NULL
-) ON [PRIMARY]
+) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating primary key [UPKCL_taind] on [dbo].[titleauthor]'
+PRINT N'Creating primary key [UPKCL_taind] on [dbo].[titleauthor]';
 GO
-ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [UPKCL_taind] PRIMARY KEY CLUSTERED  ([au_id], [title_id]) ON [PRIMARY]
-GO
-
-GO
-PRINT N'Creating index [auidind] on [dbo].[titleauthor]'
-GO
-CREATE NONCLUSTERED INDEX [auidind] ON [dbo].[titleauthor] ([au_id]) ON [PRIMARY]
+ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [UPKCL_taind] PRIMARY KEY CLUSTERED  ([au_id], [title_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating index [titleidind] on [dbo].[titleauthor]'
+PRINT N'Creating index [auidind] on [dbo].[titleauthor]';
 GO
-CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[titleauthor] ([title_id]) ON [PRIMARY]
+CREATE NONCLUSTERED INDEX [auidind] ON [dbo].[titleauthor] ([au_id]) ON [PRIMARY];
 GO
 
 GO
-PRINT N'Creating [dbo].[titleview]'
+PRINT N'Creating index [titleidind] on [dbo].[titleauthor]';
+GO
+CREATE NONCLUSTERED INDEX [titleidind] ON [dbo].[titleauthor] ([title_id]) ON [PRIMARY];
+GO
+
+GO
+PRINT N'Creating [dbo].[titleview]';
 GO
 
 CREATE VIEW [dbo].[titleview]
@@ -316,23 +316,23 @@ AS
 select title, au_ord, au_lname, price, ytd_sales, pub_id
 from authors, titles, titleauthor
 where authors.au_id = titleauthor.au_id
-   AND titles.title_id = titleauthor.title_id
+   AND titles.title_id = titleauthor.title_id;
 
 GO
 
 GO
-PRINT N'Creating [dbo].[byroyalty]'
+PRINT N'Creating [dbo].[byroyalty]';
 GO
 
 CREATE PROCEDURE [dbo].[byroyalty] @percentage int
 AS
 select au_id from titleauthor
-where titleauthor.royaltyper = @percentage
+where titleauthor.royaltyper = @percentage;
 
 GO
 
 GO
-PRINT N'Creating [dbo].[reptq1]'
+PRINT N'Creating [dbo].[reptq1]';
 GO
 
 CREATE PROCEDURE [dbo].[reptq1] AS
@@ -342,12 +342,12 @@ select
 from titles
 where price is NOT NULL
 group by pub_id with rollup
-order by pub_id
+order by pub_id;
 
 GO
 
 GO
-PRINT N'Creating [dbo].[reptq2]'
+PRINT N'Creating [dbo].[reptq2]';
 GO
 
 CREATE PROCEDURE [dbo].[reptq2] AS
@@ -357,12 +357,12 @@ select
 	avg(ytd_sales) as avg_ytd_sales
 from titles
 where pub_id is NOT NULL
-group by pub_id, type with rollup
+group by pub_id, type with rollup;
 
 GO
 
 GO
-PRINT N'Creating [dbo].[reptq3]'
+PRINT N'Creating [dbo].[reptq3]';
 GO
 
 CREATE PROCEDURE [dbo].[reptq3] @lolimit money, @hilimit money,
@@ -374,95 +374,95 @@ select
 	count(title_id) as cnt
 from titles
 where price >@lolimit AND price <@hilimit AND type = @type OR type LIKE '%cook%'
-group by pub_id, type with rollup
+group by pub_id, type with rollup;
 
 GO
 
 GO
-PRINT N'Adding constraints to [dbo].[authors]'
+PRINT N'Adding constraints to [dbo].[authors]';
 GO
-ALTER TABLE [dbo].[authors] ADD CONSTRAINT [CK__authors__au_id__7F60ED59] CHECK (([au_id] like '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'))
-GO
-
-GO
-ALTER TABLE [dbo].[authors] ADD CONSTRAINT [CK__authors__zip__014935CB] CHECK (([zip] like '[0-9][0-9][0-9][0-9][0-9]'))
+ALTER TABLE [dbo].[authors] ADD CONSTRAINT [CK__authors__au_id__7F60ED59] CHECK (([au_id] like '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]'));
 GO
 
 GO
-PRINT N'Adding constraints to [dbo].[employee]'
-GO
-ALTER TABLE [dbo].[employee] ADD CONSTRAINT [CK_emp_id] CHECK (([emp_id] like '[A-Z][A-Z][A-Z][1-9][0-9][0-9][0-9][0-9][FM]' OR [emp_id] like '[A-Z]-[A-Z][1-9][0-9][0-9][0-9][0-9][FM]'))
+ALTER TABLE [dbo].[authors] ADD CONSTRAINT [CK__authors__zip__014935CB] CHECK (([zip] like '[0-9][0-9][0-9][0-9][0-9]'));
 GO
 
 GO
-PRINT N'Adding constraints to [dbo].[jobs]'
+PRINT N'Adding constraints to [dbo].[employee]';
 GO
-ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [CK__jobs__min_lvl__1CF15040] CHECK (([min_lvl]>=(10)))
-GO
-
-GO
-ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [CK__jobs__max_lvl__1DE57479] CHECK (([max_lvl]<=(250)))
+ALTER TABLE [dbo].[employee] ADD CONSTRAINT [CK_emp_id] CHECK (([emp_id] like '[A-Z][A-Z][A-Z][1-9][0-9][0-9][0-9][0-9][FM]' OR [emp_id] like '[A-Z]-[A-Z][1-9][0-9][0-9][0-9][0-9][FM]'));
 GO
 
 GO
-PRINT N'Adding constraints to [dbo].[publishers]'
+PRINT N'Adding constraints to [dbo].[jobs]';
 GO
-ALTER TABLE [dbo].[publishers] ADD CONSTRAINT [CK__publisher__pub_i__0425A276] CHECK (([pub_id]='1756' OR [pub_id]='1622' OR [pub_id]='0877' OR [pub_id]='0736' OR [pub_id]='1389' OR [pub_id] like '99[0-9][0-9]'))
-GO
-
-GO
-PRINT N'Adding foreign keys to [dbo].[titleauthor]'
-GO
-ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [FK__titleauth__au_id__0CBAE877] FOREIGN KEY ([au_id]) REFERENCES [dbo].[authors] ([au_id])
-GO
-ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [FK__titleauth__title__0DAF0CB0] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id])
+ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [CK__jobs__min_lvl__1CF15040] CHECK (([min_lvl]>=(10)));
 GO
 
 GO
-PRINT N'Adding foreign keys to [dbo].[discounts]'
-GO
-ALTER TABLE [dbo].[discounts] ADD CONSTRAINT [FK__discounts__stor___173876EA] FOREIGN KEY ([stor_id]) REFERENCES [dbo].[stores] ([stor_id])
+ALTER TABLE [dbo].[jobs] ADD CONSTRAINT [CK__jobs__max_lvl__1DE57479] CHECK (([max_lvl]<=(250)));
 GO
 
 GO
-PRINT N'Adding foreign keys to [dbo].[employee]'
+PRINT N'Adding constraints to [dbo].[publishers]';
 GO
-ALTER TABLE [dbo].[employee] ADD CONSTRAINT [FK__employee__job_id__25869641] FOREIGN KEY ([job_id]) REFERENCES [dbo].[jobs] ([job_id])
-GO
-ALTER TABLE [dbo].[employee] ADD CONSTRAINT [FK__employee__pub_id__286302EC] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id])
+ALTER TABLE [dbo].[publishers] ADD CONSTRAINT [CK__publisher__pub_i__0425A276] CHECK (([pub_id]='1756' OR [pub_id]='1622' OR [pub_id]='0877' OR [pub_id]='0736' OR [pub_id]='1389' OR [pub_id] like '99[0-9][0-9]'));
 GO
 
 GO
-PRINT N'Adding foreign keys to [dbo].[pub_info]'
+PRINT N'Adding foreign keys to [dbo].[titleauthor]';
 GO
-ALTER TABLE [dbo].[pub_info] ADD CONSTRAINT [FK__pub_info__pub_id__20C1E124] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id])
+ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [FK__titleauth__au_id__0CBAE877] FOREIGN KEY ([au_id]) REFERENCES [dbo].[authors] ([au_id]);
 GO
-
-GO
-PRINT N'Adding foreign keys to [dbo].[titles]'
-GO
-ALTER TABLE [dbo].[titles] ADD CONSTRAINT [FK__titles__pub_id__08EA5793] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id])
+ALTER TABLE [dbo].[titleauthor] ADD CONSTRAINT [FK__titleauth__title__0DAF0CB0] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id]);
 GO
 
 GO
-PRINT N'Adding foreign keys to [dbo].[roysched]'
+PRINT N'Adding foreign keys to [dbo].[discounts]';
 GO
-ALTER TABLE [dbo].[roysched] ADD CONSTRAINT [FK__roysched__title___15502E78] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id])
-GO
-
-GO
-PRINT N'Adding foreign keys to [dbo].[sales]'
-GO
-ALTER TABLE [dbo].[sales] ADD CONSTRAINT [FK__sales__stor_id__1273C1CD] FOREIGN KEY ([stor_id]) REFERENCES [dbo].[stores] ([stor_id])
-GO
-ALTER TABLE [dbo].[sales] ADD CONSTRAINT [FK__sales__title_id__1367E606] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id])
+ALTER TABLE [dbo].[discounts] ADD CONSTRAINT [FK__discounts__stor___173876EA] FOREIGN KEY ([stor_id]) REFERENCES [dbo].[stores] ([stor_id]);
 GO
 
 GO
-PRINT N'Adding version number'
+PRINT N'Adding foreign keys to [dbo].[employee]';
 GO
-Declare @Version Varchar(20)
-Declare @DatabaseInfo nvarchar(3000)
+ALTER TABLE [dbo].[employee] ADD CONSTRAINT [FK__employee__job_id__25869641] FOREIGN KEY ([job_id]) REFERENCES [dbo].[jobs] ([job_id]);
+GO
+ALTER TABLE [dbo].[employee] ADD CONSTRAINT [FK__employee__pub_id__286302EC] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id]);
+GO
+
+GO
+PRINT N'Adding foreign keys to [dbo].[pub_info]';
+GO
+ALTER TABLE [dbo].[pub_info] ADD CONSTRAINT [FK__pub_info__pub_id__20C1E124] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id]);
+GO
+
+GO
+PRINT N'Adding foreign keys to [dbo].[titles]';
+GO
+ALTER TABLE [dbo].[titles] ADD CONSTRAINT [FK__titles__pub_id__08EA5793] FOREIGN KEY ([pub_id]) REFERENCES [dbo].[publishers] ([pub_id]);
+GO
+
+GO
+PRINT N'Adding foreign keys to [dbo].[roysched]';
+GO
+ALTER TABLE [dbo].[roysched] ADD CONSTRAINT [FK__roysched__title___15502E78] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id]);
+GO
+
+GO
+PRINT N'Adding foreign keys to [dbo].[sales]';
+GO
+ALTER TABLE [dbo].[sales] ADD CONSTRAINT [FK__sales__stor_id__1273C1CD] FOREIGN KEY ([stor_id]) REFERENCES [dbo].[stores] ([stor_id]);
+GO
+ALTER TABLE [dbo].[sales] ADD CONSTRAINT [FK__sales__title_id__1367E606] FOREIGN KEY ([title_id]) REFERENCES [dbo].[titles] ([title_id]);
+GO
+
+GO
+PRINT N'Adding version number';
+GO
+Declare @Version Varchar(20);
+Declare @DatabaseInfo nvarchar(3000);
 SET @version = N'1.1.1';
 SELECT @DatabaseInfo =
   (
@@ -484,21 +484,21 @@ N'Database_Info', DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT
 ELSE EXEC sys.sp_updateextendedproperty @name = N'Database_Info',
 @value = @DatabaseInfo;
 go
-PRINT N'Altering permissions on TYPE:: [dbo].[empid]'
+PRINT N'Altering permissions on TYPE:: [dbo].[empid]';
 GO
-GRANT REFERENCES ON TYPE:: [dbo].[empid] TO [public]
-GO
-
-GO
-PRINT N'Altering permissions on TYPE:: [dbo].[id]'
-GO
-GRANT REFERENCES ON TYPE:: [dbo].[id] TO [public]
+GRANT REFERENCES ON TYPE:: [dbo].[empid] TO [public];
 GO
 
 GO
-PRINT N'Altering permissions on TYPE:: [dbo].[tid]'
+PRINT N'Altering permissions on TYPE:: [dbo].[id]';
 GO
-GRANT REFERENCES ON TYPE:: [dbo].[tid] TO [public]
+GRANT REFERENCES ON TYPE:: [dbo].[id] TO [public];
+GO
+
+GO
+PRINT N'Altering permissions on TYPE:: [dbo].[tid]';
+GO
+GRANT REFERENCES ON TYPE:: [dbo].[tid] TO [public];
 GO
 
 
@@ -528,7 +528,7 @@ VALUES
 ( N'846-92-7186', N'Hunter', N'Sheryl', '415 836-7128', N'3410 Blonde St.', N'Palo Alto', 'CA', '94301', 1 ), 
 ( N'893-72-1158', N'McBadden', N'Heather', '707 448-4982', N'301 Putnam', N'Vacaville', 'CA', '95688', 0 ), 
 ( N'899-46-2035', N'Ringer', N'Anne', '801 826-0752', N'67 Seventh Av.', N'Salt Lake City', 'UT', '84152', 1 ), 
-( N'998-72-3567', N'Ringer', N'Albert', '801 826-0752', N'67 Seventh Av.', N'Salt Lake City', 'UT', '84152', 1 )
+( N'998-72-3567', N'Ringer', N'Albert', '801 826-0752', N'67 Seventh Av.', N'Salt Lake City', 'UT', '84152', 1 );
 
 
 GO
@@ -545,7 +545,7 @@ INSERT publishers VALUES
 ( '1756    ', N'Ramona Publishers', N'Dallas', 'TX', 'USA' ), 
 ( '9901    ', N'GGG&G', N'M?nchen', NULL, 'Germany' ), 
 ( '9952    ', N'Scootney Books', N'New York', 'NY', 'USA' ), 
-( '9999    ', N'Lucerne Publishing', N'Paris', NULL, 'France' )
+( '9999    ', N'Lucerne Publishing', N'Paris', NULL, 'France' );
 
 GO
 
@@ -1845,12 +1845,12 @@ CREATE TABLE #titles(
 	[royalty] [int] NULL,
 	[ytd_sales] [int] NULL,
 	[notes] [varchar](200) NULL,
-	[pubdate] [datetime] NOT NULL)
+	[pubdate] [datetime] NOT NULL);
 GO
-ALTER TABLE #titles ADD  DEFAULT ('UNDECIDED') FOR [type]
+ALTER TABLE #titles ADD  DEFAULT ('UNDECIDED') FOR [type];
 GO
 
-ALTER TABLE #titles ADD  DEFAULT (getdate()) FOR [pubdate]
+ALTER TABLE #titles ADD  DEFAULT (getdate()) FOR [pubdate];
 GO
 
 INSERT into #titles
@@ -1886,7 +1886,7 @@ VALUES
 ( N'BU7832', 'Straight Talk About Computers', 'business    ', '1389', 19.9900, 5000.0000, 10, 4095, 
 'Annotated analysis of what computers can do for you: a no-hype guide for the critical user.', N'1991-06-22T00:00:00' ), 
 ( N'PS1372', 'Computer Phobic AND Non-Phobic Individuals: Behavior Variations', 'psychology  ', '0877', 21.5900, 7000.0000, 10, 375,
- 'A must for the specialist, this book examines the difference between those who hate and fear computers and those who don''t.', N'1991-10-21T00:00:00' )
+ 'A must for the specialist, this book examines the difference between those who hate and fear computers and those who don''t.', N'1991-10-21T00:00:00' );
  
 INSERT into #titles (title_id, title, pub_id)
 VALUES
@@ -1904,7 +1904,7 @@ INSERT into titles (title_id, title,  pub_id,
        notes, pubdate)
 SELECT #titles.title_id, #titles.title,  #titles.pub_id,
        #titles.price, #titles.advance, #titles.royalty, #titles.ytd_sales,
-       #titles.notes, #titles.pubdate FROM #titles
+       #titles.notes, #titles.pubdate FROM #titles;
 
 RAISERROR('Now at the inserts to titleauthor ....', 0, 1);
 INSERT titleauthor VALUES
@@ -1920,7 +1920,7 @@ INSERT titleauthor VALUES
 ( N'756-30-7391', N'PS1372', 1, 75 ), ( N'807-91-6654', N'TC3218', 1, 100 ), 
 ( N'846-92-7186', N'PC8888', 2, 50 ), ( N'899-46-2035', N'MC3021', 2, 25 ), 
 ( N'899-46-2035', N'PS2091', 2, 50 ), ( N'998-72-3567', N'PS2091', 1, 50 ), 
-( N'998-72-3567', N'PS2106', 1, 100 )
+( N'998-72-3567', N'PS2106', 1, 100 );
 
 GO
 
@@ -1934,7 +1934,7 @@ INSERT stores VALUES
 ( '7067    ', N'News & Brews', N'577 First St.', N'Los Gatos', 'CA', '96745' ), 
 ( '7131    ', N'Doc-U-Mat: Quality Laundry and Books', N'24-A Avogadro Way', N'Remulade', 'WA', '98014' ), 
 ( '7896    ', N'Fricative Bookshop', N'89 Madison St.', N'Fremont', 'CA', '90019' ), 
-( '8042    ', N'Bookbeat', N'679 Carson St.', N'Portland', 'OR', '89076' )
+( '8042    ', N'Bookbeat', N'679 Carson St.', N'Portland', 'OR', '89076' );
 
 GO
 
@@ -1963,7 +1963,7 @@ INSERT sales VALUES
 ( '8042    ', N'423LL922', N'1994-09-14T00:00:00', 15, 'ON invoice', N'MC3021' ), 
 ( '8042    ', N'423LL930', N'1994-09-14T00:00:00', 10, 'ON invoice', N'BU1032' ), 
 ( '8042    ', N'P723', N'1993-03-11T00:00:00', 25, 'Net 30', N'BU1111' ), 
-( '8042    ', N'QA879.1', N'1993-05-22T00:00:00', 30, 'Net 30', N'PC1035' )
+( '8042    ', N'QA879.1', N'1993-05-22T00:00:00', 30, 'Net 30', N'PC1035' );
 
 GO
 
@@ -2000,24 +2000,24 @@ INSERT roysched VALUES
 ( N'BU7832', 10001, 15000, 14 ), ( N'BU7832', 15001, 20000, 16 ), ( N'BU7832', 20001, 25000, 18 ), 
 ( N'BU7832', 25001, 30000, 20 ), ( N'BU7832', 30001, 35000, 22 ), ( N'BU7832', 35001, 50000, 24 ), 
 ( N'PS1372', 0, 10000, 10 ), ( N'PS1372', 10001, 20000, 12 ), ( N'PS1372', 20001, 30000, 14 ), 
-( N'PS1372', 30001, 40000, 16 ), ( N'PS1372', 40001, 50000, 18 )
+( N'PS1372', 30001, 40000, 16 ), ( N'PS1372', 40001, 50000, 18 );
 GO
 
-PRINT 'Now at the inserts to discounts ....'
+PRINT 'Now at the inserts to discounts ....';
 
 GO
 
 INSERT discounts VALUES
 ( N'Initial Customer', NULL, NULL, NULL, 10.50 ), 
 ( N'Volume Discount', NULL, 100, 1000, 6.70 ), 
-( N'Customer Discount', '8042    ', NULL, NULL, 5.00 )
+( N'Customer Discount', '8042    ', NULL, NULL, 5.00 );
 
 GO
 
 PRINT 'Now at the inserts to jobs ....';
 
 GO
-DBCC CHECKIDENT ('jobs', RESEED, 1)
+DBCC CHECKIDENT ('jobs', RESEED, 1);
 INSERT jobs (job_desc, min_lvl, max_lvl)
 Values
 ( 'New Hire - Job not specified', 10, 10 ), 
@@ -2033,7 +2033,7 @@ Values
 (  'Operations Manager', 75, 150 ), 
 (  'Editor', 25, 100 ), 
 (  'Sales Representative', 25, 100 ), 
-(  'Designer', 25, 100 )
+(  'Designer', 25, 100 );
 GO
 
 RAISERROR('Now at the inserts to employee ....', 0, 1);
@@ -2083,5 +2083,5 @@ INSERT employee VALUES
 ( 'HAS54740M', N'Howard', 'A', 'Snyder', 12, 100, '0736    ', N'1988-11-19T00:00:00' ), 
 ( 'MFS52347M', N'Martin', 'F', 'Sommer', 10, 165, '0736    ', N'1990-04-13T00:00:00' ), 
 ( 'GHT50241M', N'Gary', 'H', 'Thomas', 9, 170, '0736    ', N'1988-08-09T00:00:00' ), 
-( 'DBT39435M', N'Daniel', 'B', 'Tonini', 11, 75, '0877    ', N'1990-01-01T00:00:00' )
+( 'DBT39435M', N'Daniel', 'B', 'Tonini', 11, 75, '0877    ', N'1990-01-01T00:00:00' );
 go
