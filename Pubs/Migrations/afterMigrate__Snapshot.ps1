@@ -81,7 +81,10 @@ if ('Snapshot' -notin $WhatWeDo)
 if ('Build' -in $WhatWeDo -and 'Scripts' -notin $WhatWeDo)
      {[array]$WhatWeDo+='Scripts'}
 $WeHaveAllRequiredInfo = $false;
-write-verbose "This routine asked to do $($WhatWeDo -join ', ') "
+$writtenlist=$WhatWeDo | &{ @($Input) -as 'Collections.Stack'}|foreach{
+   $i=0;$w='';$J=@(' and ',', ')}{$W=$J[$i]+$_+$W;$i=1}{$w.TrimStart(', ')}
+
+write-verbose "This routine needs to  do $writtenlist"
 
 if ($WhatWeDo -ne $null)
 {
@@ -95,7 +98,7 @@ if ($WhatWeDo -ne $null)
 	Write-verbose 'determining the current and previous database version, and their  descriptions'
     <#-- we use 'info' to fetch the essential details we need for the various operations --#>
 	# we establish what the current version of the database is, the name of the migration
-	# file that prtoduced it, the previous version and the list of schemas.
+	# file that produced it, the previous version and the list of schemas.
 	$ContentsOfOutput = (flyway '-outputType=json'  info) # also catches flyway execution errrors
 	$WeHaveAllRequiredInfo = $?
 	try #we need to catch all the errors even if info can't execute 
@@ -237,17 +240,17 @@ if ($WeHaveAllRequiredInfo) #only if we got the info we need
     <#--    Now we can create the undo and versioned scripts  --#>			
 			if ('Scripts' -in $WhatWeDo)
 			{
-				Write-verbose 'Creating undo and versioned scripts'
-				@('undo', 'versioned') | foreach {
-					#'versioned' left out until name correct
-					$GenerateParams = @(
+				Write-verbos$GenerateParams = @(
 						"-generate.types=$_",
 						"-generate.artifactFilename=$CurrentArtefactLocation\artifact.diff"
 						"-generate.version=$Version",
 						"-generate.description=Generated-$description",
 						"-generate.location=$CurrentScriptsLocation",
 						'-generate.force=true'
-					)
+					)e 'Creating undo and versioned scripts'
+				@('undo', 'versioned') | foreach {
+					#'versioned' left out until name correct
+					
 					# we do a generate. It now overwrites any existing 
 					$generationFeedback = (flyway  $GenerateParams generate -outputType=json) #generate the script
 					$generationFeedback | convertFrom-JSON | foreach{
@@ -328,5 +331,6 @@ if ($WeHaveAllRequiredInfo) #only if we got the info we need
 		}
 	}
 }
+
 
  

@@ -1,6 +1,6 @@
 ﻿
-$VerbosePreference='continue'
-$Testing=$false; #Set to false unless you are checking things
+$Testing=$true;
+
 <#
 	.SYNOPSIS
 		Converts a string containing a CFG, Conf, or .INI file (not full TOML) into 
@@ -469,41 +469,19 @@ or key-value pair) and process accordingly.#>
 
 If ($Testing){
 
+$VerbosePreference = 'Silentlycontinue'
 
-@'
-  [ { x = 1, y = 2, z = 3 },
-    { x = 7, y = 8, z = 9 },
-    { x = 2, y = 4, z = 8 } ]
-'@|convertfrom-ini
-
-
-@{
-	'flyway' = @{
-		'url' = 'jdbc:mysql://localhost:3306/customer_test?autoreconnect'; 'placeholders' = @{
-			'email_type' = @{
-				'work' = 'Traba'; 'primary' = 'Primario'
-			}; 'phone_type' = @{ 'home' = 'Casa' }
-		};
-		'password' = 'pa$$w3!rd'; 'driver' = 'com.mysql.jdbc.Driver';
-		'locations' = 'filesystem:src/main/resources/sql/migrations';
-		'schemas' = 'customer_test'; 'user' = 'sysdba'
-	}
-}
-
-
-<# Equivalence is where two ini files representing the same hashtable 
-via different syntaxes are tested to give the same result #>
-@(
-	
-<#
- @{'Name'='value'; 'Type'='equivalence/ShouldBe'; 'Ref'=@'
+@( #Beginning if tests	
+<# sample test
+ @{'Name'='value'; 'Type'='equivalence/Equlity/ShouldBe/test etc'; 'Ref'=@'
 '@; 'Diff'=@' 
 '@}
 #>
 	
 	
 	@{
-		'Name' = 'Dotted Section'; 'Type' = 'equivalence'; 'Ref' = @'
+		'Name' = 'Dotted Section'; 'Type' = 'equivalence';
+		'Ref' = @'
 [dog."tater.man"]
 type.name = "pug"
 '@; 'Diff' = @' 
@@ -511,7 +489,6 @@ type.name = "pug"
 name = "pug"
 '@
 	},
-	
 	@{
 		'Name' = 'Single Entry Array'; 'Type' = 'ShouldBe'; 'Ref' = @'
 [flyway]
@@ -536,52 +513,31 @@ placeholderB = "B"
 				'schemas' = 'customer_test'; 'user' = 'sysdba'
 			}
 		}
-	}
-) | foreach{
-	$FirstString = $_.Ref; $SecondString = $_.Diff, $ShouldBe = $_.Shouldbe;
-    if ( $_.Type -notin ('equality','equivalence','shouldbe')) 
-        {Write-error "the $($_.Name) $($_.Type) Test was of the wrong type"}
-    if ($FirstString -eq $null){Write-error "no reference object in the $($_.Name) $($_.Type) Test"}
-	$ItWentWell = switch ($_.Type)
-	{
-		
-		'Equivalence' {
-			(($FirstString | convertfrom-ini | convertTo-json -depth 5) -eq ($SecondString | convertfrom-ini | convertTo-json -depth 5))
-		}
-        'Equality' { 
-            (($FirstString|convertfrom-ini|convertTo-json -depth 5) -eq $SecondString)
-        }
-		'ShouldBe' {
-			((diff-Objects -Ref ($FirstString | convertfrom-ini) -diff $ShouldBe | where { $_.Match -ne '==' } -eq $null))
-		}
-		default { $false }
-	}
-	write-output "The $($_.Name) $($_.Type) test went $(if ($ItWentWell) { 'well' }
-		else { 'badly' })"
-}
-
-
-
-
-
-
-
-#Array with terminating comma
-ConvertFrom-INI @'
-array1 = ["value1", "value2", "value3",] 
-'@
-@{'array1' = @('value1','value2','value3')}
-
-#Map
-ConvertFrom-INI @'
-map1 = { key1 = "value1", key2 = "value2" }
-'@|convertto-json
-
-<#gives
-@{'map1' = @{'key1' = 'value1';'key2' = 'value2'}}
-#>
-
-ConvertFrom-INI @'
+	},
+	# test of an array with a trailing comma
+	@{
+		'Name' = 'array of values with trailing comma'; 'Type' = 'ShouldBe';
+		# The ini code
+		'Ref' = @'
+array1 = ["value1", "value2", "value3,"] 
+'@;
+		# The PSON 
+		'Shouldbe' = @{ 'array1' = @('value1', 'value2', 'value3') }
+	},
+	# test of a map
+	@{
+		'Name' = 'map of values'; 'Type' = 'ShouldBe';
+		# The ini code
+		'Ref' = @'
+array1 = ["value1", "value2", "value3,"] 
+'@;
+		# The PSON 
+		'Shouldbe' = @{ 'array1' = @('value1', 'value2', 'value3') }
+	},
+	# The quick brown fox equivalence test
+	@{
+		'Name' = 'folding of strings'; 'Type' = 'test';
+		'Ref' = @'
 # The following strings are byte-for-byte equivalent:
 [truisms]
 str1 = "The quick brown fox jumps over the lazy dog."
@@ -596,56 +552,71 @@ str3 = """\
        fox jumps over \
        the lazy dog.\
        """
-'@|convertto-json -depth 3
 
-$Ref=ConvertFrom-INI @'
-[Config]
-"127.0.0.1" = "value"
-"character encoding" = "value"
-'key2' = "value"
-'quoted "value"' = "value"
-name = "Orange"
-physical.color = "orange"
-physical.shape = "round"
-site."google.com" = true
-'@
-$diff=@{'Config' = @{'site' = @{'google.com' = 'true'};'quoted "value"' = 'value';
-  '127.0.0.1' = 'value';'key2' = 'value';'name' = 'Orange';'physical' = @{'shape' = 'round';'color' = 'orange'};
-  'character encoding' = 'ENG'
-  }}
-diff-Objects -Ref $Ref -Diff $Diff  | where {$_.Match -ne '==' }
-diff-objects -Ref $Ref -Diff $Diff 
-
-ConvertFrom-json -AsHashtable @'
-{
-    "Config":  {
-                   "site":  {
-                                "google.com":  "true"
-                            },
-                   "quoted \"value\"":  "value",
-                   "127.0.0.1":  "value",
-                   "key2":  "value",
-                   "name":  "Orange",
-                   "physical":  {
-                                    "shape":  "round",
-                                    "color":  "orange"
-                                },
-                   "character encoding":  "ENG"
-               }
+'@;
+		'test' = {
+			param ($test)
+			$test.truisms.str1 -eq $test.truisms.str1 -and $test.truisms.str1 -eq $test.truisms.str3
+		}
+	}
+	# End of tests
+) | foreach{
+	$FirstString = $_.Ref; $SecondString = $_.Diff; $ShouldBe = $_.Shouldbe; $Test = $_.test;
+	if ($_.Type -notin ('equality', 'equivalence', 'shouldbe', 'test'))
+	{ Write-error "the $($_.Name) $($_.Type) Test was of the wrong type" }
+	if ($FirstString -eq $null)
+	{ Write-error "no reference object in the $($_.Name) $($_.Type) Test" }
+	$ItWentWell = switch ($_.Type)
+	{
+		'Equivalence' {
+			# Are they exactly equivalent (not necessarily correct) ?
+			(($FirstString | convertfrom-ini | convertTo-json -depth 5) -eq
+				($SecondString | convertfrom-ini | convertTo-json -depth 5))
+		}
+		'Equality' {
+			# Are is it the same as the supplied Javascript ? (where you have a checked result))
+			# caution as hashtables aren't ordered.
+			(($FirstString | convertfrom-ini | convertTo-json -depth 5) -eq $SecondString)
+		}
+		'Test' {
+			# does it pass the test supplied as a scriptbox by returning 'true' rather than 'false'
+			$Test.Invoke(($FirstString | convertfrom-ini))
+		}
+		'ShouldBe' { # compare with a powershell object directly 
+            $TheTOML = $FirstString | Convertfrom-ini 
+            !(Compare-Object -ReferenceObject $TheTOML -DifferenceObject $ShouldBe)
+		}
+		default { $false }
+	}
+	write-output "The $($_.Name) '$($_.Type)' test went $(if ($ItWentWell) { 'well' }
+		else { 'badly' })"
 }
-'@
 
-Diff-Objects  $Ref  $Diff -IncludeEqual -Property 
-
-
-
-
-
-
-
-
-ConvertFrom-INI @'
-[dummy]
+@(#  Tests
+	@('embedded parameter Test',
+		'table = [{ a = 42, b = test }, {c = 4.2} ]',
+		'{"table":[{"a":42,"b":"test"},{"c":4.2}]}'
+	),
+	@('Array with embedded tables',
+		'MyArray = [ { x = 1, y = 2, z = 3 }, { x = 7, y = 8, z = 9 }, { x = 2, y = 4, z = 8 } ]
+    ',
+		'{"MyArray":[{"y":2,"z":3,"x":1},{"y":8,"z":9,"x":7},{"y":4,"z":8,"x":2}]}'
+	),
+	@('embedded table Test',
+		'table = [ { a = 42, b = "test" }, {c = 4.2} ]',
+		'{"table":[{"a":42,"b":"test"},{"c":4.2}]}'
+	),
+	@('array of arrays',
+		' MyArray = [ { x = 1, y = 2, z = 3 },
+    { x = 7, y = 8, z = 9 },
+    { x = 2, y = 4, z = 8 } ]
+', '{"MyArray":[{"y":2,"z":3,"x":1},{"y":8,"z":9,"x":7},{"y":4,"z":8,"x":2}]}'
+	),
+	@('inline_table',
+		'MyInlineTable={ key1 = "value1", key2 = 123, key3 = "true"}',
+		'{"MyInlineTable":[{"key3":"true","key1":"value1","key2":123}]}'
+	),
+	@('Flyway config file', @'
 flyway.driver=com.mysql.jdbc.Driver
 flyway.url=jdbc:mysql://localhost:3306/customer_test?autoreconnect=true
 flyway.user=sysdba
@@ -655,120 +626,10 @@ flyway.locations=filesystem:src/main/resources/sql/migrations
 flyway.placeholders.email_type.primary=Primario
 flyway.placeholders.email_type.work=Traba
 flyway.placeholders.phone_type.home=Casa
-'@|convertto-jSON -depth 5
-
-ConvertFrom-INI @'
-[environments.sample]
-url = "jdbc:h2:mem:db"
-user = "sample user"
-password = "sample password"
-dryRunOutput = "/my/output/file.sql"
-
-[flyway]
-# It is recommended to configure environment as a commandline argument. This allows using different environments depending on the caller.
- environment = "sample" 
- locations = ["filesystem:path/to/sql/files",Another place]
- [environments.build]
- url = "jdbc:sqlite::memory:"
- user = "buildUser"
- password = "buildPassword"
-
-[flyway.check]
-buildEnvironment = "build"
-'@|convertto-json -depth 5
-
-
-ConvertFrom-INI @'
-flyway.driver=com.mysql.jdbc.Driver
-flyway.locations=[filesystem:src/main/resources/sql/migrations,
-    ./SQL/migrations,
-    ./Scripts/callbacks]
-'@|convertto-TOML -depth 5
-
-ConvertFrom-INI @'
-flyway.placeholders.email_type.primary=Phil.factor@MyWork.com
-flyway.placeholders.email_type.work=Phil.factor@MyWork.com
-flyway.placeholders.phone_type.home=Phil.factor@MyHome.com
-[Domain]
-Name = example.com
-[.Build]
-buildEnvironment = "build"
-'@|convertto-TOML -depth 5
-
-
-ConvertFrom-INI @'
-str = "I'm a string. \"You can quote me\". Name\tJos\u00E9\nLocation\tSF."
-# This is a full-line comment
-key = "value"  # This is a comment at the end of a line
-another = "# This is not a comment"
-
-'@|convertto-json -depth 5
-
-ConvertFrom-INI @'
-"127.0.0.1" = "value"
-"character encoding" = "value"
-"ʎǝʞ" = "value"
-'key2' = "value"
-'quoted "value"' = "value"
-'@|convertto-json -depth 5
-
-ConvertFrom-INI @'
-name = "Orange"
-physical.color = "orange"
-physical.shape = "round"
-site."google.com" = true
-'@|convertto-json -depth 5
-
-ConvertFrom-INI @'
-fruit.name = "banana"     # this is best practice
-fruit. color = "yellow"    # same as fruit.color
-fruit . flavor = "banana"   # same as fruit.flavor
-'@|convertto-json -depth 5
-
-ConvertFrom-INI @'
-name = "Tom"
-name = "Pradyun"
-'@|convertto-json -depth 5
-
-ConvertFrom-INI @'
-spelling = "favorite"
-"spelling" = "favourite"
-'@|convertto-json -depth 5
-
-# THE FOLLOWING IS INVALID
-ConvertFrom-INI @'
-# This defines the value of fruit.apple to be an integer.
-fruit.apple = 1
-
-# But then this treats fruit.apple like it's a table.
-# You can't turn an integer into a table.
-fruit.apple.smooth = true
-'@|convertto-json -depth 5
-
-$What=ConvertFrom-INI @'
-MyArray = ["Yan",'Tan','Tethera']
-'@
-$what|convertTo-json -Compress
-
-ConvertFrom-INI @'
-[dog."tater.man"]
-type.name = "pug"
-'@|convertto-json -Compress -depth 5
-
-ConvertFrom-ini @'
-# Top-level table begins.
-name = Fido
-breed = "pug"
-
-# Top-level table ends.
-[owner]
-name = 'Regina Dogman'
-member_since = 1999-08-04
-'@|convertto-json -Compress -depth 5
-
-
-
-ConvertFrom-ini  @'
+'@,
+		'{"flyway":{"url":"jdbc:mysql://localhost:3306/customer_test?autoreconnect=true","placeholders":{"email_type":{"work":"Traba","primary":"Primario"},"phone_type":{"home":"Casa"}},"password":"pa$$w3!rd","driver":"com.mysql.jdbc.Driver","locations":"filesystem:src/main/resources/sql/migrations","schemas":"customer_test","user":"sysdba"}}'
+	), #long strings that wrap
+	@('long strings that wrap', @'
 # Settings are simple key-value pairs
 flyway.key=value
 # Single line comment start with a hash
@@ -782,291 +643,151 @@ flyway.locations=filesystem:my/really/long/path/folder1,\
 flyway.url=jdbc:mydb://mydatabaseurl
 flyway.schemas=schema1,schema2
 flyway.placeholders.keyABC=valueXYZ
-'@ |convertto-json  -depth 5
-
-@'
-# Flyway configuration
+'@, @'
+{"flyway":{"url":"jdbc:mydb://mydatabaseurl","schemas":["schema1","schema2"],"key":"value","placeholders":{"keyABC":"valueXYZ"},"locations":["filesystem:my/really/long/path/folder1","filesystem:my/really/long/path/folder2","filesystem:my/really/long/path/folder3"]}}
+'@
+	), #Flyway config with array
+	@('Flyway config with array', @'
+[environments.sample]
+url = "jdbc:h2:mem:db"
+user = "sample user"
+password = "sample password"
+dryRunOutput = "/my/output/file.sql"
 [flyway]
-environment = "prod"
-outOfOrder = true
-# baseline settings
-baselineOnMigrate = true
-baselineVersion = "1.0"
-baselineDescription = "Initial baseline"
-locations = ["filesystem:sql/migrations"]
-callbacks = ["com.example.MyCallback"]
+# It is recommended to configure environment as a commandline argument. This allows using different environments depending on the caller.
+environment = "sample" 
+locations = ["filesystem:path/to/sql/files","Another place"]
+[environments.build]
+ url = "jdbc:sqlite::memory:"
+ user = "buildUser"
+ password = "buildPassword"
+[flyway.check]
+buildEnvironment = "build"
+'@, @'
+{"environments":{"sample":{"dryRunOutput":"/my/output/file.sql","url":"jdbc:h2:mem:db","user":"sample user","password":"sample password"},"build":{"url":"jdbc:sqlite::memory:","user":"buildUser","password":"buildPassword"}},"flyway":{"environment":"sample","check":{"buildEnvironment":"build"},"locations":["filesystem:path/to/sql/files","Another place"]}}
+'@
+	), #are escaped quotes ignored?
+	@('are escaped quotes ignored?', @'
+str = "I'm a string. \"You can quote me\". Name\tJos\u00E9\nLocation\tSF."
+# This is a full-line comment
+key = "value"  # This is a comment at the end of a line
+another = "# This is not a comment"
+'@, @'
+{"another":"# This is not a comment","key":"value","str":"I\u0027m a string. \"You can quote me\". Name\tJosé\nLocation\tSF."}
+'@
+	), #check for unicode and quoted values
+	@('check for unicode and quoted values', @'
+"127.0.0.1" = "value"
+"character encoding" = "value"
+"ʎǝʞ" = "value"
+'key2' = "value"
+'quoted "value"' = "value"
+'@, @'
+{"ʎǝʞ":"value","key2":"value","character encoding":"value","quoted \"value\"":"value","127.0.0.1":"value"}
+'@
+	), #Check for escapes in quoted values
+	@('Check for escapes in quoted values', @'
+name = "Orange"
+physical.color = "orange"
+physical.shape = "round"
+site."google.com" = true
+'@, @'
+{"site":{"google.com":"true"},"physical":{"shape":"round","color":"orange"},"name":"Orange"}
+'@
+	), #dotted hashtable
+	@('Title', @'
+name = "Orange"
+physical.color = "orange"
+physical.shape = "round"
+site."google.com" = true
+'@, @'
+{"site":{"google.com":"true"},"physical":{"shape":"round","color":"orange"},"name":"Orange"}
+'@
+	), #white space between the dots
+	@('white space between the dots', @'
+fruit.name = "banana"     # this is best practice
+fruit. color = "yellow"    # same as fruit.color
+fruit . flavor = "banana"   # same as fruit.flavor
+'@, @'
+{"fruit":{"color":"yellow","name":"banana","flavor":"banana"}}
+'@
+	), # Array as an assignment to a key
+	@('Array as an assignment to a key', @'
+MyArray = ["Yan",'Tan','Tethera']
+'@, @'
+{"MyArray":["Yan","Tan","Tethera"]}
+'@
+	), #Embedded hashtable as assignment
+	@('Embedded hashtable as assignment', @'
+[dog."tater.man"]
+type.name = "pug"
+'@, @'
+{"dog":{"tater.man":{"type":{"name":"pug"}}}}
+'@
+	), #ini-style table
+	@('ini-style table', @'
+# Top-level table begins.
+name = Fido
+breed = "pug"
 
-# Placeholders
-[flyway.placeholders]
-Project = "myProject"
-Branch = "myBranch"
-Variant = "myVariant"
+# Top-level table ends.
+[owner]
+name = 'Regina Dogman'
+member_since = 1999-08-04
+'@, @'
+{"name":"Fido","breed":"pug","owner":{"name":"Regina Dogman","member_since":"1999-08-04"}}
+'@
+	)
+<#	  #My Test
+,	@('Title', @'
+INI
+'@, @'
+JSON
+'@
+	) 
 
-# Code Analysis (Enterprise feature)
-[flyway.codeAnalysis]
-enabled = true
-rule1.regex = "(?i)^select\\s+.*\\s+from\\s+.*"
-rule1.description = "Ensure all SELECT statements follow the company SQL guidelines."
-rule2.regex = "^insert\\s+into\\s+.*\\s+values\\s+.*"
-rule2.description = "Check all INSERT INTO statements for correct value assignment."
-rule3.regex = "^update\\s+.*\\s+set\\s+.*"
-rule3.description = "Verify UPDATE statements conform to standard practices."
+#>
+) | foreach {
+	Write-Verbose "Running the '$($_[0])' test"
+    $result = ConvertFrom-ini($_[1]) | convertTo-JSON -Compress -depth 10
+	    if ($result -ne $_[2])
+	    {
+		    Write-Warning "Oops! $($_[0]): $($_[1]) produced `n$result ...not... `n$($_[2])"
+	    }
+	    else { Write-host "$($_[0]) test successful" }
+    }
+	
 
-[environments] #You define an environment in the environments (plural) namespace 
+$TheErrorFile="$($env:TEMP)\warning.txt"
+"no error">$TheErrorFile
+$null=ConvertFrom-INI @'
+name = "Tom"
+name = "Pradyun"
+'@ 3>$TheErrorFile
+if ((Type $TheErrorFile) -ne "Attempt to redefine Key name with 'Pradyun'")
+    {Write-Warning "Should have given warning`"Attempt to redefine Key name with 'Pradyun'`""}
+else {write-host " test to prevent redefining  Key name succeeded"}
 
-# The environment variable has to be lower case
-[flyway.dev]
-url = "jdbc:h2:mem:flyway_db"
-user = "devuser"
-password = "devpassword"
-locations = ["filesystem:sql/migrations_dev"]
+$null=ConvertFrom-INI @'
+spelling = "favorite"
+"spelling" = "favourite"
+'@ 3>$TheErrorFile
+if ((Type $TheErrorFile) -ne "Attempt to redefine Key `"spelling`" with 'favourite'")
+    {Write-Warning "Should have given warning`"Attempt to redefine Key `"spelling`" with 'favourite'`""}
+else {write-host " test to prevent attempt to redefine Key succeeded"}
 
-[environments.test]
-url = "jdbc:postgresql://localhost:5432/testdb"
-user = "testuser"
-password = "testpassword"
-locations = ["filesystem:sql/migrations_test"]
+# THE FOLLOWING IS INVALID
+$null=ConvertFrom-INI @'
+# This defines the value of fruit.apple to be an integer.
+fruit.apple = 1
 
-[environments.prod]
-url = "jdbc:postgresql://localhost:5432/proddb"
-user = "produser"
-password = "prodpassword"
-locations = ["filesystem:sql/migrations_prod"]
+# But then this treats fruit.apple like it's a table.
+# You can't turn an integer into a table.
+fruit.apple.smooth = true
+'@3>$TheErrorFile
+if ((Type $TheErrorFile) -ne "Key apple redefined with true")
+    {Write-Warning "Should have given the warning`"Key apple redefined with true`""}
+else {write-host " test to prevent attempt to implcitly redefine a simple value as an object succeeded"}
 
-[environments.full]
-url = "jdbc:h2:mem:flyway_db"
-user = "myuser"
-password = "mysecretpassword"
-driver = "org.h2.Driver"
-schemas = ["schema1", "schema2"]
-connectRetries = 10
-connectRetriesInterval = 60
-initSql = "ALTER SESSION SET NLS_LANGUAGE='ENGLISH';"
-jdbcProperties = { accessToken = "access-token" }
-resolvers = ["my.resolver.MigrationResolver1", "my.resolver.MigrationResolver2"]
-'@| ConvertFrom-ini |convertto-json  -depth 5 
-@'
-[environments.prod]
-url = "jdbc:postgresql://localhost:5432/proddb"
-user = "produser"
-password = "prodpassword"
-locations = ["filesystem:sql/migrations_prod"]
-
-name = { first = "Tom", last = "Preston-Werner" }
-point = { x = 1, y = 2 }
-animal = { type.name = "pug" }
-'@| ConvertFrom-ini |convertto-json  -depth 5 
-
-@'
-contributors = [
-  "Foo Bar <foo@example.com>",
-  { name = "Baz Qux", email = "bazqux@example.com", url = "https://example.com/bazqux" }
-]
-'@| ConvertFrom-ini |convertto-json  -depth 5 
-
-@'
-[environments.prod]
-url = "jdbc:postgresql://localhost:5432/proddb"
-user = "produser"
-password = "prodpassword"
-locations = ["filesystem:sql/migrations_prod"]
-[section]
-classic=true
-[[project.PS.CleanData]]
-Name='Phil'
-Surname='Factor'
-[[project.PS.InsertData]]
-Name='Jenny'
-Surname='Factor'
-
-'@| ConvertFrom-ini |convertto-json  -depth 5 -Compress
-
-@'
-owner = "andrew"
-
-[section]
-domain = "example.com"
-
-[section.subsection]
-foo = "bar"
-
-[[fruit]]
-name = "apple"
-color = "red"
-
-[[fruit.variety]]
-name = "red delicious"
-
-[[fruit.variety]]
-name = "granny smith"
-
-[[fruit]]
-name = "banana"
-color = "yellow"
-
-[[fruit.variety]]
-name = "cavendish"
-'@| ConvertFrom-ini|convertto-json  -depth 5 
-
-$What='{"color":"red","name":"apple","variety":[]}'|convertfrom-json
-$What.variety+=@{'name' = "red delicious"}
-$What.variety+=@{'name' = "Gordon Blimey"}
-$what|convertTo-json
-
-
-@'
-databaseType = "SqlServer"
-name = "my project"
-id = "0018e518-fd44-44d1-8113-5862cbd46874"
- 
-[flyway]
-mixed = true
-outOfOrder = true
-locations = ["filesystem:migrations"]
-validateMigrationNaming = true
-defaultSchema = "dbo"
- 
-[flyway.plugins.clean]
-mode = "all"[flywayDesktop]
-developmentEnvironment = "development"
-shadowEnvironment = "shadow"
-schemaModel = "./schema-model"
- 
-[redgateCompare]
-filterFile = "filter.rgf"
- 
-[redgateCompare.sqlserver]
-filterFile = "Filter.scpf"
- 
-[redgateCompare.sqlserver.options.behavior]
-addCreateOrAlterForRerunnableScripts = false
-addDropAndCreateForRerunnableScripts = false
-addNoPopulationToFulltextIndexes = false
-addObjectExistenceChecks = false
-addOnlineOnWhenCreatingIndexesOrAlteringColumns = false
-addWithEncryption = false
-considerNextFilegroupInPartitionSchemes = true
-decryptEncryptedObjects = true
-disableAutoColumnMapping = false
-dontUseAlterAssemblyToChangeClrObjects = false
-forbidDuplicateTableStorageSettings = false
-forceColumnOrder = false
-ignoreMigrationScripts = false
-includeDependencies = true
-includeRoleExistenceChecks = true
-includeSchemaExistenceChecks = true
-inlineFulltextFields = false
-inlineTableObjects = false
-useCaseSensitiveObjectDefinition = false
-useDatabaseCompatibilityLevel = false
-useSetStatementsInScriptDatabaseInfo = false
-writeAssembliesAsDlls = false
- 
-[redgateCompare.sqlserver.options.ignores]
-ignoreAuthorizationOnSchemaObjects = false
-ignoreBindings = false
-ignoreChangeTracking = false
-ignoreCollations = true
-ignoreComments = false
-ignoreDataCompression = true
-ignoreDataSyncSchema = false
-ignoreDatabaseAndServerNameInSynonyms = true
-ignoreDmlTriggers = false
-ignoreDynamicDataMasking = false
-ignoreEventNotificationsOnQueues = false
-ignoreExtendedProperties = false
-ignoreFileGroupsPartitionSchemesAndPartitionFunctions = true
-ignoreFillFactorAndIndexPadding = true
-ignoreFullTextIndexing = false
-ignoreIdentitySeedAndIncrementValues = false
-ignoreIndexes = false
-ignoreInsteadOfTriggers = false
-ignoreInternallyUsedMicrosoftExtendedProperties = false
-ignoreLockPropertiesOfIndexes = false
-ignoreNocheckAndWithNocheck = false
-ignoreNotForReplication = true
-ignoreNullabilityOfColumns = false
-ignorePerformanceIndexes = false
-ignorePermissions = false
-ignoreReplicationTriggers = true
-ignoreSchemas = false
-ignoreSensitivityClassifications = false
-ignoreSetQuotedIdentifierAndSetAnsiNullsStatements = false
-ignoreSquareBracketsInObjectNames = false
-ignoreStatistics = true
-ignoreStatisticsIncremental = false
-ignoreStatisticsNoRecomputePropertyOnIndexes = false
-ignoreSynonymDependencies = false
-ignoreSystemNamedConstraintAndIndexNames = false
-ignoreTsqltFrameworkAndTests = true
-ignoreUserProperties = true
-ignoreUsersPermissionsAndRoleMemberships = true
-ignoreWhiteSpace = true
-ignoreWithElementOrder = true
-ignoreWithEncryption = false
-ignoreWithNoCheck = true
- 
-[redgateCompare.sqlserver.data.options.mapping]
-includeTimestampColumns = false
-useCaseSensitiveObjectDefinition = true
- 
-[redgateCompare.sqlserver.data.options.comparison]
-compressTemporaryFiles = false
-forceBinaryCollation = true
-treatEmptyStringAsNull = false
-trimTrailingWhiteSpace = false
-useChecksumComparison = false
-useMaxPrecisionForFloatComparison = false
- 
-[redgateCompare.sqlserver.data.options.deployment]
-disableDdlTriggers = true
-disableDmlTriggers = false
-disableForeignKeys = false
-dontIncludeCommentsInScript = false
-dropPrimaryKeysIndexesAndUniqueConstraints = false
-reseedIdentityColumns = false
-skipIntegrityChecksForForeignKeys = false
-transportClrDataTypesAsBinary = false
-'@| ConvertFrom-ini|convertto-TOML  -depth 10
-
-
-$tricky=@'
-[environments.development]
-url = "jdbc:oracle:thin:@//Dev01:1521/dev"
-user = "developmentUsername"
-password = "developmentPassword"
-schemas= ["FW-PROJECT"]
-displayName = "Development database"
-[environments.Test]
-token = "azureAdInteractive"
-
-[environments.production.resolvers.azureAdInteractive]
-tenantId = "tenant-id"
-clientId = "client-id"
-
-[environments.philsPlayground]
-url = "jdbc:oracle:thin:@//Philf:1521/dev"
-user = "developmentUsername"
-password = "developmentPassword"
-schemas= ["FW-PROJECT"]
-displayName = "Development database"
-
- 
-[environments.test]
-url = "jdbc:oracle:thin:@//Test01:1521/test"
-user = "shadowUsername"
-password = "shadowPassword"
-schemas= ["FW-PROJECT_SHADOW"]
-displayName = "Shadow database"
-provisioner = "clean"
-
-[environments.Deployment]
-url = "jdbc:oracle:thin:@//Hoster:1521/DMZ"
-user = "shadowUsername"
-password = "shadowPassword"
-schemas= ["FW-PROJECT_SHADOW"]
-displayName = "Shadow database"
-provisioner = "clean"
-'@| ConvertFrom-ini|convertto-TOML
 }
 
