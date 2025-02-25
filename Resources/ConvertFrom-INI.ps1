@@ -1,5 +1,5 @@
 ﻿
-$Testing=$true;
+$Testing=$false;
 
 <#
 	.SYNOPSIS
@@ -614,7 +614,7 @@ str3 = """\
 	),
 	@('inline_table',
 		'MyInlineTable={ key1 = "value1", key2 = 123, key3 = "true"}',
-		'{"MyInlineTable":[{"key3":"true","key1":"value1","key2":123}]}'
+		'{"MyInlineTable":{"key3":"true","key1":"value1","key2":123}}'
 	),
 	@('Flyway config file', @'
 flyway.driver=com.mysql.jdbc.Driver
