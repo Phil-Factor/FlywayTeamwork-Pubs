@@ -1,5 +1,5 @@
 ﻿
-$Testing=$false;
+$Testing=$true;
 
 <#
 	.SYNOPSIS
@@ -110,7 +110,7 @@ BareString          )|(?<BareString>[\.\w\:/]{1,100}(?=,)|(?<=)[\.\w\:/]{1,100})
 bare key          )|(?<Barekey>\w{1,40})(?# 
 Multiline String  )|"""(?<MultiLineQuotedLiteral>(?s:.)*?)"""(?# 
 single-quoted Multiline String )|'''(?<MultiLinedelimitedLiteral>(?s:.)*?\s?)'''(?# 
-Quoted " string   )|"(?<QuotedLiteral>[^']*?)"(?# 
+Quoted " string   )|"(?<QuotedLiteral>[^"]*?)"(?# 
 Delimited ' string)|'(?<delimitedLiteral>[^']*?)'(?# 
 Array Start       )|(?<ArrayStart>\[)(?# 
 Array End         )|(?<ArrayEnd>\])(?# 
