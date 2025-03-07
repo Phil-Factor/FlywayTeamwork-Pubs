@@ -15,7 +15,12 @@ Versions/
  !Versions/Current 
 # Ignore working files
 working*.*
+# Ignore Built-in Rules
+RX0*.toml
  # Ignore flyway.conf
 flyway.conf
+flyway.toml
 directorynames.json
-	
+# Ignore disabled callbacks
+notafter*.ps1
+notbefore*.ps1	

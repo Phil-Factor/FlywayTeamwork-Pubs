@@ -1,0 +1,136 @@
+# File: codeAnalysisRules.toml
+
+# Rule 1: Disallow the use of deprecated TEXT data type
+[[rules]]
+dialects = ["TSQL"]
+rules = ["\\bTEXT\\b"]
+passOnRegexMatch = "false"
+description = "The 'TEXT' data type is deprecated; use 'VARCHAR(MAX)' instead."
+
+# Rule 2: Enforce naming convention for foreign key constraints
+[[rules]]
+dialects = ["TSQL"]
+rules = ["CONSTRAINT\\s+(?!FK_)[a-zA-Z0-9_]+"]
+passOnRegexMatch = "false"
+description = "Foreign key constraint names must start with 'FK_'."
+
+# Rule 3: Detecting SELECT * (Encourage explicit column selection)
+[[rules]]
+dialects = ["TSQL"]
+rules = ["\\bSELECT\\s+\\*"]
+passOnRegexMatch = "false"
+description = "Avoid using 'SELECT *'. Specify column names explicitly."
+# False positive risk: Caught in comments or inside strings.
+# Demo value: Shows how to detect bad practices quickly.
+
+# Rule 4: Banning Deprecated Data Types (TEXT, NTEXT, IMAGE)
+[[rules]]
+dialects = ["TSQL"]
+rules = ["\\b(TEXT|NTEXT|IMAGE)\\b"]
+passOnRegexMatch = "false"
+description = "Deprecated data type detected. Use VARCHAR(MAX), NVARCHAR(MAX), or VARBINARY(MAX) instead."
+# Great for demonstration! Works well because these types don’t appear often in comments or strings.
+#
+# Rule 5: Detecting IDENTITY_INSERT ON (Can cause issues)
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["SET\\s+IDENTITY_INSERT\\s+ON"]
+passOnRegexMatch = "false"
+description = "Avoid using 'SET IDENTITY_INSERT ON' unless necessary."
+# Useful for strict environments.
+# False positive risk: If used in commented documentation.
+
+# Rule 6:  Checking for GO Inside Stored Procedures
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["CREATE\\s+PROCEDURE[\\s\\S]*?\\bGO\\b"]
+passOnRegexMatch = "false"
+description = "'GO' should not be inside stored procedures."
+# Valid for SQL Server.
+# False positive risk: If GO appears in a commented-out block.
+
+# Rule 7:  Enforcing SET NOCOUNT ON in Stored Procedures
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["CREATE\\s+PROCEDURE[\\s\\S]*?\\bAS\\b(?!.*SET\\s+NOCOUNT\\s+ON)"]
+passOnRegexMatch = "false"
+description = "Stored procedures should include 'SET NOCOUNT ON' to prevent extra messages."
+# Excellent for teaching best practices.
+# False positive risk: If SET NOCOUNT ON is in a different order.
+
+# Rule 8: Naming Convention: Primary Keys Should Start with PK_
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["CONSTRAINT\\s+(?!PK_)[a-zA-Z0-9_]+"]
+passOnRegexMatch = "false"
+description = "Primary key constraints should start with 'PK_'."
+# Easy win for enforcing naming standards.
+# False positive risk: If a non-primary key is caught.
+
+# Rule 9:  Naming Convention: Foreign Keys Should Start with FK_
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["CONSTRAINT\\s+(?!FK_)[a-zA-Z0-9_]+"]
+passOnRegexMatch = "false"
+description = "Foreign key constraints should start with 'FK_'."
+# Complements primary key rule.
+# False positive risk: Might match unrelated constraints.
+
+# Rule 10:  Ensuring Indexes are Named Properly (IX_)
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["INDEX\\s+(?!IX_)[a-zA-Z0-9_]+"]
+passOnRegexMatch = "false"
+description = "Index names should start with 'IX_'."
+# Helps keep indexing consistent.
+
+# Rule 11:  Avoid using SELECT *
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["(?i)SELECT\\s+\\*"]
+passOnRegexMatch = "false"
+description = "Avoid using SELECT *; specify column names explicitly."
+# "no_select_star" = { pattern = "(?i)SELECT\\s+\\*", message = "Avoid using SELECT *; specify column names explicitly." }
+
+# Rule 12:  UNION ALL unless duplicate removal is required
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["(?i)UNION(?!\\s+ALL)"]
+passOnRegexMatch = "false"
+description = "Use UNION ALL unless duplicate removal is required."
+# "no_union_without_all" = { pattern = "(?i)UNION(?!\\s+ALL)", message = "Use UNION ALL unless duplicate removal is required." }
+
+# Rule :  explicit_join_type
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["(?i)\\bJOIN\\b"]
+passOnRegexMatch = "Use INNER JOIN, LEFT JOIN, or RIGHT JOIN explicitly."
+description = ""
+# -- "explicit_join_type" = { pattern = "(?i)\bJOIN\b", message = "Use INNER JOIN, LEFT JOIN, or RIGHT JOIN explicitly." }
+
+# Rule :  avoid_right_join
+
+[[rules]]
+dialects = ["TSQL"]
+rules = ["(?i)RIGHT\\s+JOIN"]
+passOnRegexMatch = "false"
+description =  "Prefer LEFT JOIN for readability and maintainability." 
+# -- "avoid_right_join" = { pattern = "(?i)RIGHT\\s+JOIN", message = "Prefer LEFT JOIN for readability and maintainability." }
+
+
+# Rule :  avoid_short_aliases
+[[rules]]
+dialects = ["TSQL"]
+rules = ["(?i)FROM\\s+[a-zA-Z0-9_]+\\s+[a-zA-Z]\\b"]
+passOnRegexMatch = "false"
+description = "Use meaningful table aliases instead of single-letter ones." 
+#-- "avoid_short_aliases" = { pattern = "(?i)FROM\\s+[a-zA-Z0-9_]+\\s+[a-zA-Z]\\b", message = "Use meaningful table aliases instead of single-letter ones." }
