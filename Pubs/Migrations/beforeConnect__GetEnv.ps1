@@ -44,6 +44,7 @@ user variable
     }
   } -end {
  if ($TheObject.Flyway.PASSWORD -ne $null){$TheObject.Flyway.PASSWORD = 'redacted'};
- ($TheObject  | convertTo-json)>"$env:USERPROFILE\$($Env:FP__CurrentSettings__).json" }
+ ($TheObject  | convertTo-json)>"$($env:USERPROFILE)\$($Env:FP__CurrentSettings__).json" }
+ Write-verbose "$($TheObject  | convertTo-json -Compress)"
 }
 

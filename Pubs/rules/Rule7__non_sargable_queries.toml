@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)WHERE\\s+.*(upper|lower|substring|replace|coalesce|mod|round|nullif)"]
+passOnRegexMatch = false
+description = "Functions in `WHERE` clauses impact indexing."

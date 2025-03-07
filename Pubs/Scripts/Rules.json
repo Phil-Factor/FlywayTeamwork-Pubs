@@ -1,0 +1,145 @@
+{
+  "rules": [
+    {
+      "name": "ToDo_Test",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)toDo|toTest|tearDown"
+      ],
+      "description": "possible unfinished alteration or Test artefact."
+    },
+    {
+      "name": "unqualified_columns",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)SELECT[^.]+?FROM.{1,50}?JOIN"
+      ],
+      "description": "If a query involving a join, it is safer to specify the table origin of a column."
+    },
+    {
+      "name": "select_star",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)SELECT\\\\s+\\\\*"
+      ],
+      "description": "Avoid `SELECT *`; specify columns explicitly because tables can be subsequently altered."
+    },
+    {
+      "name": "implicit_joins",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)FROM\\\\s+\\\\w+(\\\\s*,\\\\s*\\\\w+)+"
+      ],
+      "description": "Use explicit `JOIN` instead of comma joins."
+    },
+    {
+      "name": "old_style_outer_joins",
+      "dialects": [
+        "TSQL",
+        "Oracle"
+      ],
+      "regex": [
+        "\\\\(\\\\+\\\\)"
+      ],
+      "description": "Replace with ANSI SQL outer joins."
+    },
+    {
+      "name": "End_of_line_comments_with_no_space_afer --",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "--\\\\S"
+      ],
+      "description": " end of line comments without a leading space (Style not error)"
+    },
+    {
+      "name": "non_sargable_queries",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)WHERE\\\\s+.*(upper|lower|substring|replace|coalesce|mod|round|nullif)"
+      ],
+      "description": "Functions in `WHERE` clauses impact indexing."
+    },
+    {
+      "name": "union_without_all",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)UNION(?!\\\\s+ALL)"
+      ],
+      "description": "Use `UNION ALL` unless duplicates must be removed."
+    },
+    {
+      "name": "no_where_delete_update",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)(DELETE|UPDATE)\\\\s+(?!.*\\\\bWHERE\\\\b)"
+      ],
+      "description": "Dangerous operation without filtering."
+    },
+    {
+      "name": "order_by_without_limit",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)ORDER\\\\s+BY\\\\s+[^;]*$"
+      ],
+      "description": "Inefficient for large datasets."
+    },
+    {
+      "name": "set_fmtonly_on",
+      "dialects": [
+        "TSQL"
+      ],
+      "regex": [
+        "(?i)SET\\\\s+FMTONLY\\\\s+ON"
+      ],
+      "description": "Deprecated; use `sp_describe_first_result_set`."
+    },
+    {
+      "name": "explicit_join_type",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)\\\\bJOIN\\\\b"
+      ],
+      "description": "Use `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN` explicitly."
+    },
+    {
+      "name": "avoid_right_join",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)RIGHT\\\\s+JOIN"
+      ],
+      "description": "Prefer `LEFT JOIN` for better readability."
+    },
+    {
+      "name": "small_varchar_sizes",
+      "dialects": [
+        "TEXT"
+      ],
+      "regex": [
+        "(?i)VARCHAR\\\\s*\\\\(\\\\s*[1-3]\\\\d?\\\\s*\\\\)"
+      ],
+      "description": "Suggest using `CHAR` for small, fixed-size fields."
+    }
+  ]
+}

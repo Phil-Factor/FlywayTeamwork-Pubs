@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["--\\S"]
+passOnRegexMatch = false
+description = " end of line comments without a leading space (Style not error)"

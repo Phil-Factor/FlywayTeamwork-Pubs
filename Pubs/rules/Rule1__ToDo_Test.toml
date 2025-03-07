@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)toDo|toTest|tearDown"]
+passOnRegexMatch = false
+description = "possible unfinished alteration or Test artefact."

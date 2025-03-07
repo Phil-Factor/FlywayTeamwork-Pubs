@@ -240,7 +240,8 @@ if ($WeHaveAllRequiredInfo) #only if we got the info we need
     <#--    Now we can create the undo and versioned scripts  --#>			
 			if ('Scripts' -in $WhatWeDo)
 			{
-				Write-verbos$GenerateParams = @(
+				Write-verbose 'Creating the Undo and Versioned script'
+                $GenerateParams = @(
 						"-generate.types=$_",
 						"-generate.artifactFilename=$CurrentArtefactLocation\artifact.diff"
 						"-generate.version=$Version",

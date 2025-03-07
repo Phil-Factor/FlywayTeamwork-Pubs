@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)RIGHT\\s+JOIN"]
+passOnRegexMatch = false
+description = "Prefer `LEFT JOIN` for better readability."

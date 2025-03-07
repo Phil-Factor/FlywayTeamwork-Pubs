@@ -20,1052 +20,2046 @@ SET NOEXEC OFF;
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[address].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'address';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'address';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[au_fname].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'au_fname';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'au_fname';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[au_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'au_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'au_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[au_lname].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'au_lname';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'au_lname';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[city].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'city';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'city';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[contract].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'contract';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'contract';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[phone].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'phone';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'phone';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[state].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'state';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'state';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[zip].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors', @level2type = N'COLUMN', @level2name = N'zip';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors',
+                                @level2type = N'COLUMN',
+                                @level2name = N'zip';
 GO
 PRINT N'Dropping Extended Property [dbo].[authors].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'authors';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'authors';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[discount].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'discount';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'discount';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[Discount_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'Discount_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Discount_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[discounttype].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'discounttype';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'discounttype';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[highqty].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'highqty';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'highqty';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[lowqty].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'lowqty';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'lowqty';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[stor_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts', @level2type = N'COLUMN', @level2name = N'stor_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts',
+                                @level2type = N'COLUMN',
+                                @level2name = N'stor_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[discounts].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'discounts';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'discounts';
 GO
 PRINT N'Dropping Extended Property [dbo].[editions].[Edition_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'editions', @level2type = N'COLUMN', @level2name = N'Edition_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'editions',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Edition_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[editions].[EditionDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'editions', @level2type = N'COLUMN', @level2name = N'EditionDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'editions',
+                                @level2type = N'COLUMN',
+                                @level2name = N'EditionDate';
 GO
 PRINT N'Dropping Extended Property [dbo].[editions].[publication_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'editions', @level2type = N'COLUMN', @level2name = N'publication_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'editions',
+                                @level2type = N'COLUMN',
+                                @level2name = N'publication_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[editions].[Publication_type].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'editions', @level2type = N'COLUMN', @level2name = N'Publication_type';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'editions',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Publication_type';
 GO
 PRINT N'Dropping Extended Property [dbo].[editions].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'editions';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'editions';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[emp_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'emp_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'emp_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[fname].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'fname';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'fname';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[hire_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'hire_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'hire_date';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[job_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'job_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'job_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[job_lvl].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'job_lvl';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'job_lvl';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[lname].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'lname';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'lname';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[minit].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'minit';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'minit';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[pub_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee', @level2type = N'COLUMN', @level2name = N'pub_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pub_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[employee].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'employee';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'employee';
 GO
 PRINT N'Dropping Extended Property [dbo].[jobs].[job_desc].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'jobs', @level2type = N'COLUMN', @level2name = N'job_desc';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'jobs',
+                                @level2type = N'COLUMN',
+                                @level2name = N'job_desc';
 GO
 PRINT N'Dropping Extended Property [dbo].[jobs].[job_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'jobs', @level2type = N'COLUMN', @level2name = N'job_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'jobs',
+                                @level2type = N'COLUMN',
+                                @level2name = N'job_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[jobs].[max_lvl].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'jobs', @level2type = N'COLUMN', @level2name = N'max_lvl';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'jobs',
+                                @level2type = N'COLUMN',
+                                @level2name = N'max_lvl';
 GO
 PRINT N'Dropping Extended Property [dbo].[jobs].[min_lvl].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'jobs', @level2type = N'COLUMN', @level2name = N'min_lvl';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'jobs',
+                                @level2type = N'COLUMN',
+                                @level2name = N'min_lvl';
 GO
 PRINT N'Dropping Extended Property [dbo].[jobs].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'jobs';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'jobs';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[advance].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'advance';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'advance';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[Edition_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'Edition_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Edition_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[price].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'price';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'price';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[Price_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'Price_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Price_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[PriceEndDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'PriceEndDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'PriceEndDate';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[PriceStartDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'PriceStartDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'PriceStartDate';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[royalty].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'royalty';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'royalty';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[ytd_sales].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices', @level2type = N'COLUMN', @level2name = N'ytd_sales';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ytd_sales';
 GO
 PRINT N'Dropping Extended Property [dbo].[prices].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'prices';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'prices';
 GO
 PRINT N'Dropping Extended Property [dbo].[pub_info].[logo].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'pub_info', @level2type = N'COLUMN', @level2name = N'logo';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'pub_info',
+                                @level2type = N'COLUMN',
+                                @level2name = N'logo';
 GO
 PRINT N'Dropping Extended Property [dbo].[pub_info].[pr_info].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'pub_info', @level2type = N'COLUMN', @level2name = N'pr_info';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'pub_info',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pr_info';
 GO
 PRINT N'Dropping Extended Property [dbo].[pub_info].[pub_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'pub_info', @level2type = N'COLUMN', @level2name = N'pub_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'pub_info',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pub_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[pub_info].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'pub_info';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'pub_info';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[notes].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications', @level2type = N'COLUMN', @level2name = N'notes';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications',
+                                @level2type = N'COLUMN',
+                                @level2name = N'notes';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[pub_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications', @level2type = N'COLUMN', @level2name = N'pub_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pub_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[pubdate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications', @level2type = N'COLUMN', @level2name = N'pubdate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pubdate';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[Publication_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications', @level2type = N'COLUMN', @level2name = N'Publication_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Publication_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[title].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications', @level2type = N'COLUMN', @level2name = N'title';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications',
+                                @level2type = N'COLUMN',
+                                @level2name = N'title';
 GO
 PRINT N'Dropping Extended Property [dbo].[publications].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publications';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publications';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[city].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers', @level2type = N'COLUMN', @level2name = N'city';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers',
+                                @level2type = N'COLUMN',
+                                @level2name = N'city';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[country].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers', @level2type = N'COLUMN', @level2name = N'country';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers',
+                                @level2type = N'COLUMN',
+                                @level2name = N'country';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[pub_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers', @level2type = N'COLUMN', @level2name = N'pub_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pub_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[pub_name].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers', @level2type = N'COLUMN', @level2name = N'pub_name';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers',
+                                @level2type = N'COLUMN',
+                                @level2name = N'pub_name';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[state].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers', @level2type = N'COLUMN', @level2name = N'state';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers',
+                                @level2type = N'COLUMN',
+                                @level2name = N'state';
 GO
 PRINT N'Dropping Extended Property [dbo].[publishers].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'publishers';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'publishers';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[hirange].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched', @level2type = N'COLUMN', @level2name = N'hirange';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched',
+                                @level2type = N'COLUMN',
+                                @level2name = N'hirange';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[lorange].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched', @level2type = N'COLUMN', @level2name = N'lorange';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched',
+                                @level2type = N'COLUMN',
+                                @level2name = N'lorange';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[royalty].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched', @level2type = N'COLUMN', @level2name = N'royalty';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched',
+                                @level2type = N'COLUMN',
+                                @level2name = N'royalty';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[roysched_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched', @level2type = N'COLUMN', @level2name = N'roysched_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched',
+                                @level2type = N'COLUMN',
+                                @level2name = N'roysched_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[title_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched', @level2type = N'COLUMN', @level2name = N'title_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched',
+                                @level2type = N'COLUMN',
+                                @level2name = N'title_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[roysched].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'roysched';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'roysched';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[ord_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'ord_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ord_date';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[ord_num].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'ord_num';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ord_num';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[payterms].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'payterms';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'payterms';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[qty].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'qty';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'qty';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[stor_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'stor_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'stor_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[title_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales', @level2type = N'COLUMN', @level2name = N'title_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales',
+                                @level2type = N'COLUMN',
+                                @level2name = N'title_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[sales].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'sales';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'sales';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[city].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'city';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'city';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[state].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'state';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'state';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[stor_address].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'stor_address';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'stor_address';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[stor_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'stor_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'stor_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[stor_name].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'stor_name';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'stor_name';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[zip].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores', @level2type = N'COLUMN', @level2name = N'zip';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores',
+                                @level2type = N'COLUMN',
+                                @level2name = N'zip';
 GO
 PRINT N'Dropping Extended Property [dbo].[stores].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'stores';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'stores';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagName].[Tag].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagName', @level2type = N'COLUMN', @level2name = N'Tag';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagName',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Tag';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagName].[TagName_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagName', @level2type = N'COLUMN', @level2name = N'TagName_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagName',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TagName_ID';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagName].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagName';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagName';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagTitle].[Is_Primary].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagTitle', @level2type = N'COLUMN', @level2name = N'Is_Primary';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagTitle',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Is_Primary';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagTitle].[TagName_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagTitle', @level2type = N'COLUMN', @level2name = N'TagName_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagTitle',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TagName_ID';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagTitle].[TagTitle_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagTitle', @level2type = N'COLUMN', @level2name = N'TagTitle_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagTitle',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TagTitle_ID';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagTitle].[title_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagTitle', @level2type = N'COLUMN', @level2name = N'title_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagTitle',
+                                @level2type = N'COLUMN',
+                                @level2name = N'title_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[TagTitle].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TagTitle';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'TagTitle';
 GO
 PRINT N'Dropping Extended Property [dbo].[titleauthor].[au_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'titleauthor', @level2type = N'COLUMN', @level2name = N'au_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'titleauthor',
+                                @level2type = N'COLUMN',
+                                @level2name = N'au_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[titleauthor].[au_ord].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'titleauthor', @level2type = N'COLUMN', @level2name = N'au_ord';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'titleauthor',
+                                @level2type = N'COLUMN',
+                                @level2name = N'au_ord';
 GO
 PRINT N'Dropping Extended Property [dbo].[titleauthor].[royaltyper].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'titleauthor', @level2type = N'COLUMN', @level2name = N'royaltyper';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'titleauthor',
+                                @level2type = N'COLUMN',
+                                @level2name = N'royaltyper';
 GO
 PRINT N'Dropping Extended Property [dbo].[titleauthor].[title_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'titleauthor', @level2type = N'COLUMN', @level2name = N'title_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'titleauthor',
+                                @level2type = N'COLUMN',
+                                @level2name = N'title_id';
 GO
 PRINT N'Dropping Extended Property [dbo].[titleauthor].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'titleauthor';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'dbo',
+                                @level1type = N'TABLE',
+                                @level1name = N'titleauthor';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[Abode_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'Abode_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Abode_ID';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[Address_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'Address_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Address_id';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[End_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'End_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'End_date';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[Person_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'Person_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Person_id';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[Start_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'Start_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Start_date';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[TypeOfAddress].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode', @level2type = N'COLUMN', @level2name = N'TypeOfAddress';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TypeOfAddress';
 GO
 PRINT N'Dropping Extended Property [people].[Abode].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Abode';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Abode';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[Full_Address].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'Full_Address';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Full_Address';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[Address_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'Address_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Address_ID';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[AddressLine1].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'AddressLine1';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'AddressLine1';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[AddressLine2].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'AddressLine2';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'AddressLine2';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[City].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'City';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'City';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[Address].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Address';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Address';
 GO
 PRINT N'Dropping Extended Property [people].[AddressType].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'AddressType', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'AddressType',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[AddressType].[TypeOfAddress].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'AddressType', @level2type = N'COLUMN', @level2name = N'TypeOfAddress';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'AddressType',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TypeOfAddress';
 GO
 PRINT N'Dropping Extended Property [people].[AddressType].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'AddressType';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'AddressType';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[CardNumber].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'CardNumber';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'CardNumber';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[CreditCardID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'CreditCardID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'CreditCardID';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[CVC].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'CVC';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'CVC';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[Person_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'Person_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Person_id';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[ValidFrom].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'ValidFrom';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ValidFrom';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[ValidTo].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard', @level2type = N'COLUMN', @level2name = N'ValidTo';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ValidTo';
 GO
 PRINT N'Dropping Extended Property [people].[CreditCard].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'CreditCard';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'CreditCard';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[EmailAddress].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'EmailAddress';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'EmailAddress';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[EmailID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'EmailID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'EmailID';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[EndDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'EndDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'EndDate';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[Person_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'Person_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Person_id';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[StartDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress', @level2type = N'COLUMN', @level2name = N'StartDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress',
+                                @level2type = N'COLUMN',
+                                @level2name = N'StartDate';
 GO
 PRINT N'Dropping Extended Property [people].[EmailAddress].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'EmailAddress';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'EmailAddress';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[NoteStart].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'NoteStart';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'NoteStart';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[InsertedBy].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'InsertedBy';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'InsertedBy';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[InsertionDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'InsertionDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'InsertionDate';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[Note].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'Note';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Note';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[Note_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note', @level2type = N'COLUMN', @level2name = N'Note_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Note_id';
 GO
 PRINT N'Dropping Extended Property [people].[Note].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Note';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Note';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[InsertionDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson', @level2type = N'COLUMN', @level2name = N'InsertionDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson',
+                                @level2type = N'COLUMN',
+                                @level2name = N'InsertionDate';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[Note_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson', @level2type = N'COLUMN', @level2name = N'Note_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Note_id';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[NotePerson_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson', @level2type = N'COLUMN', @level2name = N'NotePerson_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson',
+                                @level2type = N'COLUMN',
+                                @level2name = N'NotePerson_id';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[Person_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson', @level2type = N'COLUMN', @level2name = N'Person_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Person_id';
 GO
 PRINT N'Dropping Extended Property [people].[NotePerson].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'NotePerson';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'NotePerson';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[fullName].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'fullName';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'fullName';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[FirstName].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'FirstName';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'FirstName';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[LastName].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'LastName';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'LastName';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[MiddleName].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'MiddleName';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'MiddleName';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[Nickname].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'Nickname';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Nickname';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[person_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'person_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'person_ID';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[Suffix].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'Suffix';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Suffix';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[Title].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person', @level2type = N'COLUMN', @level2name = N'Title';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Title';
 GO
 PRINT N'Dropping Extended Property [people].[Person].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Person';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Person';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[DiallingNumber].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'DiallingNumber';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'DiallingNumber';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[End_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'End_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'End_date';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[Person_id].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'Person_id';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Person_id';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[Phone_ID].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'Phone_ID';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Phone_ID';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[Start_date].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'Start_date';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'Start_date';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[TypeOfPhone].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone', @level2type = N'COLUMN', @level2name = N'TypeOfPhone';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TypeOfPhone';
 GO
 PRINT N'Dropping Extended Property [people].[Phone].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'Phone';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'Phone';
 GO
 PRINT N'Dropping Extended Property [people].[PhoneType].[ModifiedDate].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'PhoneType', @level2type = N'COLUMN', @level2name = N'ModifiedDate';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'PhoneType',
+                                @level2type = N'COLUMN',
+                                @level2name = N'ModifiedDate';
 GO
 PRINT N'Dropping Extended Property [people].[PhoneType].[TypeOfPhone].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'PhoneType', @level2type = N'COLUMN', @level2name = N'TypeOfPhone';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'PhoneType',
+                                @level2type = N'COLUMN',
+                                @level2name = N'TypeOfPhone';
 GO
 PRINT N'Dropping Extended Property [people].[PhoneType].[MS_Description]...';
 GO
-EXECUTE sp_dropextendedproperty @name = N'MS_Description', @level0type = N'SCHEMA', @level0name = N'people', @level1type = N'TABLE', @level1name = N'PhoneType';
+EXECUTE sp_dropextendedproperty @name = N'MS_Description',
+                                @level0type = N'SCHEMA',
+                                @level0name = N'people',
+                                @level1type = N'TABLE',
+                                @level1name = N'PhoneType';
 GO
 PRINT N'Creating Table [accounting].[Bill_Lines]...';
 GO
-CREATE TABLE [accounting].[Bill_Lines] (
-    [id]                        INT             NOT NULL,
-    [line_amount]               DECIMAL (20, 2) NOT NULL,
-    [bill_id]                   INT             NULL,
-    [line_Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Bill_Lines
+(
+    id INT NOT NULL,
+    line_amount DECIMAL(20, 2) NOT NULL,
+    bill_id INT NULL,
+    line_Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Bill_Payments]...';
 GO
-CREATE TABLE [accounting].[Bill_Payments] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [description]          NVARCHAR (MAX)  NULL,
-    [reference]            NVARCHAR (MAX)  NULL,
-    [total]                DECIMAL (20, 2) NOT NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Bill_Payments
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    description NVARCHAR(MAX) NULL,
+    reference NVARCHAR(MAX) NULL,
+    total DECIMAL(20, 2) NOT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Bills]...';
 GO
-CREATE TABLE [accounting].[Bills] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [due_date]             DATE            NULL,
-    [description]          NVARCHAR (MAX)  NULL,
-    [reference]            NVARCHAR (MAX)  NULL,
-    [total]                DECIMAL (10, 2) NOT NULL,
-    [status]               SMALLINT        NULL,
-    [supplier_id]          INT             NULL,
-    [bill_payment_id]      INT             NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Bills
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    due_date DATE NULL,
+    description NVARCHAR(MAX) NULL,
+    reference NVARCHAR(MAX) NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    status SMALLINT NULL,
+    supplier_id INT NULL,
+    bill_payment_id INT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Chart_of_Accounts]...';
 GO
-CREATE TABLE [accounting].[Chart_of_Accounts] (
-    [id]   INT          NOT NULL,
-    [Name] VARCHAR (50) NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC),
-    UNIQUE NONCLUSTERED ([Name] ASC)
+CREATE TABLE accounting.Chart_of_Accounts
+(
+    id INT NOT NULL,
+    Name VARCHAR(50) NULL,
+    PRIMARY KEY CLUSTERED (id ASC),
+    UNIQUE NONCLUSTERED (Name ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[customer]...';
 GO
-CREATE TABLE [accounting].[customer] (
-    [id]              INT      NOT NULL,
-    [person_id]       INT      NULL,
-    [organisation_id] INT      NULL,
-    [CustomerFrom]    DATE     NOT NULL,
-    [CustomerTo]      DATE     NULL,
-    [ModifiedDate]    DATETIME NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.customer
+(
+    id INT NOT NULL,
+    person_id INT NULL,
+    organisation_id INT NULL,
+    CustomerFrom DATE NOT NULL,
+    CustomerTo DATE NULL,
+    ModifiedDate DATETIME NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Invoice_Lines]...';
 GO
-CREATE TABLE [accounting].[Invoice_Lines] (
-    [id]                        INT             NOT NULL,
-    [line_amount]               DECIMAL (20, 2) NOT NULL,
-    [invoice_id]                INT             NULL,
-    [line_Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Invoice_Lines
+(
+    id INT NOT NULL,
+    line_amount DECIMAL(20, 2) NOT NULL,
+    invoice_id INT NULL,
+    line_Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Invoice_Payments]...';
 GO
-CREATE TABLE [accounting].[Invoice_Payments] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [description]          NVARCHAR (MAX)  NOT NULL,
-    [reference]            NVARCHAR (MAX)  NOT NULL,
-    [total]                DECIMAL (20, 2) NOT NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    [ModifiedDate]         DATETIME        NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Invoice_Payments
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    description NVARCHAR(MAX) NOT NULL,
+    reference NVARCHAR(MAX) NOT NULL,
+    total DECIMAL(20, 2) NOT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    ModifiedDate DATETIME NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Invoices]...';
 GO
-CREATE TABLE [accounting].[Invoices] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [due_date]             DATE            NULL,
-    [description]          NVARCHAR (MAX)  NULL,
-    [reference]            NVARCHAR (MAX)  NULL,
-    [total]                DECIMAL (10, 2) NOT NULL,
-    [status]               SMALLINT        NULL,
-    [customer_id]          INT             NULL,
-    [invoice_payment_id]   INT             NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Invoices
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    due_date DATE NULL,
+    description NVARCHAR(MAX) NULL,
+    reference NVARCHAR(MAX) NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    status SMALLINT NULL,
+    customer_id INT NULL,
+    invoice_payment_id INT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Received_Money_Lines]...';
 GO
-CREATE TABLE [accounting].[Received_Money_Lines] (
-    [id]                        INT             NOT NULL,
-    [line_amount]               DECIMAL (20, 2) NOT NULL,
-    [received_money_id]         INT             NULL,
-    [line_Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Received_Money_Lines
+(
+    id INT NOT NULL,
+    line_amount DECIMAL(20, 2) NOT NULL,
+    received_money_id INT NULL,
+    line_Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Received_Moneys]...';
 GO
-CREATE TABLE [accounting].[Received_Moneys] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [description]          NVARCHAR (MAX)  NULL,
-    [reference]            NVARCHAR (MAX)  NULL,
-    [total]                DECIMAL (20, 2) NOT NULL,
-    [customer_id]          INT             NOT NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Received_Moneys
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    description NVARCHAR(MAX) NULL,
+    reference NVARCHAR(MAX) NULL,
+    total DECIMAL(20, 2) NOT NULL,
+    customer_id INT NOT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Spent_Money_Lines]...';
 GO
-CREATE TABLE [accounting].[Spent_Money_Lines] (
-    [id]                        INT             NOT NULL,
-    [line_amount]               DECIMAL (20, 2) NOT NULL,
-    [spent_money_id]            INT             NULL,
-    [line_Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Spent_Money_Lines
+(
+    id INT NOT NULL,
+    line_amount DECIMAL(20, 2) NOT NULL,
+    spent_money_id INT NULL,
+    line_Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Spent_Moneys]...';
 GO
-CREATE TABLE [accounting].[Spent_Moneys] (
-    [id]                   INT             NOT NULL,
-    [tran_date]            DATE            NOT NULL,
-    [description]          NVARCHAR (MAX)  NULL,
-    [reference]            NVARCHAR (MAX)  NULL,
-    [total]                DECIMAL (20, 2) NOT NULL,
-    [supplier_id]          INT             NULL,
-    [Chart_of_Accounts_id] INT             NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Spent_Moneys
+(
+    id INT NOT NULL,
+    tran_date DATE NOT NULL,
+    description NVARCHAR(MAX) NULL,
+    reference NVARCHAR(MAX) NULL,
+    total DECIMAL(20, 2) NOT NULL,
+    supplier_id INT NULL,
+    Chart_of_Accounts_id INT NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [accounting].[Suppliers]...';
 GO
-CREATE TABLE [accounting].[Suppliers] (
-    [id]           INT      NOT NULL,
-    [supplier_id]  INT      NULL,
-    [contact_id]   INT      NULL,
-    [CustomerFrom] DATE     NOT NULL,
-    [CustomerTo]   DATE     NULL,
-    [ModifiedDate] DATETIME NOT NULL,
-    PRIMARY KEY CLUSTERED ([id] ASC)
+CREATE TABLE accounting.Suppliers
+(
+    id INT NOT NULL,
+    supplier_id INT NULL,
+    contact_id INT NULL,
+    CustomerFrom DATE NOT NULL,
+    CustomerTo DATE NULL,
+    ModifiedDate DATETIME NOT NULL,
+    PRIMARY KEY CLUSTERED (id ASC)
 );
 GO
 PRINT N'Creating Table [people].[Word]...';
 GO
-CREATE TABLE [people].[Word] (
-    [Item]      VARCHAR (255) NOT NULL,
-    [frequency] INT           NOT NULL,
-    CONSTRAINT [PKWord] PRIMARY KEY CLUSTERED ([Item] ASC)
+CREATE TABLE people.Word
+(
+    Item VARCHAR(255) NOT NULL,
+    frequency INT NOT NULL,
+    CONSTRAINT PKWord
+        PRIMARY KEY CLUSTERED (Item ASC)
 );
 GO
 PRINT N'Creating Table [people].[WordOccurence]...';
 GO
-CREATE TABLE [people].[WordOccurence] (
-    [Item]     VARCHAR (255) NOT NULL,
-    [location] INT           NOT NULL,
-    [Sequence] INT           NOT NULL,
-    [Note]     INT           NOT NULL,
-    CONSTRAINT [PKWordOcurrence] PRIMARY KEY CLUSTERED ([Item] ASC, [Sequence] ASC, [Note] ASC)
+CREATE TABLE people.WordOccurence
+(
+    Item VARCHAR(255) NOT NULL,
+    location INT NOT NULL,
+    Sequence INT NOT NULL,
+    Note INT NOT NULL,
+    CONSTRAINT PKWordOcurrence
+        PRIMARY KEY CLUSTERED (
+                                  Item ASC,
+                                  Sequence ASC,
+                                  Note ASC
+                              )
 );
 GO
 PRINT N'Creating Default Constraint unnamed constraint on [accounting].[customer]...';
 GO
-ALTER TABLE [accounting].[customer]
-    ADD DEFAULT (getdate()) FOR [ModifiedDate];
+ALTER TABLE accounting.customer
+ADD
+    DEFAULT (getdate()) FOR ModifiedDate;
 GO
 PRINT N'Creating Default Constraint unnamed constraint on [accounting].[Invoice_Payments]...';
 GO
-ALTER TABLE [accounting].[Invoice_Payments]
-    ADD DEFAULT (getdate()) FOR [ModifiedDate];
+ALTER TABLE accounting.Invoice_Payments
+ADD
+    DEFAULT (getdate()) FOR ModifiedDate;
 GO
 PRINT N'Creating Default Constraint unnamed constraint on [accounting].[Suppliers]...';
 GO
-ALTER TABLE [accounting].[Suppliers]
-    ADD DEFAULT (getdate()) FOR [ModifiedDate];
+ALTER TABLE accounting.Suppliers
+ADD
+    DEFAULT (getdate()) FOR ModifiedDate;
 GO
 PRINT N'Creating Default Constraint unnamed constraint on [people].[Word]...';
 GO
-ALTER TABLE [people].[Word]
-    ADD DEFAULT ((0)) FOR [frequency];
+ALTER TABLE people.Word ADD DEFAULT ((0)) FOR frequency;
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bill_Lines]...';
 GO
-ALTER TABLE [accounting].[Bill_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([bill_id]) REFERENCES [accounting].[Bills] ([id]);
+ALTER TABLE accounting.Bill_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (bill_id) REFERENCES accounting.Bills (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bill_Lines]...';
 GO
-ALTER TABLE [accounting].[Bill_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([line_Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Bill_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (line_Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bill_Payments]...';
 GO
-ALTER TABLE [accounting].[Bill_Payments] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Bill_Payments WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bills]...';
 GO
-ALTER TABLE [accounting].[Bills] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Bills WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bills]...';
 GO
-ALTER TABLE [accounting].[Bills] WITH NOCHECK
-    ADD FOREIGN KEY ([supplier_id]) REFERENCES [accounting].[Suppliers] ([id]);
+ALTER TABLE accounting.Bills WITH NOCHECK
+ADD
+    FOREIGN KEY (supplier_id) REFERENCES accounting.Suppliers (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Bills]...';
 GO
-ALTER TABLE [accounting].[Bills] WITH NOCHECK
-    ADD FOREIGN KEY ([bill_payment_id]) REFERENCES [accounting].[Bill_Payments] ([id]);
+ALTER TABLE accounting.Bills WITH NOCHECK
+ADD
+    FOREIGN KEY (bill_payment_id) REFERENCES accounting.Bill_Payments (id);
 GO
 PRINT N'Creating Foreign Key [accounting].[FK_organisation_id_organisation_id]...';
 GO
-ALTER TABLE [accounting].[customer] WITH NOCHECK
-    ADD CONSTRAINT [FK_organisation_id_organisation_id] FOREIGN KEY ([organisation_id]) REFERENCES [people].[Organisation] ([organisation_ID]);
+ALTER TABLE accounting.customer WITH NOCHECK
+ADD CONSTRAINT FK_organisation_id_organisation_id
+    FOREIGN KEY (organisation_id)
+    REFERENCES people.Organisation (organisation_ID);
 GO
 PRINT N'Creating Foreign Key [accounting].[FK_person_id_Person_id]...';
 GO
-ALTER TABLE [accounting].[customer] WITH NOCHECK
-    ADD CONSTRAINT [FK_person_id_Person_id] FOREIGN KEY ([person_id]) REFERENCES [people].[Person] ([person_ID]);
+ALTER TABLE accounting.customer WITH NOCHECK
+ADD CONSTRAINT FK_person_id_Person_id
+    FOREIGN KEY (person_id)
+    REFERENCES people.Person (person_ID);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoice_Lines]...';
 GO
-ALTER TABLE [accounting].[Invoice_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([line_Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Invoice_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (line_Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoice_Lines]...';
 GO
-ALTER TABLE [accounting].[Invoice_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([invoice_id]) REFERENCES [accounting].[Invoices] ([id]);
+ALTER TABLE accounting.Invoice_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (invoice_id) REFERENCES accounting.Invoices (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoice_Payments]...';
 GO
-ALTER TABLE [accounting].[Invoice_Payments] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Invoice_Payments WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoices]...';
 GO
-ALTER TABLE [accounting].[Invoices] WITH NOCHECK
-    ADD FOREIGN KEY ([customer_id]) REFERENCES [accounting].[customer] ([id]);
+ALTER TABLE accounting.Invoices WITH NOCHECK
+ADD
+    FOREIGN KEY (customer_id) REFERENCES accounting.customer (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoices]...';
 GO
-ALTER TABLE [accounting].[Invoices] WITH NOCHECK
-    ADD FOREIGN KEY ([invoice_payment_id]) REFERENCES [accounting].[Invoice_Payments] ([id]);
+ALTER TABLE accounting.Invoices WITH NOCHECK
+ADD
+    FOREIGN KEY (invoice_payment_id) REFERENCES accounting.Invoice_Payments (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Invoices]...';
 GO
-ALTER TABLE [accounting].[Invoices] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Invoices WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Received_Money_Lines]...';
 GO
-ALTER TABLE [accounting].[Received_Money_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([received_money_id]) REFERENCES [accounting].[Received_Moneys] ([id]);
+ALTER TABLE accounting.Received_Money_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (received_money_id) REFERENCES accounting.Received_Moneys (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Received_Money_Lines]...';
 GO
-ALTER TABLE [accounting].[Received_Money_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([line_Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Received_Money_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (line_Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Received_Moneys]...';
 GO
-ALTER TABLE [accounting].[Received_Moneys] WITH NOCHECK
-    ADD FOREIGN KEY ([customer_id]) REFERENCES [accounting].[customer] ([id]);
+ALTER TABLE accounting.Received_Moneys WITH NOCHECK
+ADD
+    FOREIGN KEY (customer_id) REFERENCES accounting.customer (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Received_Moneys]...';
 GO
-ALTER TABLE [accounting].[Received_Moneys] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Received_Moneys WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Spent_Money_Lines]...';
 GO
-ALTER TABLE [accounting].[Spent_Money_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([spent_money_id]) REFERENCES [accounting].[Spent_Moneys] ([id]);
+ALTER TABLE accounting.Spent_Money_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (spent_money_id) REFERENCES accounting.Spent_Moneys (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Spent_Money_Lines]...';
 GO
-ALTER TABLE [accounting].[Spent_Money_Lines] WITH NOCHECK
-    ADD FOREIGN KEY ([line_Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Spent_Money_Lines WITH NOCHECK
+ADD
+    FOREIGN KEY (line_Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Spent_Moneys]...';
 GO
-ALTER TABLE [accounting].[Spent_Moneys] WITH NOCHECK
-    ADD FOREIGN KEY ([Chart_of_Accounts_id]) REFERENCES [accounting].[Chart_of_Accounts] ([id]);
+ALTER TABLE accounting.Spent_Moneys WITH NOCHECK
+ADD
+    FOREIGN KEY (Chart_of_Accounts_id) REFERENCES accounting.Chart_of_Accounts (id);
 GO
 PRINT N'Creating Foreign Key unnamed constraint on [accounting].[Spent_Moneys]...';
 GO
-ALTER TABLE [accounting].[Spent_Moneys] WITH NOCHECK
-    ADD FOREIGN KEY ([supplier_id]) REFERENCES [accounting].[Suppliers] ([id]);
+ALTER TABLE accounting.Spent_Moneys WITH NOCHECK
+ADD
+    FOREIGN KEY (supplier_id) REFERENCES accounting.Suppliers (id);
 GO
 PRINT N'Creating Foreign Key [accounting].[FK_contact_id_organisation_id]...';
 GO
-ALTER TABLE [accounting].[Suppliers] WITH NOCHECK
-    ADD CONSTRAINT [FK_contact_id_organisation_id] FOREIGN KEY ([contact_id]) REFERENCES [people].[Organisation] ([organisation_ID]);
+ALTER TABLE accounting.Suppliers WITH NOCHECK
+ADD CONSTRAINT FK_contact_id_organisation_id
+    FOREIGN KEY (contact_id)
+    REFERENCES people.Organisation (organisation_ID);
 GO
 PRINT N'Creating Foreign Key [accounting].[FK_supplier_id_organisation_id]...';
 GO
-ALTER TABLE [accounting].[Suppliers] WITH NOCHECK
-    ADD CONSTRAINT [FK_supplier_id_organisation_id] FOREIGN KEY ([supplier_id]) REFERENCES [people].[Organisation] ([organisation_ID]);
+ALTER TABLE accounting.Suppliers WITH NOCHECK
+ADD CONSTRAINT FK_supplier_id_organisation_id
+    FOREIGN KEY (supplier_id)
+    REFERENCES people.Organisation (organisation_ID);
 GO
 PRINT N'Creating Foreign Key [people].[FKWordOccurenceWord]...';
 GO
-ALTER TABLE [people].[WordOccurence] WITH NOCHECK
-    ADD CONSTRAINT [FKWordOccurenceWord] FOREIGN KEY ([Item]) REFERENCES [people].[Word] ([Item]);
+ALTER TABLE people.WordOccurence WITH NOCHECK
+ADD CONSTRAINT FKWordOccurenceWord
+    FOREIGN KEY (Item)
+    REFERENCES people.Word (Item);
 GO
 PRINT N'Creating View [accounting].[Bill_Trans]...';
 GO
 CREATE VIEW accounting.Bill_Trans
 AS
-  WITH btrans
-  AS (
-     SELECT Convert (VARCHAR(10), b.id) AS tran_id, b.tran_date,
-            b.Chart_of_Accounts_id AS ap_account,
-            -- ABS(total) as total,
-            c.Name, b.total, bl.id AS line_id, bl.line_Chart_of_Accounts_id,
-            bl.line_amount, bp.id, bp.Chart_of_Accounts_id AS bank_account,
-            'Business Bank Account' AS bank_name, b.status
-       FROM
-       accounting.Bills AS b
-         LEFT JOIN accounting.Bill_Lines AS bl
+WITH btrans
+AS (
+   SELECT Convert(VARCHAR(10), b.id) AS "tran_id",
+          b.tran_date,
+          b.Chart_of_Accounts_id AS "ap_account",
+          -- ABS(total) as total,
+          c.Name,
+          b.total,
+          bl.id AS "line_id",
+          bl.line_Chart_of_Accounts_id,
+          bl.line_amount,
+          bp.id,
+          bp.Chart_of_Accounts_id AS "bank_account",
+          'Business Bank Account' AS "bank_name",
+          b.status
+   FROM accounting.Bills AS b
+       LEFT JOIN accounting.Bill_Lines AS bl
            ON b.id = bl.bill_id
-         LEFT JOIN accounting.Chart_of_Accounts AS c
+       LEFT JOIN accounting.Chart_of_Accounts AS c
            ON b.Chart_of_Accounts_id = c.id
-         LEFT JOIN accounting.Bill_Payments AS bp
+       LEFT JOIN accounting.Bill_Payments AS bp
            ON b.bill_payment_id = bp.id)
-  SELECT btrans.tran_id, btrans.tran_date, btrans.ap_account, btrans.Name,
-         btrans.total, btrans.line_id, btrans.line_Chart_of_Accounts_id,
-         btrans.line_amount, btrans.id, btrans.bank_account,
-         btrans.bank_name, btrans.status,
-         c.Name AS line_Chart_of_Accounts_name
-    FROM
-    btrans
-      LEFT JOIN accounting.Chart_of_Accounts AS c
+SELECT btrans.tran_id,
+       btrans.tran_date,
+       btrans.ap_account,
+       btrans.Name,
+       btrans.total,
+       btrans.line_id,
+       btrans.line_Chart_of_Accounts_id,
+       btrans.line_amount,
+       btrans.id,
+       btrans.bank_account,
+       btrans.bank_name,
+       btrans.status,
+       c.Name AS "line_Chart_of_Accounts_name"
+FROM btrans
+    LEFT JOIN accounting.Chart_of_Accounts AS c
         ON btrans.line_Chart_of_Accounts_id = c.id;
 GO
 PRINT N'Creating View [accounting].[Invoice_Trans]...';
 GO
 CREATE VIEW accounting.Invoice_Trans
 AS
-  WITH itrans
-  AS (
-     SELECT Convert (VARCHAR(10), i.id) AS tran_id, i.tran_date,
-            i.Chart_of_Accounts_id AS ar_account, c.Name, i.total,
-            il.id AS line_id, il.line_Chart_of_Accounts_id, il.line_amount,
-            ip.id, ip.Chart_of_Accounts_id AS bank_account,
-            'Business Bank account' AS bank_name, i.status
-       FROM
-       accounting.Invoices AS i
-         LEFT JOIN accounting.Invoice_Lines AS il
+WITH itrans
+AS (
+   SELECT Convert(VARCHAR(10), i.id) AS "tran_id",
+          i.tran_date,
+          i.Chart_of_Accounts_id AS "ar_account",
+          c.Name,
+          i.total,
+          il.id AS "line_id",
+          il.line_Chart_of_Accounts_id,
+          il.line_amount,
+          ip.id,
+          ip.Chart_of_Accounts_id AS "bank_account",
+          'Business Bank account' AS "bank_name",
+          i.status
+   FROM accounting.Invoices AS i
+       LEFT JOIN accounting.Invoice_Lines AS il
            ON i.id = il.invoice_id
-         LEFT JOIN accounting.Chart_of_Accounts AS c
+       LEFT JOIN accounting.Chart_of_Accounts AS c
            ON i.Chart_of_Accounts_id = c.id
-         LEFT JOIN accounting.Invoice_Payments AS ip
+       LEFT JOIN accounting.Invoice_Payments AS ip
            ON i.invoice_payment_id = ip.id)
-  SELECT itrans.*, c.Name AS line_Chart_of_Accounts_name
-    FROM
-    itrans
-      LEFT JOIN accounting.Chart_of_Accounts AS c
+SELECT itrans.*,
+       c.Name AS "line_Chart_of_Accounts_name"
+FROM itrans
+    LEFT JOIN accounting.Chart_of_Accounts AS c
         ON itrans.line_Chart_of_Accounts_id = c.id;
 GO
 PRINT N'Creating View [accounting].[Received_Money_Trans]...';
 GO
 CREATE VIEW accounting.Received_Money_Trans
 AS
-  SELECT 'RM' + Convert (VARCHAR(10), rm.id) AS tran_id, tran_date,
-         Chart_of_Accounts_id,
-         'Business Bank Account' AS Chart_of_Accounts_name, total,
-         rml.id AS line_id, rml.line_Chart_of_Accounts_id,
-         c.Name AS line_Chart_of_Accounts_name, rml.line_amount
-    FROM
-    accounting.Received_Moneys AS rm
-      LEFT JOIN accounting.Received_Money_Lines AS rml
+SELECT 'RM' + Convert(VARCHAR(10), rm.id) AS "tran_id",
+       tran_date,
+       Chart_of_Accounts_id,
+       'Business Bank Account' AS "Chart_of_Accounts_name",
+       total,
+       rml.id AS "line_id",
+       rml.line_Chart_of_Accounts_id,
+       c.Name AS "line_Chart_of_Accounts_name",
+       rml.line_amount
+FROM accounting.Received_Moneys AS rm
+    LEFT JOIN accounting.Received_Money_Lines AS rml
         ON rm.id = rml.received_money_id
-      LEFT JOIN accounting.Chart_of_Accounts AS c
+    LEFT JOIN accounting.Chart_of_Accounts AS c
         ON c.id = rml.line_Chart_of_Accounts_id;
 GO
 PRINT N'Creating View [accounting].[Spent_Money_Trans]...';
 GO
 CREATE VIEW accounting.Spent_Money_Trans
 AS
-  SELECT 'SM' + Convert (VARCHAR(10), sm.id) AS tran_id, tran_date,
-         Chart_of_Accounts_id,
-         'Business Bank Account' AS Chart_of_Accounts_name, total,
-         sml.id AS line_id, sml.line_Chart_of_Accounts_id,
-         c.Name AS line_Chart_of_Accounts_name, sml.line_amount
-    FROM
-    accounting.Spent_Moneys AS sm
-      LEFT JOIN accounting.Spent_Money_Lines AS sml
+SELECT 'SM' + Convert(VARCHAR(10), sm.id) AS "tran_id",
+       tran_date,
+       Chart_of_Accounts_id,
+       'Business Bank Account' AS "Chart_of_Accounts_name",
+       total,
+       sml.id AS "line_id",
+       sml.line_Chart_of_Accounts_id,
+       c.Name AS "line_Chart_of_Accounts_name",
+       sml.line_amount
+FROM accounting.Spent_Moneys AS sm
+    LEFT JOIN accounting.Spent_Money_Lines AS sml
         ON sm.id = sml.spent_money_id
-      LEFT JOIN accounting.Chart_of_Accounts AS c
+    LEFT JOIN accounting.Chart_of_Accounts AS c
         ON c.id = sml.line_Chart_of_Accounts_id;
 --SELECT * from accounting.Spent_Money_Trans;
 GO
@@ -1073,84 +2067,206 @@ PRINT N'Creating View [accounting].[Trial_Balance]...';
 GO
 CREATE VIEW accounting.Trial_Balance
 AS
-  SELECT line_Chart_of_Accounts_id AS acct_code,
-         line_Chart_of_Accounts_name AS acct_name,
-         (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Invoice_Trans
-    GROUP BY
-    line_Chart_of_Accounts_id, line_Chart_of_Accounts_name
-  -- select all purchases
-  UNION ALL
-  SELECT line_Chart_of_Accounts_id AS acct_code,
-         line_Chart_of_Accounts_name AS acct_name,
-         (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Bill_Trans
-    GROUP BY
-    line_Chart_of_Accounts_id, line_Chart_of_Accounts_name
-  -- select all received money
-  UNION ALL
-  SELECT line_Chart_of_Accounts_id AS acct_code,
-         line_Chart_of_Accounts_name AS acct_name,
-         (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Received_Money_Trans
-    GROUP BY
-    line_Chart_of_Accounts_id, line_Chart_of_Accounts_name
-  -- select all spent money
-  UNION ALL
-  SELECT line_Chart_of_Accounts_id AS acct_code,
-         line_Chart_of_Accounts_name AS acct_name,
-         (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Spent_Money_Trans
-    GROUP BY
-    line_Chart_of_Accounts_id, line_Chart_of_Accounts_name
-  -- select all AP
-  UNION ALL
-  SELECT Max (ap_account) AS acct_code,
-         Max (line_Chart_of_Accounts_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Bill_Trans
-    WHERE status = 0
-  -- select all AR
-  UNION ALL
-  SELECT Max (ar_account) AS acct_code,
-         Max (line_Chart_of_Accounts_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Invoice_Trans
-    WHERE status = 0
-  -- select all bill_payments
-  UNION ALL
-  SELECT Max (bank_account) AS acct_code, Max (bank_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Bill_Trans
-    WHERE status = 1
-  -- select all invoice_payments
-  UNION ALL
-  SELECT Max (bank_account) AS acct_code, Max (bank_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Invoice_Trans
-    WHERE status = 1
-  -- select all received_money
-  UNION ALL
-  SELECT Max (Chart_of_Accounts_id) AS acct_code,
-         Max (Chart_of_Accounts_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Received_Money_Trans
-  -- select all spent_money
-  UNION ALL
-  SELECT Max (Chart_of_Accounts_id) AS acct_code,
-         Max (Chart_of_Accounts_name) AS acct_name,
-         - (CASE WHEN Sum (line_amount) < 0 THEN Sum (line_amount) ELSE 0 END) AS debit_bal,
-         - (CASE WHEN Sum (line_amount) > 0 THEN Sum (line_amount) ELSE 0 END) AS credit_bal
-    FROM accounting.Spent_Money_Trans;
+SELECT line_Chart_of_Accounts_id AS "acct_code",
+       line_Chart_of_Accounts_name AS "acct_name",
+       (CASE
+            WHEN Sum(line_amount) > 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "debit_bal",
+       (CASE
+            WHEN Sum(line_amount) < 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "credit_bal"
+FROM accounting.Invoice_Trans
+GROUP BY line_Chart_of_Accounts_id,
+         line_Chart_of_Accounts_name
+-- select all purchases
+UNION ALL
+SELECT line_Chart_of_Accounts_id AS "acct_code",
+       line_Chart_of_Accounts_name AS "acct_name",
+       (CASE
+            WHEN Sum(line_amount) > 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "debit_bal",
+       (CASE
+            WHEN Sum(line_amount) < 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "credit_bal"
+FROM accounting.Bill_Trans
+GROUP BY line_Chart_of_Accounts_id,
+         line_Chart_of_Accounts_name
+-- select all received money
+UNION ALL
+SELECT line_Chart_of_Accounts_id AS "acct_code",
+       line_Chart_of_Accounts_name AS "acct_name",
+       (CASE
+            WHEN Sum(line_amount) > 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "debit_bal",
+       (CASE
+            WHEN Sum(line_amount) < 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "credit_bal"
+FROM accounting.Received_Money_Trans
+GROUP BY line_Chart_of_Accounts_id,
+         line_Chart_of_Accounts_name
+-- select all spent money
+UNION ALL
+SELECT line_Chart_of_Accounts_id AS "acct_code",
+       line_Chart_of_Accounts_name AS "acct_name",
+       (CASE
+            WHEN Sum(line_amount) > 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "debit_bal",
+       (CASE
+            WHEN Sum(line_amount) < 0 THEN
+                Sum(line_amount)
+            ELSE
+                0
+        END
+       ) AS "credit_bal"
+FROM accounting.Spent_Money_Trans
+GROUP BY line_Chart_of_Accounts_id,
+         line_Chart_of_Accounts_name
+-- select all AP
+UNION ALL
+SELECT Max(ap_account) AS "acct_code",
+       Max(line_Chart_of_Accounts_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Bill_Trans
+WHERE status = 0
+-- select all AR
+UNION ALL
+SELECT Max(ar_account) AS "acct_code",
+       Max(line_Chart_of_Accounts_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Invoice_Trans
+WHERE status = 0
+-- select all bill_payments
+UNION ALL
+SELECT Max(bank_account) AS "acct_code",
+       Max(bank_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Bill_Trans
+WHERE status = 1
+-- select all invoice_payments
+UNION ALL
+SELECT Max(bank_account) AS "acct_code",
+       Max(bank_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Invoice_Trans
+WHERE status = 1
+-- select all received_money
+UNION ALL
+SELECT Max(Chart_of_Accounts_id) AS "acct_code",
+       Max(Chart_of_Accounts_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Received_Money_Trans
+-- select all spent_money
+UNION ALL
+SELECT Max(Chart_of_Accounts_id) AS "acct_code",
+       Max(Chart_of_Accounts_name) AS "acct_name",
+       - (CASE
+              WHEN Sum(line_amount) < 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "debit_bal",
+       - (CASE
+              WHEN Sum(line_amount) > 0 THEN
+                  Sum(line_amount)
+              ELSE
+                  0
+          END
+         ) AS "credit_bal"
+FROM accounting.Spent_Money_Trans;
 GO
 PRINT N'Creating Function [dbo].[IterativeWordChop]...';
 GO
@@ -1169,38 +2285,46 @@ example:
 returns:   >
 Table of SequenceNumber, item (word) and sequence no.
 **/
-( 
-@string VARCHAR(MAX)
-) 
-RETURNS
-@Results TABLE
 (
-Item VARCHAR(255),
-location INT,
-Sequence INT IDENTITY PRIMARY KEY
+    @string VARCHAR(MAX)
+)
+RETURNS @Results TABLE
+(
+    Item VARCHAR(255),
+    location INT,
+    Sequence INT IDENTITY PRIMARY KEY
 )
 AS
 BEGIN
-DECLARE @Len INT, @Start INT, @end INT, @Cursor INT,@length INT
-SELECT @Cursor=1, @len=Len(@string)
-WHILE @cursor<@len
-   BEGIN
-   SELECT @start=PatIndex('%[^A-Za-z0-9][A-Za-z0-9%]%',
-                   ' '+Substring (@string,@cursor,50)
-                   )-1
-   IF @start<0 BREAK                
-   SELECT @length=PatIndex('%[^A-Z''a-z0-9-%]%',Substring (@string,@cursor+@start+1,50)+' ')   
-   INSERT INTO @results(item, location) 
-       SELECT  Substring(@string,@cursor+@start,@length), @cursor+@start
-   SELECT @Cursor=@Cursor+@Start+@length+1
-   END
-RETURN
+    DECLARE @Len INT,
+            @Start INT,
+            @end INT,
+            @Cursor INT,
+            @length INT
+    SELECT @Cursor = 1,
+           @len = Len(@string)
+    WHILE @cursor < @len
+    BEGIN
+        SELECT @start = PatIndex('%[^A-Za-z0-9][A-Za-z0-9%]%', ' ' + Substring(@string, @cursor, 50)) - 1
+        IF @start < 0
+            BREAK
+        SELECT @length = PatIndex('%[^A-Z''a-z0-9-%]%', Substring(@string, @cursor + @start + 1, 50) + ' ')
+        INSERT INTO @results
+        (
+            item,
+            location
+        )
+        SELECT Substring(@string, @cursor + @start, @length),
+               @cursor + @start
+        SELECT @Cursor = @Cursor + @Start + @length + 1
+    END
+    RETURN
 END
 GO
 PRINT N'Creating Function [dbo].[FindString]...';
 GO
-CREATE FUNCTION [dbo].[FindString]
-  /*
+CREATE FUNCTION dbo.FindString
+/*
 summary:  >
  This Table-valued function takes text as a parameter and 
  tries to find it in the WordOccurence table
@@ -1220,54 +2344,92 @@ returns:  >
 passes back the location where they were found, and 
 the number of words matched in the string.
 **/
-  (@string VARCHAR(100))
-RETURNS @finds TABLE (location INT NOT NULL, note INT NOT NULL, hits INT NOT NULL)
+(
+    @string VARCHAR(100)
+)
+RETURNS @finds TABLE
+(
+    location INT NOT NULL,
+    note INT NOT NULL,
+    hits INT NOT NULL
+)
 AS
-  BEGIN
+BEGIN
     DECLARE @WordsToLookUp TABLE
-      (
-      Item VARCHAR(255) NOT NULL,
-      location INT NOT NULL,
-      Sequence INT NOT NULL PRIMARY KEY
-      );
-    DECLARE @wordCount INT, @searches INT;
+    (
+        Item VARCHAR(255) NOT NULL,
+        location INT NOT NULL,
+        Sequence INT NOT NULL PRIMARY KEY
+    );
+    DECLARE @wordCount INT,
+            @searches INT;
     -- chop the string into its constituent words, with the sequence
-    INSERT INTO @WordsToLookUp (Item, location, Sequence)
-      SELECT Item, location, Sequence FROM dbo.IterativeWordChop(@string);
+    INSERT INTO @WordsToLookUp
+    (
+        Item,
+        location,
+        Sequence
+    )
+    SELECT Item,
+           location,
+           Sequence
+    FROM dbo.IterativeWordChop(@string);
     -- determine how many words and work out what proportion to search for
     SELECT @wordCount = @@RowCount;
-    SELECT @searches =
-       CASE WHEN @wordCount < 3 THEN @wordCount ELSE 2 + (@wordCount / 2) END;
-    IF @wordcount=1
-		BEGIN
-		INSERT INTO @finds (location, note, hits)
-			SELECT MIN(location), note, 1 
-				FROM people.wordoccurence WHERE item LIKE @string GROUP BY note
+    SELECT @searches = CASE
+                           WHEN @wordCount < 3 THEN
+                               @wordCount
+                           ELSE
+                               2 + (@wordCount / 2)
+                       END;
+    IF @wordcount = 1
+    BEGIN
+        INSERT INTO @finds
+        (
+            location,
+            note,
+            hits
+        )
+        SELECT MIN(location),
+               note,
+               1
+        FROM people.wordoccurence
+        WHERE item LIKE @string
+        GROUP BY note
         return
-		END 
-    INSERT INTO @finds (location, Note, hits)
-      SELECT Min(WordOccurence.location), Note, Count(*) AS matches
-        FROM people.WordOccurence
-          INNER JOIN
-            (
-            SELECT TOP (@searches) Word.Item, searchterm.Sequence
-              FROM @WordsToLookUp searchterm
+    END
+    INSERT INTO @finds
+    (
+        location,
+        Note,
+        hits
+    )
+    SELECT Min(WordOccurence.location),
+           Note,
+           Count(*) AS "matches"
+    FROM people.WordOccurence
+        INNER JOIN
+        (
+            SELECT TOP (@searches)
+                   Word.Item,
+                   searchterm.Sequence
+            FROM @WordsToLookUp AS searchterm
                 INNER JOIN people.Word
-                  ON searchterm.Item = Word.Item
-              ORDER BY frequency
-            ) LessFrequentWords(item, Sequence)
+                    ON searchterm.Item = Word.Item
+            ORDER BY frequency
+        ) AS LessFrequentWords(item, Sequence)
             ON LessFrequentWords.item = WordOccurence.Item
-        GROUP BY WordOccurence.Sequence - LessFrequentWords.Sequence,
-        note
-        HAVING Count(*) >= @searches
-        ORDER BY Count(*) DESC;
+    GROUP BY WordOccurence.Sequence - LessFrequentWords.Sequence,
+             note
+    HAVING Count(*) >= @searches
+    ORDER BY Count(*) DESC;
     RETURN;
-  END;
+END;
 GO
 PRINT N'Creating Function [dbo].[FindWords]...';
 GO
-CREATE FUNCTION [dbo].[FindWords]
-  /*
+CREATE FUNCTION dbo.FindWords
+/*
 summary:  >
 This Table-valued function takes text as a parameter and tries to find it in the people.WordOccurence table
 Author: Phil Factor
@@ -1288,55 +2450,102 @@ example:
 returns:  >
 passes back the location where they were found, and the number of words matched in the string.
 **/
-  (@string VARCHAR(100))
-RETURNS @finds TABLE (location INT NOT NULL, Note INT NOT NULL, hits INT NOT NULL)
+(
+    @string VARCHAR(100)
+)
+RETURNS @finds TABLE
+(
+    location INT NOT NULL,
+    Note INT NOT NULL,
+    hits INT NOT NULL
+)
 AS
-  BEGIN
+BEGIN
     DECLARE @WordsToLookUp TABLE
-      (
-      Item VARCHAR(255) NOT NULL,
-      location INT NOT NULL,
-      Sequence INT NOT NULL PRIMARY KEY
-      );
-    DECLARE @wordCount INT, @searches INT;
+    (
+        Item VARCHAR(255) NOT NULL,
+        location INT NOT NULL,
+        Sequence INT NOT NULL PRIMARY KEY
+    );
+    DECLARE @wordCount INT,
+            @searches INT;
     -- chop the string into its constituent words, with the sequence
-    INSERT INTO @WordsToLookUp (Item, location, Sequence)
-      SELECT Item, location, Sequence FROM dbo.IterativeWordChop(@string);
+    INSERT INTO @WordsToLookUp
+    (
+        Item,
+        location,
+        Sequence
+    )
+    SELECT Item,
+           location,
+           Sequence
+    FROM dbo.IterativeWordChop(@string);
     -- determine how many words and work out what proportion to search for
     SELECT @wordCount = @@RowCount;
-    SELECT @searches =
-       CASE WHEN @wordCount < 6 THEN @wordCount ELSE 2 + (@wordCount / 2) END;
-    IF @wordcount=1
-		BEGIN
-		INSERT INTO @finds (location, Note, hits)
-			SELECT MIN(location), Note, 1 
-			FROM people.WordOccurence WHERE item LIKE @string GROUP BY Note
+    SELECT @searches = CASE
+                           WHEN @wordCount < 6 THEN
+                               @wordCount
+                           ELSE
+                               2 + (@wordCount / 2)
+                       END;
+    IF @wordcount = 1
+    BEGIN
+        INSERT INTO @finds
+        (
+            location,
+            Note,
+            hits
+        )
+        SELECT MIN(location),
+               Note,
+               1
+        FROM people.WordOccurence
+        WHERE item LIKE @string
+        GROUP BY Note
         return
-		END 
-		INSERT INTO @finds (location, Note, hits)
-		   SELECT Min(Firstlocation), Note, @wordcount  FROM 
-	  (SELECT wordswanted.[sequence] AS theorder,Note,
-	  Min(WordOccurence.location) AS FirstLocation 
+    END
+    INSERT INTO @finds
+    (
+        location,
+        Note,
+        hits
+    )
+    SELECT Min(Firstlocation),
+           Note,
+           @wordcount
+    FROM
+    (
+        SELECT wordswanted.sequence AS "theorder",
+               Note,
+               Min(WordOccurence.location) AS "FirstLocation"
         FROM -- @WordsToLookUp wordsWanted
-		(
-            SELECT TOP (@searches) Word.Item, searchterm.Sequence
-              FROM @WordsToLookUp searchterm
+        (
+            SELECT TOP (@searches)
+                   Word.Item,
+                   searchterm.Sequence
+            FROM @WordsToLookUp AS searchterm
                 INNER JOIN people.Word
-                  ON searchterm.Item = Word.Item
-              ORDER BY frequency
-            ) wordsWanted(item, Sequence)
-	  INNER JOIN people.WordOccurence ON WordOccurence.Item = wordsWanted.Item
-	  GROUP BY Note,wordsWanted.[sequence])f
- GROUP BY Note
- HAVING Count(*)=@searches
+                    ON searchterm.Item = Word.Item
+            ORDER BY frequency
+        ) AS wordsWanted(item, Sequence)
+            INNER JOIN people.WordOccurence
+                ON WordOccurence.Item = wordsWanted.Item
+        GROUP BY Note,
+                 wordsWanted.sequence
+    ) AS f
+    GROUP BY Note
+    HAVING Count(*) = @searches
     RETURN;
-  END;
+END;
 GO
 PRINT N'Creating Function [dbo].[SearchNotes]...';
 GO
 /*
 */
-Create FUNCTION [dbo].[SearchNotes] (@TheStrings NVARCHAR(400))
+Create FUNCTION dbo.SearchNotes
+(
+    @TheStrings NVARCHAR(400)
+)
 /**
 Summary: >
   This is the application interface, in that it provides the 
@@ -1355,104 +2564,177 @@ Returns: >
   thew key to the record.
 **/
 RETURNS @FoundInRecord TABLE
-  (TheOrder INT,
-   theWord NVARCHAR(100),
-   context NVARCHAR(800),
-   Thekey INT,
-   TheDate DATETIME,
-   InsertedBy NVARCHAR(100))
+(
+    TheOrder INT,
+    theWord NVARCHAR(100),
+    context NVARCHAR(800),
+    Thekey INT,
+    TheDate DATETIME,
+    InsertedBy NVARCHAR(100)
+)
 AS
-  BEGIN
+BEGIN
     DECLARE @SearchResult TABLE
-      (TheOrder INT IDENTITY,
-       location INT,
-       Note INT,
-       hits INT);
+    (
+        TheOrder INT IDENTITY,
+        location INT,
+        Note INT,
+        hits INT
+    );
     DECLARE @InputWasAString INT;
-    SELECT @InputWasAString =
-    CASE WHEN LTrim(@TheStrings) LIKE '[''"]%' AND RTrim(@TheStrings) LIKE '%[''"]'  THEN 1 ELSE 0 END;
+    SELECT @InputWasAString = CASE
+                                  WHEN LTrim(@TheStrings) LIKE '[''"]%'
+                                       AND RTrim(@TheStrings) LIKE '%[''"]' THEN
+                                      1
+                                  ELSE
+                                      0
+                              END;
     /* the output of the search */
     IF @InputWasAString = 0
-      INSERT INTO @SearchResult (location, Note, hits)
-        SELECT location, Note, hits FROM FindWords (@TheStrings);
+        INSERT INTO @SearchResult
+        (
+            location,
+            Note,
+            hits
+        )
+        SELECT location,
+               Note,
+               hits
+        FROM FindWords(@TheStrings);
     ELSE
-      INSERT INTO @SearchResult (location, Note, hits)
-        SELECT location, note, hits FROM FindString (@TheStrings);
-    DECLARE @ii INT, @iiMax INT, @Location INT, @Key INT;
-    SELECT @ii = Min (TheOrder), @iiMax = Max (TheOrder) FROM @SearchResult;
+        INSERT INTO @SearchResult
+        (
+            location,
+            Note,
+            hits
+        )
+        SELECT location,
+               note,
+               hits
+        FROM FindString(@TheStrings);
+    DECLARE @ii INT,
+            @iiMax INT,
+            @Location INT,
+            @Key INT;
+    SELECT @ii = Min(TheOrder),
+           @iiMax = Max(TheOrder)
+    FROM @SearchResult;
     WHILE (@ii <= @iiMax)
-      BEGIN
-        SELECT @Location = location, @Key = Note FROM @SearchResult WHERE
-        TheOrder = @ii;
+    BEGIN
+        SELECT @Location = location,
+               @Key = Note
+        FROM @SearchResult
+        WHERE TheOrder = @ii;
         INSERT INTO @FoundInRecord
-          (TheOrder, theWord, context, Thekey, TheDate, InsertedBy)
-          SELECT @ii, @TheStrings,
-                 '...' + Substring (Note, @Location - 70, 150) + '...',
-                 @key, InsertionDate, InsertedBy
-            FROM people.Note
-            WHERE Note_id = @Key;
+        (
+            TheOrder,
+            theWord,
+            context,
+            Thekey,
+            TheDate,
+            InsertedBy
+        )
+        SELECT @ii,
+               @TheStrings,
+               '...' + Substring(Note, @Location - 70, 150) + '...',
+               @key,
+               InsertionDate,
+               InsertedBy
+        FROM people.Note
+        WHERE Note_id = @Key;
         SELECT @ii = @ii + 1;
-      END;
+    END;
     RETURN;
-  END;
+END;
 GO
 PRINT N'Altering Extended Property [Database_Info]...';
 GO
-EXECUTE sp_updateextendedproperty @name = N'Database_Info', @value = N'[{"Name":"Pubs","Version":"1.1.1","Description":"The Pubs (publishing) Database supports a fictitious publisher.","Modified":"2023-04-19T14:20:58.860","by":"PhilFactor"}]';
+EXECUTE sp_updateextendedproperty @name = N'Database_Info',
+                                  @value = N'[{"Name":"Pubs","Version":"1.1.1","Description":"The Pubs (publishing) Database supports a fictitious publisher.","Modified":"2023-04-19T14:20:58.860","by":"PhilFactor"}]';
 GO
 PRINT N'Checking existing data against newly created constraints';
 GO
-ALTER TABLE [accounting].[customer] WITH CHECK CHECK CONSTRAINT [FK_organisation_id_organisation_id];
-ALTER TABLE [accounting].[customer] WITH CHECK CHECK CONSTRAINT [FK_person_id_Person_id];
-ALTER TABLE [accounting].[Suppliers] WITH CHECK CHECK CONSTRAINT [FK_contact_id_organisation_id];
-ALTER TABLE [accounting].[Suppliers] WITH CHECK CHECK CONSTRAINT [FK_supplier_id_organisation_id];
-ALTER TABLE [people].[WordOccurence] WITH CHECK CHECK CONSTRAINT [FKWordOccurenceWord];
+ALTER TABLE accounting.customer WITH CHECK CHECK CONSTRAINT [FK_organisation_id_organisation_id];
+ALTER TABLE accounting.customer WITH CHECK CHECK CONSTRAINT [FK_person_id_Person_id];
+ALTER TABLE accounting.Suppliers WITH CHECK CHECK CONSTRAINT [FK_contact_id_organisation_id];
+ALTER TABLE accounting.Suppliers WITH CHECK CHECK CONSTRAINT [FK_supplier_id_organisation_id];
+ALTER TABLE people.WordOccurence WITH CHECK CHECK CONSTRAINT [FKWordOccurenceWord];
 GO
-CREATE TABLE [#__checkStatus] (
-    id           INT            IDENTITY (1, 1) PRIMARY KEY CLUSTERED,
-    [Schema]     NVARCHAR (256),
-    [Table]      NVARCHAR (256),
-    [Constraint] NVARCHAR (256)
+CREATE TABLE #__checkStatus
+(
+    id INT IDENTITY(1, 1) PRIMARY KEY CLUSTERED,
+    [Schema] NVARCHAR(256),
+    [Table] NVARCHAR(256),
+    [Constraint] NVARCHAR(256)
 );
 SET NOCOUNT ON;
-DECLARE tableconstraintnames CURSOR LOCAL FORWARD_ONLY
-    FOR SELECT SCHEMA_NAME([schema_id]),
-               OBJECT_NAME([parent_object_id]),
-               [name],
-               0
-        FROM   [sys].[objects]
-        WHERE  [parent_object_id] IN (OBJECT_ID(N'accounting.Bill_Lines'), OBJECT_ID(N'accounting.Bill_Payments'), OBJECT_ID(N'accounting.Bills'), OBJECT_ID(N'accounting.Invoice_Lines'), OBJECT_ID(N'accounting.Invoice_Payments'), OBJECT_ID(N'accounting.Invoices'), OBJECT_ID(N'accounting.Received_Money_Lines'), OBJECT_ID(N'accounting.Received_Moneys'), OBJECT_ID(N'accounting.Spent_Money_Lines'), OBJECT_ID(N'accounting.Spent_Moneys'))
-               AND [type] IN (N'F', N'C')
-                   AND [object_id] IN (SELECT [object_id]
-                                       FROM   [sys].[check_constraints]
-                                       WHERE  [is_not_trusted] <> 0
-                                              AND [is_disabled] = 0
-                                       UNION
-                                       SELECT [object_id]
-                                       FROM   [sys].[foreign_keys]
-                                       WHERE  [is_not_trusted] <> 0
-                                              AND [is_disabled] = 0);
-DECLARE @schemaname AS NVARCHAR (256);
-DECLARE @tablename AS NVARCHAR (256);
-DECLARE @checkname AS NVARCHAR (256);
+DECLARE tableconstraintnames CURSOR LOCAL FORWARD_ONLY FOR
+SELECT SCHEMA_NAME(schema_id),
+       OBJECT_NAME(parent_object_id),
+       name,
+       0
+FROM sys.objects
+WHERE parent_object_id IN ( OBJECT_ID(N'accounting.Bill_Lines'), OBJECT_ID(N'accounting.Bill_Payments'),
+                            OBJECT_ID(N'accounting.Bills'), OBJECT_ID(N'accounting.Invoice_Lines'),
+                            OBJECT_ID(N'accounting.Invoice_Payments'), OBJECT_ID(N'accounting.Invoices'),
+                            OBJECT_ID(N'accounting.Received_Money_Lines'), OBJECT_ID(N'accounting.Received_Moneys'),
+                            OBJECT_ID(N'accounting.Spent_Money_Lines'), OBJECT_ID(N'accounting.Spent_Moneys')
+                          )
+      AND type IN ( N'F', N'C' )
+      AND object_id IN
+          (
+              SELECT object_id
+              FROM sys.check_constraints
+              WHERE is_not_trusted <> 0
+                    AND is_disabled = 0
+              UNION
+              SELECT object_id
+              FROM sys.foreign_keys
+              WHERE is_not_trusted <> 0
+                    AND is_disabled = 0
+          );
+DECLARE @schemaname AS NVARCHAR(256);
+DECLARE @tablename AS NVARCHAR(256);
+DECLARE @checkname AS NVARCHAR(256);
 DECLARE @is_not_trusted AS INT;
-DECLARE @statement AS NVARCHAR (1024);
+DECLARE @statement AS NVARCHAR(1024);
 BEGIN TRY
     OPEN tableconstraintnames;
-    FETCH tableconstraintnames INTO @schemaname, @tablename, @checkname, @is_not_trusted;
+    FETCH tableconstraintnames
+    INTO @schemaname,
+         @tablename,
+         @checkname,
+         @is_not_trusted;
     WHILE @@fetch_status = 0
-        BEGIN
-            PRINT N'Checking constraint: ' + @checkname + N' [' + @schemaname + N'].[' + @tablename + N']';
-            SET @statement = N'ALTER TABLE [' + @schemaname + N'].[' + @tablename + N'] WITH ' + CASE @is_not_trusted WHEN 0 THEN N'CHECK' ELSE N'NOCHECK' END + N' CHECK CONSTRAINT [' + @checkname + N']';
-            BEGIN TRY
-                EXECUTE [sp_executesql] @statement;
-            END TRY
-            BEGIN CATCH
-                INSERT  [#__checkStatus] ([Schema], [Table], [Constraint])
-                VALUES                  (@schemaname, @tablename, @checkname);
-            END CATCH
-            FETCH tableconstraintnames INTO @schemaname, @tablename, @checkname, @is_not_trusted;
-        END
+    BEGIN
+        PRINT N'Checking constraint: ' + @checkname + N' [' + @schemaname + N'].[' + @tablename + N']';
+        SET @statement
+            = N'ALTER TABLE [' + @schemaname + N'].[' + @tablename + N'] WITH ' + CASE @is_not_trusted
+                                                                                      WHEN 0 THEN
+                                                                                          N'CHECK'
+                                                                                      ELSE
+                                                                                          N'NOCHECK'
+                                                                                  END + N' CHECK CONSTRAINT ['
+              + @checkname + N']';
+        BEGIN TRY
+            EXECUTE sp_executesql @statement;
+        END TRY
+        BEGIN CATCH
+            INSERT #__checkStatus
+            (
+                [Schema],
+                [Table],
+                [Constraint]
+            )
+            VALUES
+            (@schemaname, @tablename, @checkname);
+        END CATCH
+        FETCH tableconstraintnames
+        INTO @schemaname,
+             @tablename,
+             @checkname,
+             @is_not_trusted;
+    END
 END TRY
 BEGIN CATCH
     PRINT ERROR_MESSAGE();
@@ -1462,14 +2744,14 @@ IF CURSOR_STATUS(N'LOCAL', N'tableconstraintnames') >= 0
 IF CURSOR_STATUS(N'LOCAL', N'tableconstraintnames') = -1
     DEALLOCATE tableconstraintnames;
 SELECT N'Constraint verification failed:' + [Schema] + N'.' + [Table] + N',' + [Constraint]
-FROM   [#__checkStatus];
+FROM #__checkStatus;
 IF @@ROWCOUNT > 0
-    BEGIN
-        DROP TABLE [#__checkStatus];
-        RAISERROR (N'An error occurred while verifying constraints', 16, 127);
-    END
+BEGIN
+    DROP TABLE #__checkStatus;
+    RAISERROR(N'An error occurred while verifying constraints', 16, 127);
+END
 SET NOCOUNT OFF;
-DROP TABLE [#__checkStatus];
+DROP TABLE #__checkStatus;
 GO
 PRINT N'Update complete.';
 GO

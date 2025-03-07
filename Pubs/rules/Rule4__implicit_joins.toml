@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)FROM\\s+\\w+(\\s*,\\s*\\w+)+"]
+passOnRegexMatch = false
+description = "Use explicit `JOIN` instead of comma joins."

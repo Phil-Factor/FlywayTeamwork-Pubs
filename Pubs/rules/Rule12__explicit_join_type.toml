@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)\\bJOIN\\b"]
+passOnRegexMatch = false
+description = "Use `INNER JOIN`, `LEFT JOIN`, `RIGHT JOIN` explicitly."

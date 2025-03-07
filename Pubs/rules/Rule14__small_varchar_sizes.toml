@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)VARCHAR\\s*\\(\\s*[1-3]\\d?\\s*\\)"]
+passOnRegexMatch = false
+description = "Suggest using `CHAR` for small, fixed-size fields."

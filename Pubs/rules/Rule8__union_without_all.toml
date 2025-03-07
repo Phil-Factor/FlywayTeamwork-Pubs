@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)UNION(?!\\s+ALL)"]
+passOnRegexMatch = false
+description = "Use `UNION ALL` unless duplicates must be removed."

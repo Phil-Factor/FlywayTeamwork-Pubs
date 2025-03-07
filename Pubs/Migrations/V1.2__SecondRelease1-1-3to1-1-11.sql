@@ -9999,14 +9999,12 @@ GO
 
 IF Object_Id('People.CreditCard') IS NOT NULL DROP TABLE People.CreditCard;
 GO
-
-IF Object_Id('People.Person') IS NOT NULL DROP TABLE People.Person;
-GO
 IF Object_Id('People.Location') IS NOT NULL DROP TABLE People.Location;
 GO
 IF Object_Id('People.Address') IS NOT NULL DROP TABLE People.Address;
 GO
-
+IF Object_Id('People.Person') IS NOT NULL DROP TABLE People.Person;
+GO
 
 
 DROP TYPE IF EXISTS People.PersonalName;

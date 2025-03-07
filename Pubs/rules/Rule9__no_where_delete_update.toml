@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)(DELETE|UPDATE)\\s+(?!.*\\bWHERE\\b)"]
+passOnRegexMatch = false
+description = "Dangerous operation without filtering."

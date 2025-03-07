@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)ORDER\\s+BY\\s+[^;]*$"]
+passOnRegexMatch = false
+description = "Inefficient for large datasets."

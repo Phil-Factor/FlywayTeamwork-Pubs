@@ -1,0 +1,4 @@
+dialects = ["TEXT"]
+rules = ["(?i)SELECT\\s+\\*"]
+passOnRegexMatch = false
+description = "Avoid `SELECT *`; specify columns explicitly because tables can be subsequently altered."

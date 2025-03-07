@@ -1,0 +1,4 @@
+dialects = ["TSQL"]
+rules = ["(?i)SET\\s+FMTONLY\\s+ON"]
+passOnRegexMatch = false
+description = "Deprecated; use `sp_describe_first_result_set`."

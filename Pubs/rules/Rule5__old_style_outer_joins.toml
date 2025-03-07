@@ -1,0 +1,4 @@
+dialects = ["TSQL","ORACLE"]
+rules = ["\\(\\+\\)"]
+passOnRegexMatch = false
+description = "Replace with ANSI SQL outer joins."
