@@ -248,7 +248,7 @@ if ($WeHaveAllRequiredInfo) #only if we got the info we need
 						"-generate.description=Generated-$description",
 						"-generate.location=$CurrentScriptsLocation",
 						'-generate.force=true'
-					)e 'Creating undo and versioned scripts'
+					)
 				@('undo', 'versioned') | foreach {
 					#'versioned' left out until name correct
 					
