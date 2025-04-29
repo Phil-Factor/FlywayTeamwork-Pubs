@@ -368,6 +368,7 @@ set 'simpleText' to true
         ) # $GetdataFromSQLCMD: (Don't delete this)
 	$problems = @();
     $SQLQuery=$query;
+    $SQLQuery='Select * from sys.tables'
 	if ([string]::IsNullOrEmpty($TheArgs.server) -or [string]::IsNullOrEmpty($TheArgs.database))
 	{ $Problems += "Cannot continue because name of either server ('$($TheArgs.server)') or database ('$($TheArgs.database)') is not provided"; }
 	else
@@ -401,10 +402,11 @@ set 'simpleText' to true
 		else
 		{ $TempInputFile = "$($env:Temp)\TempInput.sql" }
 		#If we can't pass a query string directly, or we have a file ...
-        $ServerAndPort="$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})";
+        $ServerAndPort="$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})";
 		if ($FullQuery -like '*"*' -or (!([string]::IsNullOrEmpty($FileBasedQuery))))
 		{
 			#Then we can't pass a query as a string. It must be passed as a file
+        # "sqlcmd -S $($ServerAndPort) -d $($TheArgs.database) -i $TempInputFile -U $($TheArgs.Uid) -P $($TheArgs.pwd) -o $TempOutputFile -u -y0 -b $profile"
                        
 			#Deal with query strings 
 			if ([string]::IsNullOrEmpty($FileBasedQuery)) { $FullQuery>$TempInputFile; }
@@ -1283,7 +1285,7 @@ $CheckCodeInDatabase = {
         else {"$($param1.reportLocation)\$($param1.Version)\Reports"} #else the simple version
 	if ($MyDatabasePath -like '*\\*'){ } { $Problems += "created an illegal path '$MyDatabasePath'" }
     $Arguments = @{
-		server = "$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})" #The server name to connect
+		server = "$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})" #The server name to connect
 		Database = $($param1.database) #The database name to analyze
 		outfile = "$MyDatabasePath\codeAnalysis.xml" <#
         The file name in which to store the analysis xml report#>
@@ -1889,7 +1891,7 @@ $IsDatabaseIdenticalToSource = {
 		$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 			# can use a hash-table 
 			"/Scripts1:$MyDatabasePath",
-			"/server2:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
+			"/server2:$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})",
 			"/database2:$($param1.database)",
 			"/Assertidentical",
 			"/force",
@@ -1998,7 +2000,7 @@ $CreateScriptFoldersIfNecessary = {
 					else
 					{ $problems += 'You must have provided a path to SQL Compare in the ToolLocations.ps1 file in the resources folder' }
 				}
-				$CLIArgs = @("/server1:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
+				$CLIArgs = @("/server1:$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})",
 					"/database1:$($param1.database)",
 					"/Makescripts:$($MyDatabasePath)", #special command to make a scripts directory
 					"/force",
@@ -2342,7 +2344,7 @@ $CreateBuildScriptIfNecessary = {
                 }
 				$CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 					# can use a hash-table 
-					"/server1:$($param1.server)$( if ($param1.Port -ne $null) {','+$param1.port} else {''})",
+					"/server1:$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.Port))) {','+$param1.port} else {''})",
 					"/database1:$($param1.database)",
 					"/empty2",
 					"/force", # 
@@ -4471,13 +4473,13 @@ $ExtractFromSQLServerIfNecessary = { <#
       #>
 	# objectType SchemaObjectType, schema and flat create a directory. File creates a file
 	$ReportDirectory = "$($param1.reportLocation)\$($param1.Version)\";
-	$OutputFile = "$ReportDirectory$($EscapedProject)$($param1.Version)-$OutputType.dacpac"
+	$OutputFile = "$ReportDirectory$($EscapedProject)$($param1.Version)-$OutputType"
 	$ExtractArguments = @("/Action:Extract", <#
          Specifies a source file to be used as the source of action instead of a
          database. For the Publish and Script actions, SourceFile may be a .dacpac
          file or a schema compare .scmp file. If this parameter is used, no other
          source parameter is valid. #>
-		"/TargetFile:$Outputfile",
+		"'/TargetFile:$Outputfile",
     <#  Specifies a target file to be used for the dacpac #>
         "/p:CommandTimeout=10", #Ten secondes timeout
         "/p:LongRunningCommandTimeout=1000",
@@ -4489,7 +4491,7 @@ $ExtractFromSQLServerIfNecessary = { <#
 		"/SourcePassword:$($param1.pwd)",
     <#   For SQL Server Auth scenarios, defines the password to use to access the
          Source database. (short form /sp) #>
-		"/SourceServerName:$($param1.Server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})", <#
+		"/SourceServerName:$($param1.Server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})", <#
          Defines the name of the server hosting the source database. (short form
          /ssn) #>
 		"/SourceDatabaseName:$($param1.database)", <#
@@ -4500,6 +4502,7 @@ $ExtractFromSQLServerIfNecessary = { <#
          access the source database. (short form /su) #>
 		"/SourceTrustServerCertificate:true"
 	)
+    # "$ExtractArguments">'dacpac.log'   
 	if ($DoDiagnostics)
 	{
 		$ExtractArguments += `
@@ -4667,7 +4670,7 @@ $CreateUndoScriptIfNecessary = {
         $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		    # can use a hash-table 
             "/Scripts1:$PreviousDatabasePath"
-		    "/server2:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
+		    "/server2:$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})",
             '/include:identical',#a migration may just be data, no metadata.
 		    "/database2:$($param1.database)",
 		    "/force", # 
@@ -4759,7 +4762,7 @@ $CreatePossibleMigrationScript = {
     $CLIArgs = @(# we create an array in order to splat the parameters. With many command-line apps you
 		# can use a hash-table 
         "/Scripts2:$CurrentVersionPath\$SourcePath"
-		"/server1:$($param1.server)$( if ($param1.port -ne $null) {','+$param1.port} else {''})",
+		"/server1:$($param1.server)$( if (!([string]::IsNullOrEmpty($param1.port))) {','+$param1.port} else {''})",
         '/include:identical',#a migration may just be data, no metadata.
 		"/database1:$($param1.database)",
         "/report:$CurrentVersionPath\Drift.xml",

@@ -1,5 +1,5 @@
 ﻿
-$Testing=$true;
+$Testing=$false;
 
 <#
 	.SYNOPSIS
@@ -225,7 +225,7 @@ Separator         )|(?<Separator>,)
 				$_.Groups | where {
 					$_.success -eq $true -and $_.Length -gt 0 -and $_.name -ne '0'
 				} | Sort-Object index | foreach {
-                write-verbose "$string was a $($_.Name) sort of string"
+                # write-verbose "$string was a $($_.Name) sort of string"
 					if ($_.Name -in ('MultiLineQuotedLiteral', 'DoubleQuoted'))
 					{
 						$ConvertEscapedChars.Invoke($ConvertEscapedUnicode.Invoke($_.value));
@@ -284,7 +284,7 @@ or key-value pair) and process accordingly.#>
 		Select name, index, length, value | Sort-Object index | foreach {
 			$MatchName = $_.Name;
 			$MatchValue = $_.Value;
-            write-verbose "the match was '$matchname' giving $MatchValue"
+            # write-verbose "the match was '$matchname' giving $MatchValue"
 			# Comments: Capture comment lines if needed.
 			if ($MatchName -eq 'commentline')
 			{
@@ -343,7 +343,7 @@ or key-value pair) and process accordingly.#>
                 $Basename= $($ArrayList[$ArrayList.count - 1])
                 # we have $Basename $($ArrayPosition.GetType().Name) and  $($ArrayPosition|convertto-json -Compress)
                 if ($ArrayPosition.GetType().Name -eq 'Hashtable') {
-                    write-verbose " it is a Hashtable $($ArrayPosition|convertto-json -Compress)"                   
+                    # write-verbose " it is a Hashtable $($ArrayPosition|convertto-json -Compress)"                   
                     if  (!($ArrayPosition.Contains($Basename)))
 				    {
 					    $ArrayPosition.$Basename=[System.Collections.ArrayList]::new()
@@ -352,14 +352,14 @@ or key-value pair) and process accordingly.#>
                 }
                 elseif  ($ArrayPosition.GetType().Name -eq 'object[]')
                     {
-                    write-verbose "the object is $($ArrayPosition.Count) long having $($ArrayPosition[$ArrayPosition.Count-1]|ConvertTo-json -Compress)"
+                    # write-verbose "the object is $($ArrayPosition.Count) long having $($ArrayPosition[$ArrayPosition.Count-1]|ConvertTo-json -Compress)"
                     if ($Basename -notin $ArrayPosition[$ArrayPosition.Count-1].Keys)
                         {$ArrayPosition[$ArrayPosition.Count-1]+=@{$Basename=[System.Collections.ArrayList]::new()}}
                     #$ArrayPosition.$Basename+=@{}
-                    write-verbose " it is an object $($ArrayPosition|convertto-json -Compress)"                   
+                    # write-verbose " it is an object $($ArrayPosition|convertto-json -Compress)"                   
                     }
 				else
-                    {Write-Verbose "Lost $Basename" }
+                    { Write-Verbose "Lost $Basename" }
                 
                 $ItsASection=$False; 
 
@@ -376,7 +376,7 @@ or key-value pair) and process accordingly.#>
 					# if the value has no dot, it is a relative reference. if it  starts with a dot, it is
 					# a relative reference, otherwise it must be an absolute reference
 					# Split the expression into key and value, removing leading dot if present
-					Write-verbose "The matchname was '$MatchName'"
+					# Write-verbose "The matchname was '$MatchName'"
 					#$Assignment = "$($_.Value)" -ireplace '\A\s*\.', '' -split '=' | foreach{ "$($_)".trim() }
 					$Assignment = $MatchValue  -split '=', 2 | foreach { "$($_)".trim() }
 					# if there is no section, the lvalue contains the location 
@@ -385,12 +385,12 @@ or key-value pair) and process accordingly.#>
 					$Lvalue = $Assignment[0].trim();
 					if ($Matchname -in ('InlineTable')) #it is an array, assigned to a key
 					{
-						Write-verbose "InlineTable for '$lvalue' '$Rvalue' being processed"
+						# Write-verbose "InlineTable for '$lvalue' '$Rvalue' being processed"
 						$Rvalue = ($BuildInlineTableorArray.invoke($RValue))[0]####
 					}
                     elseif ($Matchname -in ('arraypair'))
                     {
-                        Write-verbose "Arraypair for '$lvalue' '$Rvalue' being processed"
+                        # Write-verbose "Arraypair for '$lvalue' '$Rvalue' being processed"
 					    $Rvalue = ($BuildInlineTableorArray.invoke($RValue))
                     }
 
@@ -401,11 +401,11 @@ or key-value pair) and process accordingly.#>
 					}
                     elseif ($Matchname -eq 'KeyCommaDelimitedValuePair')
 					{
-						Write-verbose "array $RValue"
+						# Write-verbose "array $RValue"
                         $RValue = $BuildInlineTableorArray.invoke($RValue);
  					}
 					else
-					{   Write-verbose "$Matchname that is '$RValue'"
+					{   # Write-verbose "$Matchname that is '$RValue'"
 						if ($RValue -like '*,*') #it is a list 
 						{ $RValue = $BuildInlineTableorArray.invoke($RValue) }
 						else { $RValue = $ConvertStringToNativeValue.invoke($RValue)[0] }#sreingarray
@@ -445,18 +445,18 @@ or key-value pair) and process accordingly.#>
                     }
                     else #then it is an array
                     {
-                    Write-Verbose "writing $Basename at $($ArrayPosition.GetType().Name) which is   $($ArrayPosition|ConvertTo-json -Compress)"
+                    # Write-Verbose "writing $Basename at $($ArrayPosition.GetType().Name) which is   $($ArrayPosition|ConvertTo-json -Compress)"
                     if ($ArrayPosition.GetType().Name -eq 'Hashtable')
                         {$ArrayPosition.$Basename[$ArrayPosition.$Basename.count-1] += @{ $lvalue = $rvalue }}
                     else
-                        {Write-Verbose " we are trying to write to the $basename array at $($ArrayPosition.$Basename) that has keys $($ArrayPosition.Keys -join ',')"
+                        {# Write-Verbose " we are trying to write to the $basename array at $($ArrayPosition.$Basename) that has keys $($ArrayPosition.Keys -join ',')"
                         $ArrayPosition[$ArrayPosition.count-1].$Basename += @{ $lvalue = $rvalue }}
                     }
 				}
 				else
 				{
 					# Handle unexpected cases
-					Write-verbose "Unidentified object '$ObjectName' named '$($_.Name)' of value '$($_.Value)'"
+					# Write-verbose "Unidentified object '$ObjectName' named '$($_.Name)' of value '$($_.Value)'"
 				}
 			}
 		}
@@ -748,7 +748,7 @@ JSON
 
 #>
 ) | foreach {
-	Write-Verbose "Running the '$($_[0])' test"
+	# Write-Verbose "Running the '$($_[0])' test"
     $result = ConvertFrom-ini($_[1]) | convertTo-JSON -Compress -depth 10
 	    if ($result -ne $_[2])
 	    {

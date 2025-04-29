@@ -16,9 +16,7 @@ url = `"$($TheEnvironment.flyway.url)`"
 user = `"$($TheEnvironment.flyway.user)`"
 password = `"$($TheEnvironment.flyway.password)`"
 schemas = [ `"dbo`", `"classic`", `"people`", `"accounting`" ]
-displayName = $DisplayName
 "@
 [System.IO.File]::WriteAllText("$($_.Replace('.conf','.toml'))", $Contents , $win1252)
 
 }
-

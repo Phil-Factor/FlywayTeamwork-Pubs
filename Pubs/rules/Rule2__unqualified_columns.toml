@@ -1,4 +1,4 @@
 dialects = ["TEXT"]
-rules = ["(?i)SELECT[^.]+?FROM.{1,50}?JOIN"]
+rules = ["(?i)SELECT\\s+?([]\\[\\w]+[,\\s]+)+FROM\\s+?([]\\[\\w]+\\s+?)+JOIN"]
 passOnRegexMatch = false
 description = "If a query involving a join, it is safer to specify the table origin of a column."
