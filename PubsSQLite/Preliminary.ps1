@@ -1,5 +1,5 @@
 ﻿param ($ListOfExtraSources= @()) 
-#these are extra configuration files, usually decripted en-route and  read in as parameters.
+#these are extra configuration files, usually decrypted en-route and  read in as parameters.
 <#
  Principles:
   one 'resource' directory with all the scripting tools we need for the project
@@ -10,11 +10,6 @@ All data is based on the Current working directory.
 Use flyway.conf where possible #>
 #were parameters read from a file? If so, we need to read that file
 #gci env:F* | sort-object name
-if (test-path 'env:FP__ParameterConfigItem__')
-    {
-    if ("$env:FP__ParameterConfigItem__" -notin $ListOfExtraSources)
-       {$ListOfExtraSources+="$env:FP__ParameterConfigItem__"}
-    }
 <# first check that flyway is installed properly #>
 $FlywayCommand = (Get-Command "Flyway" -ErrorAction SilentlyContinue)
 if ($null -eq $FlywayCommand)
@@ -27,8 +22,8 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 	write-error "Your Flyway Version is too outdated to work" -ErrorAction Stop
 }
 <#
-pick up any changed locations that the user wants. If nothing exists, then 
-create the file with the default settings in place
+pick up any changed locations that the user wants. 
+If nothing exists, then create the file with the default settings in place
 #>
  If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
     {@{
@@ -98,14 +93,13 @@ if ((Get-Command "GetorSetPassword" -erroraction silentlycontinue) -eq $null)
 $Filterpath =$null
 if (Test-Path "$Dir\$ResourcesPath\*.scpf"  -PathType leaf)
 {$Filterpath= dir "$Dir\$ResourcesPath\*.scpf" |select -first 1|foreach{$_.FullName}}
-# Get any configuration in .Conf files
+# Get any Flyway configuration ore environments in .Conf or .toml files
 $FlywayConfContent=Get-FlywayConfContent($ListOfExtraSources);
+
 # use this information for our own local data
 if (!([string]::IsNullOrEmpty($FlywayConfContent.'url')))
 {
 	$FlywayURLRegex ='jdbc:(?<RDBMS>[\w]{1,20}):(//(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)|thin:@)((;.*databaseName=|/)(?<database>[\w]{1,20}))?'
-	#jdbc:(?<RDBMS>[\w]{1,20})://(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)(;.*databaseName=|/)(?<database>[\w]{1,20})';
-     #jdbc:(?<RDBMS>[\w]{1,20}):(//(?<server>[\w\\\-\.]{1,40})(?<port>:[\d]{1,4}|)|thin:@)
 	$FlywaySimplerURLRegex = 'jdbc:(?<RDBMS>[\w]{1,20}):(?<database>[\w:\\/\.]{1,80})';
 	#this FLYWAY_URL contains the current database, port and server so
 	# it is worth grabbing
