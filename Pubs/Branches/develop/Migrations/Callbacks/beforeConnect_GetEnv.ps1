@@ -9,6 +9,7 @@
   which needs to be run in a script or callback, finds all the flyway settings made
   for the connection and saves them in the user area as a JSON file. 
 #>
+
 $VerbosePreference = switch ($Env:FP__TeamworkVerbosity__)
 {
 	'verbose' { 'continue' }

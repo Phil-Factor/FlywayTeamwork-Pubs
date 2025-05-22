@@ -16,7 +16,7 @@
     Maximum number of commits to scan (default: 500).
 
 .PARAMETER AuthorRegex
-    Optional regex filter for author names.a Regex is used so that a list of names can be specified
+    Optional regex filter for author names.
 
 .PARAMETER CallbackNameRegex
     Optional regex filter for callback names.
@@ -26,32 +26,29 @@
 
 .PARAMETER RepoLocation
     If specified, the script will temporarily change to this directory (useful if script is run elsewhere).
-dir pubs\branches\develop\migrations
+
 .EXAMPLE
-    # get the files used in a branch
-    .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 -CallbackPaths 'Pubs\Branches\Develop\Migrations' -RepoLocation "$env:FlywayWorkPath"
+    .\Get-FlywayCallbackChanges.ps1 -CallbackPaths 'sql/callbacks' -CallbackTypeRegex '^before'
+.Examples
     # must be in appropriate Github repo directory before executing the script 
-    .\Get-FlywayScriptAndCallbackChanges.ps1 -CallbackPaths 'sql/callbacks' -CallbackTypeRegex '^before'
     # Filter by callback type (before*)
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 -CallbackTypeRegex '^before'
-    # Filter by a list of callback types (before, beforeEach, after, afterEach)
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 -CallbackTypeRegex '^(before|after)'| Format-Table -AutoSize
+        .\scripts\Get-FlywayCallbackChanges.ps1 -CallbackTypeRegex '^before'
     # Filter by author (e.g., “alice” case-insensitive)
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 -AuthorRegex '(?i)phil factor'
+        .\scripts\Get-FlywayCallbackChanges.ps1 -AuthorRegex '(?i)phil factor'
     # Filter by callback name (e.g., “afterMigrate”)
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 -CallbackNameRegex 'afterMigrate'
+        .\scripts\Get-FlywayCallbackChanges.ps1 -CallbackNameRegex 'afterMigrate'
     # Drill down as far back as specified date and format
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1 | Where-Object {$_.Date -gt '2025-01-01'} 
+        .\scripts\Get-FlywayCallbackChanges.ps1 | Where-Object {$_.Date -gt '2025-01-01'} | Format-Table -AutoSize
     # Result Table 
-        .\scripts\Get-FlywayScriptAndCallbackChanges.ps1  | Format-Table Date, Author, Action, File, Message -AutoSize
+        .\scripts\Get-FlywayCallbackChanges.ps1  | Format-Table Date, Author, Action, File, Message -AutoSize
 cd pubs
-."$env:FlywayWorkPath\scripts\Get-FlywayScriptAndCallbackChanges.ps1" -CallbackTypeRegex '^before' -RepoLocation "$env:FlywayWorkPath"
+."$env:FlywayWorkPath\scripts\Get-FlywayCallbackChanges.ps1" -CallbackTypeRegex '^before' -RepoLocation "$env:FlywayWorkPath"
 cd "$env:FlywayWorkPath"
 #>
 
 param (
-    [Array]$CallbackPaths = "Pubs\Branches\develop\Migrations",
-    [int]$MaxCommits = 300,
+    [Array]$CallbackPaths = "Pubs\Migrations",
+    [int]$MaxCommits = 500,
     [string]$AuthorRegex = "",
     [string]$CallbackNameRegex = "",
     [string]$CallbackTypeRegex = "",
@@ -76,21 +73,8 @@ if (-not (Test-Path ".git")) {
     exit 1
 }
 
-<# warning. case sensitivity in Git even when git config core.ignorecase true
-this corrects case typos #>
-$previousCallbackPaths=$CallbackPaths 
-$CallbackPaths=$CallbackPaths-split '\\|/'|foreach -Begin{$path=''}{
-    $CurrentDir=$_;
-    $CaseSensitiveName=dir $path -Directory -Name |where {$_ -like $CurrentDir}
-    $path="$path$CaseSensitiveName\";
-    } {$Path.TrimEnd('\')} 
-
-if ($previousCallbackPaths-cne $CallbackPaths) {
-    write-verbose "changed callback paths to $CallbackPaths"}
-
-# Parse Git log for all the git locations specified, including subdirectories.
-$gitLog = $CallbackPaths  | ForEach-Object {$base=$_; dir $_ -Directory -Recurse} |foreach {
-    "$base\$($_.name)"} -end {$base}|foreach {
+# Parse Git log
+$gitLog = $CallbackPaths | ForEach-Object {
     git log -n $MaxCommits --date=short --pretty=format:"__COMMIT__`n%h|%ad|%an|%s" --name-status -- $_
 }
 
@@ -158,7 +142,7 @@ $uncommitted = git status --porcelain | ForEach-Object {
         if ($CallbackTypeRegex -and ($callbackType -notmatch $CallbackTypeRegex)) { return }
 
         [PSCustomObject]@{
-            Date         = (Get-Date -Format "dd-MM-yyyy")
+            Date         = (Get-Date -Format "yyyy-MM-dd")
             Author       = "*UNCOMMITTED*"
             Action       = $status
             File         = $file

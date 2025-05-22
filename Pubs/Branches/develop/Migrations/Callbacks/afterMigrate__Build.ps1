@@ -1,4 +1,10 @@
 ﻿. '.\preliminary.ps1'
+$VerbosePreference = switch ($Env:FP__TeamworkVerbosity__)
+{
+	'verbose' { 'continue' }
+	'continue' { 'continue' }
+	default { 'SilentlyContinue' }
+}
 <#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  
@@ -23,9 +29,9 @@ you're building
 
 The ". '.\preliminary.ps1" line that this callback startes withcreates a DBDetails array.
 You can dump this array for debugging so that it is displayed by Flyway
-
-$DBDetails|convertTo-json
-
+#>
+# $DBDetails|convertTo-json
+<#
 these routines return the path they write to 
 in the $DatabaseDetails if you need it.
 You will also need to set SQLCMD to the correct value. This is set by a string
@@ -42,7 +48,7 @@ $PostMigrationTasks = @(
 	$CreateBuildScriptIfNecessary, #writes out a build script if there isn't one for this version. This
     #uses SQL Compare
 	$CreateScriptFoldersIfNecessary, #writes out a source folder with an object level script if absent.
-	$ExtractFromSQLServerIfNecessary, #save this version as a dacpac if it hasn't already been done
+	#$ExtractFromSQLServerIfNecessary, #save this version as a dacpac if it hasn't already been done
     #this uses SQL Compare
 	$ExecuteTableSmellReport, #checks for table-smells
     #This is an example of generating a SQL-based report

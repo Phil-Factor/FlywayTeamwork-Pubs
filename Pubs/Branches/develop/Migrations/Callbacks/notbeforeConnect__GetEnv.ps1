@@ -9,12 +9,6 @@
   which needs to be run in a script or callback, finds all the flyway settings made
   for the connection and saves them in the user area as a JSON file. 
 #>
-$VerbosePreference = switch ($Env:FP__TeamworkVerbosity__)
-{
-	'verbose' { 'continue' }
-	'continue' { 'continue' }
-	default { 'SilentlyContinue' }
-}
 if ($Env:FP__CurrentSettings__ -ne $null) # if this variable has a value
 { # get all the Flyway variable and placeholder values held in the session environment
   ('env:FLYWAY_*', 'env:FP__*') | foreach{ gci $_ } | sort-object name | foreach-object -Begin {
@@ -43,7 +37,7 @@ user variable
       Write-Warning "mystery Flyway environment variable $($_.Name)"
     }
   } -end {
- # if ($TheObject.Flyway.PASSWORD -ne $null){$TheObject.Flyway.PASSWORD = 'redacted'};
+ if ($TheObject.Flyway.PASSWORD -ne $null){$TheObject.Flyway.PASSWORD = 'redacted'};
  ($TheObject  | convertTo-json)>"$env:USERPROFILE\$($Env:FP__CurrentSettings__).json" }
 }
 
