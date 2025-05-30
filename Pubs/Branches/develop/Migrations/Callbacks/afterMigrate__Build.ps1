@@ -1,4 +1,7 @@
-﻿. '.\preliminary.ps1'
+﻿# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
 $VerbosePreference = switch ($Env:FP__TeamworkVerbosity__)
 {
 	'verbose' { 'continue' }
