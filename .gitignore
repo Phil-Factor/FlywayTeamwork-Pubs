@@ -24,3 +24,5 @@ directorynames.json
 # Ignore disabled callbacks
 notafter*.ps1
 notbefore*.ps1	
+*.ini
+*.epp
