@@ -1,5 +1,9 @@
 ﻿# test this on SQL Server
-. '.\preliminary.ps1'
+# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+
 Process-FlywayTasks $DBDetails $GetCurrentVersion
 #report on exactly who and on what and where 
 Write-Output @"

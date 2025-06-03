@@ -1,4 +1,8 @@
-﻿. '.\preliminary.ps1'
+﻿# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+
 
 <# now we use the GetdataFromSQLCMD scriptblock to determine the version number and name from SQL Server.
 we then set the placeholder values for the capability of the version of SQL Server.

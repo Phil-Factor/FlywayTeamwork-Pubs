@@ -1,4 +1,8 @@
-﻿. '.\preliminary.ps1'
+﻿# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+
 <#To set off any task, all you need is a PowerShell script that is created in such a way that it can be
 executed by Flyway when it finishes a migration run. Although you can choose any of the significant points
 in any Flyway action, there are only one or two of these callback points that are useful to us.  

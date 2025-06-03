@@ -220,7 +220,11 @@ You can access these directly, and this is probably best for tasks that require 
 
 ### getting the dbDetails object and all its values
 
-The ". '.\preliminary.ps1" line - that this callback startes with - creates a DBDetails array.
+The "# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+" line - that this callback startes with - creates a DBDetails array.
 You can dump this array for debugging so that it is displayed by Flyway
 
    `$DBDetails|convertTo-json
@@ -235,7 +239,11 @@ Here is a worked example, with the tasks you want to execute. Some, like the on 
 In order to execute tasks, you just load them up in the order you want. It is like loading a revolver.
 
 ``` 
-. '.\preliminary.ps1'
+# load the script preliminary script 
+if ($Env:FlywayWorkPath -eq $null) {
+  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+
 
 $PostMigrationTasks = @(
 	$GetCurrentVersion, #checks the database and gets the current version number

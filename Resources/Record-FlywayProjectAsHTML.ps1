@@ -34,7 +34,7 @@ function Record-FlywayProjectAsHTML
         {
         if ($LocationOfTheProject -ne $null)
               {    	cd $LocationOfTheProject
-		    . '.\preliminary.ps1' # we are using the framework just to get a comprehensive list of file locations
+		    . "$Env:FlywayWorkPath\Scripts\preliminary.ps1" # we are using the framework just to get a comprehensive list of file locations
               $TheDBDetails=$TheDBDetails
               }
         else

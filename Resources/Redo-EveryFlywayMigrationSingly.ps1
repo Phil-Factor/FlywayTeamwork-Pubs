@@ -88,7 +88,12 @@ function Redo-EveryFlywayMigrationSingly
         
         if ($PostMigrationTasks -ne $null)
 		#we would only need to do this for every migration file if using Flyway Community
-				{ . '.\preliminary.ps1'; $OurDBDetails=$DBDetails}
+				{ 
+				# load the script preliminary script 
+				if ($Env:FlywayWorkPath -eq $null) {
+				  write-warning 'this script needs the environment variable FlywayWorkPath to be set' -WarningAction Stop}
+				. "$Env:FlywayWorkPath\Scripts\preliminary.ps1"
+				; $OurDBDetails=$DBDetails}
         
       <# now we are going to do each version in turn so that we are sure of 
       getting a report and list of changes for each version #>
