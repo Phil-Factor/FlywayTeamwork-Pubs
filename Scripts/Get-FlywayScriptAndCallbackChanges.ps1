@@ -1,13 +1,17 @@
 ﻿<#
 .SYNOPSIS
-    Returns all committed and uncommitted changes to Flyway scripts as an array of change objects
-    sorted by date that you can then inspect or use for further processing.
+    Returns all committed and uncommitted changes to Flyway scripts as an
+    array of change objects sorted by date that you can then inspect or use 
+    for further processing.
 
 .DESCRIPTION
-    Scans Git commit history and working directory for any changes to Flyway Script scripts.
-    Each entry includes Date, Author, Action (A/M/D), File, ScriptName, ScriptType, Message, and Commit hash.
-    The script Parses the Git history of your Script folders, Filters changes by author, Script name, or type,
-    Adds uncommitted changes (modified, staged, or untracked), and Returns everything as a pipeline-friendly 
+    Scans Git commit history and working directory for any changes to Flyway
+    Script scripts.
+    Each entry includes Date, Author, Action, File, ScriptName, ScriptType,
+    Message, and Commit hash.    The script Parses the Git history of your 
+    Script folders, Filters changes by author, Script name, or type,
+    Adds uncommitted changes (modified, staged, or untracked), and Returns 
+    everything as a pipeline-friendly 
     object list.
 
 .PARAMETER ScriptPaths
@@ -17,16 +21,21 @@
     Maximum number of commits to scan (default: 500).
 
 .PARAMETER AuthorRegex
-    Optional regex filter for author names.a Regex is used so that a list of names can be specified
+    Optional regex filter for author names.a Regex is used so that a list of 
+    names can be specified
 
-.PARAMETER ScriptNameRegex
+.PARAMETER IgnoreCallbackTypes 
+   list of any callback types to ignore (eg BeforeInfo)
+
+.PARAMETER ScriptRegex
     Optional regex filter for Script names.
 
-.PARAMETER ScriptTypeRegex
-    Optional regex filter for Script type (e.g. before, after).
+.PARAMETER FileTypeRegex
+    regex filter. This defaults to "\.(ps1|bat|cmd|sh|bash|py)(?m:$)".
 
 .PARAMETER RepoLocation
-    If specified, the script will temporarily change to this directory (useful if script is run elsewhere).
+    If specified, the script will temporarily change to this directory (useful if 
+    script is run elsewhere).
 dir pubs\branches\develop\migrations
 
 .EXAMPLES
@@ -152,7 +161,7 @@ $changes = $gitLog -split "`n" | ForEach-Object {
 		$ScriptName = [System.IO.Path]::GetFileNameWithoutExtension($file)
 		$ScriptType = $ScriptName -replace '__.+?\z', ''
 		
-		if ($ScriptName -imatch '(?<CallbackType>\A(after|before)(each|)(clean|info|migrate|baseline|Validate|Repair|undo|Repeatable|version)(statement|error|Applied|)(Error|)).{3,}')
+		if ($ScriptName -imatch '(?<CallbackType>\A(after|before)(each|)(clean|info|migrate|baseline|Validate|connect|repair|undo|Repeatable|version)(statement|error|Applied|)(Error|)).{3,}')
 		{
 			$CallbackType = $matches['CallbackType']
 		}
@@ -216,7 +225,7 @@ $uncommitted = $entries | Where-Object { $_ -match "^(..)\s+(.*)$" } | ForEach-O
 		if ($FiletypeRegex -and ($file -notmatch $FiletypeRegex)) { $ThisFileIsRelevant = $false }
 		if ($ScriptNameRegex -and ($ScriptName -notmatch $ScriptNameRegex)) { $ThisFileIsRelevant = $false; }
         if ($IgnoreCallbackTypes.Count-ne 0) {if ($CallbackType -in $IgnoreCallbackTypes) { $ItIsAFileWeWant = $false }}
-        write-verbose "this $file files relevance is $ThisFileIsRelevant "
+        # write-verbose "this $file files relevance is $ThisFileIsRelevant "
 		if ($ThisFileIsRelevant)
 		{
 			$simpleStatus = switch ($status)

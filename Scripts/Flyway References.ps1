@@ -85,10 +85,13 @@ $ScriptFilesUsedByFlyway = $visited.GetEnumerator() | select -ExpandProperty nam
 <# Now we have a complete list of every script  referenced in a migration run we can make
 sure that they are all in GitHub, and committed #>
 $GitReportOfProjectFiles = `
-."$env:FlywayWorkPath\scripts\Get-FlywayScriptAndCallbackChanges.ps1" `
+  ."$env:FlywayWorkPath\scripts\Get-FlywayScriptAndCallbackChanges.ps1" `
    -CallbackPaths $MigrationLocationList `
    -RepoLocation "$env:FlywayWorkPath" |
 sort-object commit, File -Unique
+
+# $GitReportOfProjectFiles|where {$_.file -like '*preliminary*'}
+
 
 <# Now do a report that tells us which files need to be committed etc.  #>
 $ScriptFilesUsedByFlyway | foreach {
@@ -113,3 +116,5 @@ $ScriptFilesUsedByFlyway | foreach {
 	}
 }
 if ($JSONOutput) { $ScriptFilesUsedByFlyway | convertTo-json }
+
+# $JSONOutput=$false

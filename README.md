@@ -1,140 +1,175 @@
-# FlywayTeamwork
+# Flyway Teamwork Framework
 
-### Getting Started
+**A collaborative framework for managing database development with Flyway, safely and efficiently, across teams and environments.**
 
-The root directory of Flyway holds all the information that is required for every project in a directory called Resources
+---
 
-it also holds a file that tells Flyway Framework  where all the installed utilities are kept that do the heavy lifting, called MyToolLocations.ps1
+## 🔧 What is Flyway Teamwork?
 
-This currently has entries for SQLCmd,  CodeGuard, SQLCompare,  SQLDataCompare, psql, sqlite, OracleCmd, MySQLDump, MySQL and SQLPackage.  However, you only need the entries for the RDBMS that you’re actually using.
+The **Flyway Teamwork Framework** extends core Flyway into a *complete, practical workflow* for team-based database development. It helps database developers, DBAs, and DevOps engineers collaborate effectively on complex databases, with full versioning, auditability, rollback, and branch-based workflows — all while preserving the discipline and simplicity that Flyway encourages.
 
-You then just add directories for every project that you need.
+At its core, Flyway Teamwork allows you to:
 
-Every project folder needs a copy of preliminary, which you execute at the start of every PowerShell session. This gives you the library. The Library is read from the  Resources directory.  Because callbacks and Scripts are executed in the current working folder/directory, you need this discipline of having each project in a separate directory. 
+- Manage **branch-based development** while maintaining strict control over schema changes.
+- Cleanly separate *design-time* and *deployment-time* concerns.
+- Capture not only database structure, but also **intent, documentation, rationale**, and approval history.
+- Support both **imperative** and **declarative** approaches as needed.
+- Allow seamless handoff between developers and operations teams.
 
-###  Powershell-based Database Development with Branches using Flyway
+This framework helps you treat your database not as an afterthought but as a full participant in modern version-controlled, CI/CD-based software delivery pipelines.
 
-This framework is designed to make it easier to use PowerShell scripts and callbacks of various kinds. This project has gradually evolved to support an expanding series of articles all about Flyway.  It  uses for its examples the old Pubs database, originally a demo database from Sybase. The whole purpose of doing this  is  to demonstrate and explore the features of Flyway. As a result,  it should be very useful for anyone starting out to develop scripts for use with Flyway because it is otherwise hard to get over the initial culture-shock.
+---
 
-#### Why FlywayTeamwork happened
+## 💡 Why was Flyway Teamwork created?
 
-I developed FywayTeamwork because I like to spend as much time in real development work as possible, without the distraction of admin, source control tasks, reporting and managing team resources.  I also like to be able to find out as much as possible about the database as quickly as possible,
+Most database tools focus on generating change scripts — but **team-based development adds additional complexity**:
 
-The Framework evolved as I hit a frustration. Couldn’t find where a view was altered. Now easy, Couldnt find out exactly what changed between version 2.1  and 2.2? Now easy.  Wasn’t able to run quality checks on migration files? now simple to do. Couldn’t save onkect-level scripts to source control. Now simple. Then, the task of making it work for different RDBMS. Once completed, I had a very different perspective. The simple ability to run tasks on a range of RDBMS. And so on …. Suddenly, there were a lot of database tasks automated 
+- Multiple developers working simultaneously.
+- Feature branches that may diverge and converge.
+- Reviewing and approving complex schema changes.
+- Retaining institutional knowledge around *why* a change was made.
+- Handling documentation changes separately from actual schema changes.
+- Ensuring confidence in both *forward* and *backward* deployment paths.
 
-#### Managing Changes
+The Flyway Teamwork Framework introduces patterns, conventions, and file structures that enable safe collaborative working — while staying compatible with Flyway’s model.
 
-When you are scripting in Flyway, you will want to know how individual objects change. To make this possible, we provide object-level directories for every version as well as the current version. Together with Source Control, you get an ovject-level view of changes.  For developers more used to build scripts, each version can have its own build script which can be saved in source control to give the developer a roof-top view of development.  You also get a report on what changes happened in each version. There is a system for supporting TDD and unit testing, which runs tests and also provides performance information. 
+---
 
-#### Providing information 
+## 📦 What's included
 
-When you are automating processes in a DevOps environment, you need to have a lot of information easily to hand, including the version of  database, the previous version, the current settings of Flyway, the locations of the migration files, the RDBMS and version of the database server you’re using, the name of the server, the location of the various directories that are used for project resources, where you keep your tests,  the userid, the location of project resources, and any extra information you need.
+The framework typically provides:
 
-By automating a large number of tasks, I’ve learned what is necessary.  The version of the database is essential for a number of tasks particularly where you need to save to source control or if you save reports for individual versions. It allows you to create a narrative of what changes were made and when.  With a multi-RDBMS approach, it all becomes simple if you know what RDBMS flyway is accessing. You can switch to the correct SQL Syntax in your automation work or use utilities that work across different RDBMSs.  Flyway Teamwork  keeps all the information you need in a hashtable that is used and updated by every scriptblock or cmdlet that  uses it.
+- **Clear separation of design artifacts** (schema model, documentation, test data, dependencies).
+- **Script generation patterns** for both automatic and hand-crafted migration scripts.
+- **Metadata layers** to capture narrative, ownership, review status, and deployment intent.
+- **Branch management guidance** for feature branches, hotfixes, and release candidates.
+- Integration points for:
+  - Flyway Desktop
+  - Flyway CLI
+  - Source control (Git, Azure DevOps, GitHub, etc.)
+  - CI/CD pipelines
 
-#### Support for Branching and merging
+---
 
-Over the years, we have expanded the system to make it suitable for enterprise-scale developments,  diversified its support for a range of relational databases, and rearranged the directory structure to a hierarchical one to accommodate the practice of branching and creating variants. Although designed with GIT in mind, and currently used with GIT, it is designed to be able to work with any reasonable source control system. It does not rely on the source control system to accommodate branching- it can do it intrinsically.  It is better not to use Git’s branching mechanism which does not work naturally with databases as it does with  compiled code. 
+## 🔬 Who is Flyway Teamwork for?
 
-We’re using the following model of branching. 
+- Development teams managing evolving databases.
+- DBAs overseeing complex schema evolution.
+- DevOps teams building automated database delivery pipelines.
+- Enterprises seeking auditability, predictability, and traceability in schema management.
 
-![FlywayHierarchy](https://user-images.githubusercontent.com/917048/152835501-ddc5c01a-c707-45b3-b5d3-e4e20efb8108.png)
+Whether you work with SQL Server, PostgreSQL, MySQL, or other RDBMS platforms, the Flyway Teamwork approach applies.
 
-Within each branch is held all the migrations, scripts, models and reports. Each branch therefore has the same  names and purpose for its subdirectories. The sub-branches of any branch are contained in a ‘branches’ directory. 
+---
 
-This system is geared to using file links so that the source, configuration and so on is all held in just one place and replicated via links. This isn’t essential and it will work even of code is duplicated. 
+## 📖 Learn More
 
-We’ve also used the Current Working Directory or ’current location’. This means that the PowerShell must make the branch being worked on the current working directory $pwd. (think CD or Set-Location).  This allows all the server and database connection details to be kept in the branch folder.  It also means that a user can switch between branches merely by changing location/$pwd. The password is either stored or retrieved from the user area as a secure string, and is located by Server, User_ID and RDBMS (it is possible to have two different REDBMS on the same server)  The user-based Flyway.Conf file will need to store the user name (the ‘*installedBy*’  parameter) if you need to change this, you can over-ride the default identity with a command-line parameter or an environment variable. 
+You can read the original **Redgate article introducing Flyway Teamwork** here:\
+👉 [What is the Flyway Teamwork Framework?](https://www.red-gate.com/hub/product-learning/flyway/what-is-the-flyway-teamwork-framework)
 
-Another change is to allow several database project in the one project collection.  This has been flagged up as a potential problem by teams wanting to use Flyway.  Each database is in a directory whose name is the name of the project. This allows us to store all scripts, modules  and  routines that are to be used universally within the same project to be in just one place. This avoids a potential maintenance nightmare as these need updating.
+---
 
-All this requires that every PowerShell script that does a flyway action has to have an initialisation so that all the scriptBlocks, functions, cmdlets and so on are read in, and the context of the PowerShell script can be worked out. It puts all the data that it gathers into a hashtable that is easily available to the script.
+## 🚀 Getting Started
 
-All the examples of scripts, migration scripts (used in the course of a migration), and callback scripts have been altered accordingly. By using an initialisation, it has been possible to standardise these. 
+If you're new to Flyway or Flyway Teamwork:
 
-The current catalog of supported tasks is here in [The Flyway Teamworks Scriptblocks.](https://github.com/Phil-Factor/FlywayTeamwork-Pubs/blob/main/ScriptBlocks.md) The aim is to gradually make all the tasks multi-RDBMS as and when anybody wants that. If you don’t ask, I’m less enthusiastic
+1. Start with a **clean branch-based workflow**.
+2. Capture schema models and design intent.
+3. Generate and review scripts before merging.
+4. Deploy with confidence.
 
-For an introduction to the framework, see [What is the Flyway Teamwork Framework?](https://www.red-gate.com/hub/product-learning/flyway/what-is-the-flyway-teamwork-framework?product=flyway) This will tell you the basics. After you’ve read that, there are plenty of other sources of information such as:
+This repository includes examples, templates, and guidance to help you get started.
 
-| The Flyway Article                                           | What it is about.                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [Using Flyway as a Multi-Database Migration System](https://www.red-gate.com/hub/product-learning/flyway/using-flyway-as-a-multi-database-migration-system) | Flyway can scale easily to enterprise-scale database systems, even if they involve a mix of relational database systems, are cloud-based, containerized or involve complex authentication. This article demonstrates how we can use Flyway Teams to do a single-batch, multi-database migration, comprising SQL Server, Oracle Cloud, PostgreSQL, MySQL and SQLite databases |
-| [How to Write and Debug a PowerShell Callback for Flyway Migrations](https://www.red-gate.com/hub/product-learning/flyway/how-to-write-and-debug-a-powershell-callback-for-flyway-migrations) | We can use callbacks in Flyway to plug into any part of the Flyway lifecycle and run various database tasks before or after a particular event takes place. In this article I've tried to assemble a 'best practice' guide for writing callbacks to ensure that the scripts always behave predictably, and so that when things go awry the cause is easy to spot, without hours of painful scrolling through Flyway output. |
-| [Managing Test Datasets for a Database: What’s Required?](https://www.red-gate.com/hub/product-learning/flyway/managing-test-datasets-for-a-database-whats-required) | The management of datasets is intrinsic to effective team-based database development. This article reviews what's required of test datasets in database development and then proposes a system of managing them in a migration-based approach that adopts a common standard for their storage, using JSON. |
-| [Planning a Database Testing Strategy for Flyway](https://www.red-gate.com/hub/product-learning/flyway/database-testing-strategy-flyway) | With Flyway, you can adopt a test-driven development strategy that will allow you to test and evaluate databases, and database objects, at every phase of the database development lifecycle. The further down the delivery pipeline that bugs appear, the more costly in time and resources they are to fix. This approach will allow you to catch many of them before the database change even gets committed to version control, making a continuous delivery process much easier to adopt and sustain. |
-| [Running DOS Scripts as Callbacks with Flyway](https://www.red-gate.com/hub/product-learning/flyway/running-dos-scripts-as-callbacks-with-flyway) | How to perform a range of useful database tasks automatically during Flyway migrations, using a DOS callback script. We provide a demo script that will collect all the necessary information from Flyway, run the task and then save any file with the appropriate name. You can use it to automate tasks such creating backups or DACPACs or generating a build script, each time Flyway creates a new database version |
-| [Using ODBC in PowerShell Scripts and Callbacks](https://www.red-gate.com/hub/product-learning/flyway/using-odbc-in-powershell-scripts-and-callbacks) | Flyway connects to database using JDBC, but when we're automating Flyway with PowerShell, we can't use JDBC directly to get access to the metadata we need to add useful reports and other functionality to Flyway's build and migration processes. This article demonstrates how to get what we need using ODBC from our PowerShell scripts, via a DSN. |
-| [Failed Database Deployments: Roll Back or Fix Forward?](https://www.red-gate.com/hub/product-learning/flyway/failed-flyway-database-deployments-roll-back-or-fix-forward) | This article explains the different ways to reverse or accelerate your way out of the problems caused by a failed database deployment, where a technique such as feature flags fits into your strategy, and how Flyway is designed to help you ensure both that you're fully prepared to take swift remedial measures, and that you minimize the need to use them. |
-| [Passing Parameters and Settings to Flyway Scripts](https://www.red-gate.com/hub/product-learning/flyway/passing-parameters-and-settings-to-flyway-scripts) | This article explains the various ways of using placeholders to pass information and settings to any Flyway script, to gain bit of extra flexibility in a migration run., providing examples of conditional execution, running SQL expressions using environment variables and even one of using placeholders in a callback to send a warning notification to your phone, after a migration completes. |
-| [Code Visibility: Browsing through Flyway Migration Files](https://www.red-gate.com/hub/product-learning/flyway/code-visibility-browsing-through-flyway-migration-files) | If you can convert a SQL file to HTML, then you can inspect your Flyway migration files in a browser. This is especially useful if your SQL is color-coded with the same conventions as it was in your IDE. It is even better still if your browser can allow you to scan through many files, moving from file to file with a single click. This article demonstrates how to do this with a few PowerShell scripts. |
-| [Doing Flyway Migrations for Many Different Databases and Projects](https://www.red-gate.com/hub/product-learning/flyway/doing-flyway-migrations-for-many-different-databases-and-projects) | This article demonstrates a PowerShell automation technique that will allow you to run any Flyway build or migration task on any number of projects and databases, hosted on a range of RDBMSs. It handles all connection and authentication details securely, makes it easier to automate database testing and can send detailed alerts when Flyway encounters an error. |
-| [Running Database Assertion Tests with Flyway](https://www.red-gate.com/hub/product-learning/flyway/running-database-assertion-tests-with-flyway) | A database assertion test aims to check that data within a relational database conforms to specific business rules. This article demonstrates how to run these assertion tests automatically in Flyway, checking that the queries under test always produce the expected results. |
-| [Running Structured Database Tests in Flyway](https://www.red-gate.com/hub/product-learning/flyway/running-structured-database-tests-in-flyway) | Once a scripted Flyway task is tested and bedded-in, it should rarely cause errors, so when one happens the team need to be notified immediately, especially if it is part of an automated deployment process. This article provides a PowerShell cmdlet that will execute any Flyway command, process and filter the Flyway output and send any errors to the chosen notification system. You can receive the Flyway error alerts on your mobile phone, if required! |
-| [Flyway Alerting and Notifications](https://www.red-gate.com/hub/product-learning/flyway/flyway-alerting-and-notifications) | Once a scripted Flyway task is tested and bedded-in, it should rarely cause errors, so when one happens the team need to be notified immediately, especially if it is part of an automated deployment process. This article provides a PowerShell cmdlet that will execute any Flyway command, process and filter the Flyway output and send any errors to the chosen notification system. You can receive the Flyway error alerts on your mobile phone, if required! |
-| [Using a GitHub Tagged Release for a Flyway Migration](https://www.red-gate.com/hub/product-learning/flyway/using-a-github-tagged-release-for-a-flyway-migration) | Why not just build the latest version of any branch of the database by pulling the scripts from the latest tagged release on GitHub? While it is easy to get the files via the GitHub site, it gets tedious to do so repeatedly, via the GUI. It is, however, possible to automate this via the Rest API, using a script. If you are using PowerShell, I've done it for you. |
-| [Using Database Models and Flyway for Automating Routine Development tasks](https://www.red-gate.com/hub/product-learning/flyway/using-database-models-and-flyway-for-automating-routine-development-tasks) | Database models have all sorts of useful applications during Flyway development to help us automate those repetitive development tasks that otherwise slow down delivery. This article shows how models can help us automate mundane tasks such as generating a build script for any version of a database or deleting the data from every table. |
-| [Integrating SQL Monitor into a Tier-1 Alert and Notification System](https://www.red-gate.com/hub/product-learning/sql-monitor/integrating-sql-monitor-into-a-tier-1-alert-and-notification-system) | SQL Monitor provides detail-level diagnostic data that will allow an expert to drill down to establish the cause of, and a fix for, any database problem. However, with support for webhooks, it can also contribute alerts to the sort of "Tier 1" alerting and paging system that an operations team might use to get an immediate notification of an urgent problem, anywhere on the network, and then coordinate a timely response. |
-| [Tracking Development Changes using Flyway and Database Models](https://www.red-gate.com/hub/product-learning/flyway/track-dev-changes-using-database-models) | A database model is a standard document that represents the logical design and structure of a database. If we save a model each time Flyway creates a new version of the database, then we can find out what's in each version, and get an overview of how that structure changed between any two versions. This has all sorts of uses in team-based database development work. |
-| [Supporting a Production Database: What’s Required](https://www.red-gate.com/hub/product-learning/sql-monitor/supporting-a-production-database-whats-required) | How to plan for an effective response to database problems, as part of a broader, 'tiered' monitoring strategy for production systems, where the process to resolve any known or routine problem is provided alongside the associated alert, and any urgent issues that can't be fixed, or threaten the quality of the service, are escalated promptly to the right team. |
-| [A Test Data Management Strategy for Database Migrations](https://www.red-gate.com/hub/product-learning/flyway/test-data-management-for-database-migrations) | This article will help you understand the steps to better test data management, when using a migrations-based approach to database development and deployment. It explains the different types of data required and why, the need for separation of DDL and DML code, and the most efficient way to create, load and switch between the different required data sets. |
-| [Infrequently Asked Questions About Flyway](https://www.red-gate.com/hub/product-learning/flyway/infrequently-asked-questions-about-flyway) | You can have Flyway up and running in minutes if you're a solo developer managing a single database. However, as you seek to 'scale up' Flyway to accommodate more complex database systems, team-based development, and stricter quality controls, you'll need to tackle some knottier questions. Without adequate answers, tasks such as multi-database management, automation and workflow, and Continuous Integration will be difficult. Hopefully, this article will help. |
-| [Using SSDT and DACPACs with Flyway: a Demonstration](https://www.red-gate.com/hub/product-learning/flyway/using-ssdt-and-dacpacs-with-flyway-a-demonstration) | The aim of this article is simply to demonstrate that you can use two DACPAC files, representing the source and target versions of a SQL Server database, to create a migration file that can then be used in Flyway. |
-| [Running Flyway Pre-Migration Checks on the Database](https://www.red-gate.com/hub/product-learning/flyway/running-flyway-pre-migration-checks-on-the-database)) | This article demonstrates how to run a preliminary check that issues a warning, or throws an error, if the conditions aren't met for a Flyway migration to succeed. It provides some example checks for PostgreSQL databases that use Flyway SQL callbacks to ensure the server is running the correct PostgreSQL version, or that the database has a required extension installed. |
-| [Maintaining Variants of a Database using Flyway Locations](https://www.red-gate.com/hub/product-learning/flyway/maintaining-variants-of-a-database-using-flyway-locations) | In this article, I'll explain why we often need to maintain variants of the same database, at a particular version. I'll demonstrate how useful variants can be for creating slightly modified installations of a database, for special uses, or even for the simple task of provisioning multiple copies of the same version. In doing so, I'll show how we can use Flyway `locations` to overcome problems that would otherwise require complicated solutions. Flyway can make the whole matter of maintaining database variants very easy. |
-| [Storing Credentials Securely on a Windows-based Flyway Installation](https://www.red-gate.com/hub/product-learning/flyway/storing-credentials-securely-on-a-windows-based-flyway-installation) | This article demonstrates how to use PowerShell to fetch your login credentials from Windows Credential Manager and pipe them securely to Flyway without ever saving them in any form, such as in a file or environment variable. |
-| [Searching Flyway Migration Files using Grep and Regex](https://www.red-gate.com/hub/product-learning/flyway/searching-flyway-migration-files-using-grep-and-regex) | This article demonstrates a cross-RDBMS way of searching through a set of SQL migration files, in the right order, to get a narrative summary of what changes were made, or will be made, to one or more of the tables or routines within each migration file. Getting these summary reports, even from a set of SQL migrations, isn't difficult, but having a few examples makes it a lot quicker to get started. |
-| [Pipelining Configuration Information Securely to Flyway](https://www.red-gate.com/hub/product-learning/flyway/pipelining-configuration-information-securely-to-flyway) | This article demonstrates two techniques for allowing Flyway to read extra configuration information from a secure location, possibly encrypted. The first technique pipes the contents of the config file to flyway via STDIN, and the second uses PowerShell splatting. This makes it much simpler to use Flyway to manage multiple development copies of a database using role-base security. |
-| [Using Windows Security and Encryption with Flyway](https://www.red-gate.com/hub/product-learning/flyway/using-windows-security-and-encryption-with-flyway) | This article describes a simple technique that will allow you to use Flyway securely, even in cases where more than just the login credentials need to be protected. It uses a PowerShell technique that converts an encrypted Flyway configuration file into an array of parameters that Flyway can read just as if you were typing them in. |
-| [Flyway for SQL Server Data Tools Users](https://www.red-gate.com/hub/product-learning/flyway/flyway-for-sql-server-data-tools-users) | If you are using SSDT for authoring, building, debugging, and publishing a database project, how do you change to, or preferably migrate towards, a Flyway-based database development? Flyway doesn't need to replace any code part of SSDT, but if allowed to manage every release candidate, it does allow for much cleaner branching, merging, and deployments. |
-| [Flyway and SSDT: Merging Work from a Branch](https://www.red-gate.com/hub/product-learning/flyway/flyway-and-ssdt-merging-work-from-a-branch) | In an SSDT-Flyway hybrid development, the required database changes may be delivered as a DACPAC, but we get far more control over merge operations and deployments if they are done using Flyway migrations. This article demonstrates how to automate as much as possible of the work required to extract a Flyway-compatible migration script from a DACPAC. |
-| [Flyway and SSDT: Extracting a DACPAC from a Flyway-managed Database](https://www.red-gate.com/hub/product-learning/flyway/flyway-and-ssdt-extracting-a-dacpac-from-a-flyway-managed-database) | When you are integrating Flyway into an existing SQL Server SSDT development, you don't necessarily have to change everything at once. The development team might continue to use the SSDT tools, but Flyway will soon take over the deployments. This means that any automated processes will need to be able to handle both DACPACs and Flyway migration scripts with equal grace. In this article, I'll demonstrate how to automatically extract a versioned DACPAC from each new Flyway version of a database. |
-| [Finding External References in Database Deployments](https://www.red-gate.com/hub/product-learning/flyway/finding-external-references-in-database-deployments) | This article outlines the syntax of the three and four dot references that usually denote external database references, demonstrates how to find them either from a live database or by using a text search of a script, and explains some of the complicating factors that can lead to 'false positives'. |
-| [Database Branching and Merging without the Tears](https://www.red-gate.com/hub/product-learning/flyway/database-branching-and-merging-without-the-tears) | Armed with a schema comparison engine and an object-level directory of the source for every recent version of the database, you'll be able to remove a lot of the uncertainty around merging database changes back into development. |
-| [How to Automate Cross-Platform Database Development](https://www.red-gate.com/hub/product-learning/flyway/how-to-automate-cross-platform-database-development) | In order to focus on their primary task of developing databases, the development team need to automate as many as possible of the routine tasks that are essential for database delivery, such as testing, scripting, version control, documentation, code review, reporting and so on. This article gives some advice on how to do it, faced with the added challenge of needing to use several different relational databases. |
-| [Piping, Filtering and Using Flyway Output in PowerShell](https://www.red-gate.com/hub/product-learning/flyway/piping-filtering-and-using-flyway-output-in-powershell) | Flyway's output is often overwhelmed with verbose messages, most of which we can ignore but some of which provide vital warnings about failed compilations, or useful details about what a migration or callback did. I'll show how to use some pipeline-aware PowerShell functions to filter out and save the bits we want and pass the results along in a form that is useful to the next process in the pipeline. |
-| [Recording What’s Changed when Running Oracle Migrations with Flyway](https://www.red-gate.com/hub/product-learning/flyway/recording-whats-changed-when-running-oracle-migrations-with-flyway) | This article uses Flyway and a PowerShell framework to generate a simple JSON model for each new version of an Oracle database, and then compares models to get a high-level 'narrative' of which tables, views or procedures were changed by each Flyway migration. |
-| [Complex Production Database Deployments and Flyway](https://www.red-gate.com/hub/product-learning/flyway/complex-production-database-deployments-and-flyway) | This article explains how, by use of schemas and stub interfaces, we can use Flyway to manage the main development work smoothly alongside any changes or additions required to maintain production-only code. It also demonstrates how this mechanism enables Flyway to manage a 'mock' or 'dummy' variant of a production schema, in development, so that the team can still develop and test code that, when deployed, will access production-only features. |
-| [Undoing Actions on Groups of Database Tables](https://www.red-gate.com/hub/product-learning/flyway/undoing-actions-on-groups-of-database-tables) | During development you'll occasionally need an undo script that drops a group of tables, or you might need to truncate a group of tables and then insert fresh data in order to run some tests. Unless you perform the required actions in the correct dependency order, you'll be tripped up by foreign key constraint violations. This article provides a SQL function that returns the list of tables in the correct dependency order. |
-| [Getting Started with Flyway Migrations on Oracle](https://www.red-gate.com/hub/product-learning/flyway/getting-started-with-flyway-migrations-on-oracle) | A quick demonstration of using Flyway with Oracle, for those of a nervous disposition. We'll use Flyway to run some migrations on an Oracle Autonomous Database, building the initial version of the database then filling it with development data. |
-| [A Simple Example of Flyway Development using GitHub Branching](https://www.red-gate.com/hub/product-learning/flyway/a-simple-example-of-flyway-development-using-github-branching) | This article demonstrates one way to do branch-based database development with Flyway, using GitHub to manage the branches and Flyway configuration files to allow Flyway to switch smoothly between databases, when we move between branches in GitHub. |
-| [Dealing with Mutually Dependent Databases in Flyway](https://www.red-gate.com/hub/product-learning/flyway/dealing-with-mutually-dependent-databases-in-flyway) | How to create and manage 'stub' objects, in Flyway migrations, in order to overcome build failures caused by circular, or mutual, dependencies between objects in different databases. The technique should be applicable to any RDBMS. |
-| [Dealing with Cross-Server Database Dependencies in Flyway Projects](https://www.red-gate.com/hub/product-learning/flyway/dealing-with-cross-server-database-dependencies-in-flyway-projects) | How to tackle database development in Flyway when databases make cross-server references. The technique uses synonyms to represent the remote objects, and local 'stub' objects to overcome the problems caused by 'missing references' when building the individual objects. |
-| [Executing Optional Code in Flyway Callbacks](https://www.red-gate.com/hub/product-learning/flyway/executing-optional-code-in-flyway-callbacks) | When you are building or migrating a database, it is nice to have a system that you can easily configure for various tasks, such as logging, loading or dumping data, or backing up of the database. This article demonstrates how we can use a Flyway placeholder as a simple on/off switch for each task, during Flyway migrations. |
-| [Transferring Database Documentation into SQL DDL Scripts](https://www.red-gate.com/hub/product-learning/flyway/transferring-database-documentation-into-sql-ddl-scripts) | We all love having documentation in source code, if not writing it. We just want to ensure that it gets propagated and retained so you and your team members can read it if they need to. This article demonstrates a cross-RDBMS PowerShell task that will extract the comments from a primary JSON source of database documentation and add it to a set of SQL DDL source files |
-| [Cross-RDBMS Code Quality Reports in Flyway](https://www.red-gate.com/hub/product-learning/flyway/cross-rdbms-code-quality-reports-in-flyway) | Before you commit your Flyway migration files, you may want to run some automated checks for style or 'code smells'. This article demonstrates how to run basic cross-RDBMS code quality checks using SQL Fluff. We analyze the results in PowerShell to produce reports and analytics on the number or types of issues found. |
-| [Maintaining a Utilities Schema in a Flyway Project](https://www.red-gate.com/hub/product-learning/flyway/maintaining-a-utilities-schema-in-a-flyway-project) | Whatever development methodology you use, it is useful to have, and independently maintain, a separate schema within a database for utilities. These utilities are database objects that monitor the functioning and operation of the database, but aren't part of the database. This article demonstrates how to manage these utilities from Flyway so that we can maintain and migrate them separately from the database objects. |
-| [Reviewing SQL Migration Files Before a Flyway Migration](https://www.red-gate.com/hub/product-learning/flyway/reviewing-sql-migration-files-before-a-flyway-migration?product=flyway) | This article demonstrates how, once armed with the file path locations of all the scripts, you can use PowerShell to search them for various purposes such to review them for potentially disruptive changes, or run code quality checks, or to verify documentation standards. |
-| [Building a Database Directly from Object-level Source Scripts](https://www.red-gate.com/hub/product-learning/sql-compare/building-a-database-directly-from-object-level-source-scripts) | Table manifests, and object manifests, which are just ordered lists, are a very useful output from and development database build. This article show how to generate a table manifest in SQL, and once you have it, you'll start to find several uses for it, besides the build process. |
-| [Try Before You Commit in Flyway](https://www.red-gate.com/hub/product-learning/flyway/try-before-you-commit-in-flyway?product=flyway) | Sometimes we want to check whether it is possible to run a Flyway migration without error, but not actually make the changes. We might just need to 'sanity test' the performance of a migration on the Staging server, for example. By using a placeholder 'switch' to trigger a SQL Exception, we can get Flyway to roll-back its transaction, and therefore the migration, on demand. |
-| [Finding the Version of a Flyway-managed Database Using SQL](https://www.red-gate.com/hub/product-learning/flyway/finding-the-version-of-a-flyway-managed-database-using-sql?product=flyway) | Maintaining a version of a database opens a lot of possibilities, especially if an automated process can easily grab the current version, at runtime, using just SQL. You might, for example, have a routine that is only appropriate after a particular version. It is also very handy to be able to associate entries in an event log or bug report with the database version. |
-| [Rollbacks, Undos and Undonts](https://www.red-gate.com/hub/product-learning/flyway/rollbacks-undos-and-undonts?product=flyway) | Rollback scripts are designed to allow us to recover safely from a failed deployment that leaves the database in an indeterminate state. They must check exactly what needs to be reverted before doing so. If you work with an RDBMS that cannot support transaction DDL rollback they are vital. This article proposes a strategy where you create and test a rollback file, at the same time as the forward migration, and reuse it as a Flyway undo script |
-| [Managing Static Data in Flyway Database Development](https://www.red-gate.com/hub/product-learning/flyway/managing-static-data-in-flyway-database-development?product=flyway) | If your database application requires 'static data' to function, then the best way to manage that data is using a view based on a derived table. This article demonstrates ways to create these views, depending on your RDBMS's capabilities, and how to build and manage them in development work, using Flyway and PowerShell |
-| [Managing Datasets for Database Development Work using Flyway](https://www.red-gate.com/hub/product-learning/flyway/managing-datasets-for-database-development-work-using-flyway?product=flyway) | A generic way of exporting, deleting and loading data, for database development work. It uses Flyway Teams, a PowerShell framework, JSON files for storage and a table manifest to define the correct order of dependency for each task. It should help a team maintain datasets between database versions, as well as to switch between the datasets required to support different types of testing. |
-| [The Uses of Dependency Information in Database Development](https://www.red-gate.com/hub/product-learning/flyway/the-uses-of-dependency-information-in-database-development?product=flyway) | Dependency information will allow you to avoid errors during a database build or tear-down, by ensuring you create or remove objects in the right order. It will also help you to avoid future 'invalid object' errors, because it will allow you to check that no database alterations have introduced broken references, during Flyway migrations |
-| [Performance Testing Databases with Flyway and PowerShell](https://www.red-gate.com/hub/product-learning/flyway/performance-testing-databases-with-flyway-and-powershell?product=flyway) | Performance tests are central to the quality of the database changes we deliver because they ensure that any business process that accesses the database continues to return its results in an acceptable time. When Flyway creates a new version of the database, it is the ideal time to run these performance checks |
-| [Running Unit and Integration Tests during Flyway Migrations](https://www.red-gate.com/hub/product-learning/flyway/running-unit-and-integration-tests-during-flyway-migrations?product=flyway) | In this article I'll give a practical example of developing a database, with Flyway, in such a way that it is automatically tested with whatever unit tests and integration tests you specify whenever you migrate the branch you're working on to the next version. If a test fails, you can work out why, undo the migration and then try again |
-| [Introduction to Testing a Flyway Development](https://www.red-gate.com/hub/product-learning/flyway/introduction-to-testing-a-flyway-development?product=flyway) | How to use Flyway Teams to run basic tests whenever it successfully executes a migration, checking that all the business processes supported by our database always produce the expected results. |
-| [Re-baselining a Database using Flyway Desktop](https://www.red-gate.com/hub/product-learning/flyway/re-baselining-a-database-using-flyway-desktop?product=flyway) | Over time, Flyway projects can accumulate a lot of migration scripts, with many database objects being created, altered, and dropped across many files. Tonie Huizer explains why you might want to create a new baseline migration file to create the latest version of a Flyway-managed database in a single leap, and how to persuade Flyway Desktop to do it |
-| [Searching a Flyway Database](https://www.red-gate.com/hub/product-learning/flyway/searching-a-flyway-database?product=flyway) | As a database gets larger, and development more complex, so it becomes increasingly necessary to be able to search for strings in the source files and the database itself. Maybe you need to find when a table first got created, when a foreign key was added, or to find out which tables lack documentation. I'll show you how to answer these sorts of questions by running simple 'wildcard' searches on your Flyway migration files, or source files, as well as more targeted searches on certain parts of your database model |
-| [Building a Database with Flyway](https://www.red-gate.com/hub/product-learning/flyway/building-a-database-with-flyway?product=flyway) | Flyway, especially Flyway Teams edition, can be used in several different ways to accommodate a database development that was originally based on builds rather than migrations. This article explores four different ways to use Flyway to build a particular version of a database, from the ground up, using a single migration script. It should help teams select the best way to incorporate Flyway into an existing database build system, during development, while benefitting from use of Flyway's versioned migration system for deployments and releases. |
-| [Increasing the Visibility of Database Changes in Flyway Development](https://www.red-gate.com/hub/product-learning/flyway/increasing-the-visibility-of-database-changes-in-flyway-development?product=flyway) | If you save a metadata 'model' for every new version of a database created by Flyway, you can compare the current model to the previous one to see what changed. In turn, you can then generate a database E-R diagram that highlights the changed objects, instantly making those changes visible to other team members |
-| [DevOps Collaboration and Process Visibility in Flyway Developments](https://www.red-gate.com/hub/product-learning/flyway/devops-collaboration-and-process-visibility-in-flyway-developments?product=flyway) | A brief history of the DevOps movement and a discussion of the pivotal role of a tool like Flyway in the DevOps toolchain, when developing and delivering database changes |
-| [Taming Database Documentation with Flyway and MySQL](https://www.red-gate.com/hub/product-learning/flyway/taming-database-documentation-with-flyway-and-mysql?product=flyway) | Database object documentation is essential for explaining to busy developers, and the wider business, the purpose of each object and how to use it. The solution presented in this article consists of a SQL script to allow developers to add comments to MySQL database objects, without affecting the database version, and a simple way to generate a documentation report, in JSON. The SQL script will execute automatically as a callback, during any Flyway Teams migration run, and the report will allow the team to spot any gaps quickly |
-| [Cross-RDBMS Version Checks in Flyway](https://www.red-gate.com/hub/product-learning/flyway/cross-rdbms-version-checks-in-flyway?product=flyway) | How does one check that a database is definitively at the version that Flyway says it is? Or that a test teardown procedure leaves no trace in the database? Or verify that an undo script returns a database's metadata to that state it should be in for the version to which you're rolling back? This article shows how to do high-level version checks, by comparing JSON models. |
-| [Automating Flyway Development Chores using Database Diagrams](https://www.red-gate.com/hub/product-learning/flyway/automating-flyway-development-chores-using-database-diagrams?product=flyway) | If you can produce a quick Entity-Relationship diagram for any version of a database, you'll have a simple way to 'sanity check' it for unreferenced tables, missing keys and other design flaws. This article shows how to auto-generate these diagrams when running a migration, using Flyway Teams and PowerShell |
-| [Database Testing in a Flyway Development](https://www.red-gate.com/hub/product-learning/flyway/database-testing-in-a-flyway-development?product=flyway) | If you can test and evaluate databases, and database objects, at every phase of the database development lifecycle, then you are much more likely to be able to adopt continuous delivery. The further down the delivery pipeline that bugs appear, the more costly in time and resources they are to fix |
-| [Managing Database Code Quality in a Flyway Development](https://www.red-gate.com/hub/product-learning/flyway/managing-database-code-quality-in-a-flyway-development?product=flyway) | In this article, I'll discuss the most important quality metrics for a database development, and then practical ways to ensure that a Flyway-managed database is designed and implemented to a high enough standard that it is reliable to use |
-| [Getting Started with Flyway and any RDBMS](https://www.red-gate.com/hub/product-learning/flyway/getting-started-with-flyway-and-any-rdbms?product=flyway) | How to get started with Flyway, as simply as possible, using PowerShell. This article provides a practice set of Flyway migration scripts that will build the original pubs database on either SQL Server, PostgreSQL, MySQL, MariaDB or SQLite and then migrate it from version to version, making a series of improvements to its schema design |
-| [Simple Reporting with Flyway and Database Models](https://www.red-gate.com/hub/product-learning/flyway/simple-reporting-with-flyway-and-database-models?product=flyway) | If you can generate a file-based (JSON) model for each new version of a database, produced by a Flyway migration, then you have an easy way to run simple reports to help you search, list, and understand the structure of these databases. I'll show how to produce the models using PowerShell and then run some queries against them to generate the reports |
-| [Flyway and Simple Source Control](https://www.red-gate.com/hub/product-learning/flyway/flyway-and-simple-source-control?product=flyway) | How to integrate Flyway database development with Source control, so that you can track what changes were made and who made them as well as which objects changed between versions, and how |
-| [Flyway How-tos: a User’s Perspective](https://www.red-gate.com/hub/product-learning/flyway/flyway-how-tos-a-users-perspective?product=flyway) | Flyway provides a database-independent way for a team to track, manage and apply database changes, while maintaining strict control of database versions. It updates a database by running a series of versioned migration scripts, in order, and keeps track of all the changes in a special "schema history" table. It sounds simple, but it is easy to derail this team discipline if you don't find the right answers to the following questions |
-| [Database Development Visibility using Flyway and PowerShell](https://www.red-gate.com/hub/product-learning/flyway/database-development-visibility-using-flyway-and-powershell?product=flyway) | The payback of DevOps is not simply in automation but in using that automation to increase the visibility of the development processes. This article demonstrates way to make Flyway developments more visible, regardless of your RDBMS, such as by providing a detailed migration history, and change reports that reveal detail of what is going on to all involved. |
-| [Creating Flyway Migration Files using Redgate Schema Comparison Tools](https://www.red-gate.com/hub/product-learning/flyway/creating-flyway-migration-files-using-redgate-schema-comparison-tools?product=flyway) | How to use Redgate's schema comparison engines to generate object-level scripts for every database version that Flyway creates, and then use them to create ad-hoc, Flyway-compatible migration files. |
-| [Getting an Overview of Changes to a PostgreSQL Database using Flyway](https://www.red-gate.com/hub/product-learning/flyway/getting-an-overview-of-changes-to-a-postgresql-database-using-flyway?product=flyway) | How to use Flyway and PowerShell to automatically generate a database build script every time Flyway successfully created a new version. You can then investigate schema changes between versions simply by using a Diff tool to compare build scripts. |
-| [Dealing with Database Data and Metadata in Flyway Developments](https://www.red-gate.com/hub/product-learning/flyway/dealing-with-database-data-and-metadata-in-flyway-developments?product=flyway) | Before you get very far with database development you need to be clear about your strategy for handling data. In this article I'll explain some of these issues in general terms, and then demonstrate how you can navigate these problems easily with Flyway |
-| [Flyway Gotchas](https://www.red-gate.com/hub/product-learning/flyway/flyway-gotchas?product=flyway) | Explaining some of the 'gotchas' that can trip up the unwary Flyway user, and how to avoid them. One or two of these you'll encounter quickly, such as the case-sensitivity of parameters and arguments. Others, such as potential problems with undo scripts or running scripted callbacks, only when you are tackling more complex development processes |
+---
 
+> **Note:** The Flyway Teamwork Framework builds on years of practical experience from real-world teams. It’s pragmatic, flexible, and designed to evolve with your organization’s maturity.
 
+---
 
-There are plenty more articles about Flyway Teamworks here https://www.red-gate.com/hub/product-learning/flyway
+**Contributions, questions, and feedback are welcome as we continue to refine and expand the framework for the database DevOps community.**
+
+---
+
+# Quick Start Guide
+
+## Prerequisites
+
+- Git installed
+- Flyway Desktop and/or Flyway CLI installed
+- Access to your target database platform (SQL Server, PostgreSQL, etc.)
+
+## Steps
+
+1. **Clone this repository:**
+
+```bash
+git clone https://github.com/your-org/flyway-teamwork-project.git
+```
+
+2. **Create your branch:**
+
+```bash
+git checkout -b feature/my-first-change
+```
+
+3. **Capture schema into design folder** using Flyway Desktop or `flyway schema` command.
+
+4. **Generate migration script:**
+
+- Use Flyway Desktop to generate scripts
+- Or write manual migrations into `/migrations` folder
+
+5. **Commit your changes:**
+
+```bash
+git add .
+git commit -m "Added new table for orders"
+```
+
+6. **Push to repository and open pull request.**
+
+7. **Run CI/CD pipeline** (example YAMLs provided in `/ci-templates`).
+
+8. **Deploy safely with confidence!**
+
+---
+
+# Repository Structure
+
+```bash
+/
+│
+├── design/          # Schema model, captured design, and narrative metadata
+├── migrations/      # Flyway versioned migration scripts
+├── undo/            # (Optional) Undo scripts for Flyway Enterprise users
+├── metadata/        # Change proposals, rationales, design decisions
+├── documentation/   # Technical docs and internal references
+├── tests/           # Integration and unit tests for database code
+├── ci-templates/    # Example CI/CD pipeline configurations
+└── README.md        # This document
+```
+
+---
+
+# Contributing
+
+We welcome contributions to improve and evolve the Flyway Teamwork Framework.
+
+## Ways to contribute
+
+- Suggest new patterns or structures.
+- Share scripts or examples from your own usage.
+- Propose enhancements to workflows.
+- Report issues or missing documentation.
+
+## Contribution Process
+
+1. Fork this repository
+2. Create a feature branch
+3. Submit a pull request
+4. All submissions will be reviewed before merge.
+
+---
+
+Thank you for helping build better collaborative workflows for database teams!
 
