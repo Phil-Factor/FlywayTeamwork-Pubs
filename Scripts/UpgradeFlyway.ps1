@@ -133,4 +133,3 @@ else
 {
 	Write-verbose "You are currently already on the latest version ($currentInstalledVersion)"
 }
-

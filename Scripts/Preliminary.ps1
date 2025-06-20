@@ -1,4 +1,6 @@
-﻿param ($ListOfExtraSources= @()) 
+﻿#$Env:FP__projectDirectory__="S:\work\Github\FlywayTeamwork\Pubs"
+param ($ListOfExtraSources= @()# these should be absoluter paths
+) 
 #these are extra configuration files, usually decrypted en-route and  read in as parameters.
 <#
  Principles:
@@ -21,11 +23,21 @@ if ($FlywayCommand.CommandType -eq 'Application' -and
 {
 	write-error "Your Flyway Version is too outdated to work" -ErrorAction Stop
 }
+
+# is the placehoder set for the project directory?
+$TheWorkingDirectory= $Env:FP__projectDirectory__;
+ #Oops! has Flyway set a placeholder for the working directory ?
+if ([string]::IsNullOrEmpty($TheWorkingDirectory)) {$TheWorkingDirectory= $Env:FP__flyway_workingDirectory__} 
+# ah well, we assume it is the current directory
+if ([string]::IsNullOrEmpty($TheWorkingDirectory)) {$TheWorkingDirectory=$pwd.Path}
+Write-Warning "We have found '$TheWorkingDirectory'"
+$dir=[System.IO.DirectoryInfo]$TheWorkingDirectory
+# $dir.FullName
 <#
 pick up any changed locations that the user wants. 
 If nothing exists, then create the file with the default settings in place
 #>
- If (!(Test-Path -Path "$pwd\DirectoryNames.json" -PathType Leaf))
+ If (!(Test-Path -Path "$TheWorkingDirectory\DirectoryNames.json" -PathType Leaf))
     {@{
 	'migrationsPath' = 'Unknown'; 
         #where the migration scripts are stored-branch structure default to Migrations
@@ -35,10 +47,10 @@ If nothing exists, then create the file with the default settings in place
 	'DataPath' = 'Data'; #where the data for any branch version is stored #>
 	'VersionsPath' = 'Versions'; #where data for all the versions is stored #>
     'Reportdirectory'='Documents\GitHub\'<# path to the directory where data about migration is stored #>
-    } |convertto-json > "$pwd\DirectoryNames.json"
+    } |convertto-json > "$TheWorkingDirectory\DirectoryNames.json"
     }
 
-$FileLocations=[IO.File]::ReadAllText("$pwd\DirectoryNames.json")|convertfrom-json
+$FileLocations=[IO.File]::ReadAllText("$TheWorkingDirectory\DirectoryNames.json")|convertfrom-json
 
 $ResourcesPath= if ([string]::IsNullOrEmpty($FileLocations.ResourcePath)) 
         {'resources'} else {"$($FileLocations.ResourcesPath)"}
@@ -54,16 +66,17 @@ $VersionsPath= if ([string]::IsNullOrEmpty($FileLocations.VersionsPath))
 $Reportdirectory= if ([string]::IsNullOrEmpty($FileLocations.Reportdirectory)) 
         {'Documents\GitHub\'} else {"$($FileLocations.Reportdirectory)"}
 #$ReportLocation is used for the branch version
-$ReportLocation="$pwd\$VersionsPath"# part of path from user area to project artefacts folder location 
+$ReportLocation="$TheWorkingDirectory\$VersionsPath"# part of path from user area to project artefacts folder location 
 $TestsLocations=@();
 #look for the common resources directory for all assets such as modules that are shared
-$dir = $pwd.Path; $ii = 10; # $ii merely prevents runaway looping.
+
+$ii = 10; # $ii merely prevents runaway looping.
 if (test-path   "..\$ResourcesPath")
     {$Branch ='main'}
 else
-    {$Branch = Split-Path -Path $pwd.Path -leaf;}
-$structure='classic'
-if ( (dir "$pwd" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
+    {$Branch = Split-Path -Path $dir.Fullname -leaf;}
+$structure='classic' #by default 
+if ( (dir "$TheWorkingDirectory" -Directory|where {$_.Name -eq 'Branches'}) -ne $null)
     {$structure='branch'}
 while ($dir -ne '' -and -not (Test-Path "$dir\$ResourcesPath" -PathType Container
 	) -and $ii -gt 0)
@@ -80,7 +93,7 @@ $MigrationsPath= if ($FileLocations.MigrationsPath -ieq 'Unknown')
 
 if ($FileLocations.MigrationsPath -ieq 'Unknown') 
     {$FileLocations.MigrationsPath=$MigrationsPath;
-    $FileLocations|convertto-json > "$pwd\DirectoryNames.json"
+    $FileLocations|convertto-json > "$TheWorkingDirectory\DirectoryNames.json"
     }
 
 if ($dir -eq '') { throw "no resources directory found" }

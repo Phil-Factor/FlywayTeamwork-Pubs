@@ -1,47 +1,4 @@
 ﻿<#
-$Env:FLYWAY_PASSWORD  = 'password'                                                           
-$Env:FLYWAY_URL  = 'jdbc:sqlserver://philf01;databaseName=PubsMain;encrypt=true;trustServerCertificate=true;'
-$Env:FLYWAY_USER  = 'PhilFactor'                                                              
-$Env:FP__Branch__  =  'Main'                                                                    
-$Env:FP__canDoStringAgg__  = 'true'                                                                    
-$Env:FP__DSN__  = 'PubsDSN'                                                                 
-$Env:FP__flyway_database__  = 'PubsMain'                                                                
-$Env:FP__flyway_defaultSchema__  = 'dbo'                                                                     
-$Env:FP__flyway_environment__  = 'main'                                                                    
-$Env:FP__flyway_filename__  = 'afterInfo__Env.ps1'                                                      
-$Env:FP__flyway_table__  = 'flyway_schema_history'                                                   
-$Env:FP__flyway_timestamp__  = '2025-02-06 14:16:10'                                                     
-$Env:FP__flyway_user__  = 'PhilFactor'                                                              
-$Env:FP__flyway_workingDirectory__  = 'S:\work\Github\FlywayTeamwork\Pubs'                                      
-$Env:FP__projectDescription__  = 'A sample team-based Flyway project'                                      
-$Env:FP__projectName__  = 'Pubs'                    
-$Env:FP__SnapshotDirectory__  = "Snapshots"                                      
-
-$Env:FLYWAY_PASSWORD  = $null                                                           
-$Env:FLYWAY_URL  = $null 
-$Env:FLYWAY_USER  = $null                                                              
-$Env:FP__Branch__  =  $null                                                                     
-$Env:FP__canDoStringAgg__  =$null                                                                     
-$Env:FP__DSN__  = $null                                                                  
-$Env:FP__flyway_database__  = $null                                                              
-$Env:FP__flyway_defaultSchema__  = $null                                                                     
-$Env:FP__flyway_environment__  = $null                                                                   
-$Env:FP__flyway_filename__  = $null                                                     
-$Env:FP__flyway_table__  = $null                                                   
-$Env:FP__flyway_timestamp__  = $null                                                     
-$Env:FP__flyway_user__  = $null                                                             
-$Env:FP__flyway_workingDirectory__  = $null                                       
-$Env:FP__projectDescription__  = $null                                       
-$Env:FP__projectName__  = $null                     
-$Env:FP__SnapshotDirectory__  = $null                                    
-
-#>
-
-
-
-
-
-<#
 	.SYNOPSIS
 		Get the configuration values from all the Flyway sources, including any encrypted files
 	
@@ -55,6 +12,7 @@ $Env:FP__SnapshotDirectory__  = $null
 	.EXAMPLE
 		PS C:\> Get-FlywayConfContent |convertTo-json
         PS C:\> Get-FlywayConfContent -WeWantConfigInfo $false #just give the environment variables
+
 
 	
 #>
@@ -109,7 +67,11 @@ function Get-FlywayConfContent
 			Write-Warning "mystery Flyway environment variable $($_.Name)"
 		}
 	}
-   
+    # if we are wanting to execute this outside the current directory
+    if ($FlywayConfContent.Placeholders.projectdirectory -ne $null)
+        {$WhereToLook=$FlywayConfContent.Placeholders.projectdirectory}
+        else
+        {$WhereToLook=$pwd.Path}
 	
 	#if we also want to get config information
 	If ($WeWantConfigInfo)
@@ -135,11 +97,12 @@ function Get-FlywayConfContent
 		
 		if ($ListOfExtraSources.count -gt 0 -and !([string]::IsNullOrEmpty($ListOfExtraSources)))
 		{
+            
 			$ListOfExtraSources | foreach { $FlywaylinesToParse += Get-content "$_" }
 		}
-		if (test-path "flyway.toml" -PathType Leaf)
+		if (test-path "$WhereToLook\flyway.toml" -PathType Leaf)
 		{
-			$FlywaylinesToParse = Get-Content -Raw "flyway.toml"
+			$FlywaylinesToParse = Get-Content -Raw "$WhereToLook\flyway.toml"
             $TomlData = ConvertFrom-ini "$FlywaylinesToParse"
 			$TomlData.flyway.GetEnumerator() | foreach{
 				$Key = $_.name; $TheValue = $_.Value;
@@ -158,7 +121,7 @@ function Get-FlywayConfContent
 		}
 		elseif (test-path "flyway.conf" -PathType Leaf)
 		{
-			$FlywaylinesToParse += Get-Content "flyway.conf"
+			$FlywaylinesToParse += Get-Content "$WhereToLook\flyway.conf"
 		
 		    if (test-path "$env:userProfile\flyway.conf" -PathType Leaf)
 		    {
