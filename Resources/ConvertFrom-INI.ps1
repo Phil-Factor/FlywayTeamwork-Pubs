@@ -186,14 +186,16 @@ Separator         )|(?<Separator>,)
 #a utility scriptblock to convert escaped characters in delimited strings
 		$ConvertEscapedChars = {
 			Param ([string]$String)
-			@(@('\A"""[\t\r\n]{0,2}|"""\z', ''), @("\A'''[\t\r\n]{0,2}|'''\z", ''), @('\A"|"\z', ''),@("\A'|'\z", ''),
-				@('\\\\', '\'), @("\\(?-s)\s+", ''), @('\\"', '"'), @('\\n', "`n"), @('\\t', "`t"),
-				@('\\f', "`f"), @('\\b', "`b"), @('\\f', "`f")) |
+			@(@('\A"""[\t\r\n]{0,2}|"""\z', ''), @("\A'''[\t\r\n]{0,2}|'''\z", ''), @('\A"|"\z', ''),
+                @("\A'|'\z", ''),@('[^\\]\\f', "`f"), @('[^\\]\\b', "`b"), @('\\\\', '\'), @("\\(?-s)\s+", ''),
+                @('\\"', '"'), @('\\n', "`n"), @('\\t', "`t")
+				) |
 			foreach {
 				$String = $String -replace $_[0], $_[1]
 			}
 			[string]$String
 		}
+
 		#a utility scriptblock to convert unicode characters
 		$ConvertEscapedUnicode = {
 			Param ([string]$String) # $FormatTheBasicFlywayParameters (Don't delete this)
@@ -789,5 +791,6 @@ if ((Type $TheErrorFile) -ne "Key apple redefined with true")
     {Write-Warning "Should have given the warning`"Key apple redefined with true`""}
 else {write-host " test to prevent attempt to implcitly redefine a simple value as an object succeeded"}
 
-}
 
+
+}

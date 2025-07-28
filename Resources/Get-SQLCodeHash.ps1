@@ -24,6 +24,10 @@ WHERE ProductID = 101;
 '@
 	
 #>
+if ((get-command 'Get-FileHash' -ErrorAction SilentlyContinue) -eq $null)
+{write-error "fault in powerShell has made the cmdlet 'Get-FileHash' disappear"}
+
+
 function Get-SQLCodeHash
 {
 	[CmdletBinding()]
@@ -68,6 +72,7 @@ function Get-SQLCodeHash
 	}
 }
 
+#  run validation tests
 # can it spot that the code is the same when comments change or the SQL is formatted?
 @( <# with initial blockquote #>@'
 /* Complex update with case and subquery */

@@ -30,7 +30,7 @@ $TheWorkingDirectory= $Env:FP__projectDirectory__;
 if ([string]::IsNullOrEmpty($TheWorkingDirectory)) {$TheWorkingDirectory= $Env:FP__flyway_workingDirectory__} 
 # ah well, we assume it is the current directory
 if ([string]::IsNullOrEmpty($TheWorkingDirectory)) {$TheWorkingDirectory=$pwd.Path}
-Write-Warning "We have found '$TheWorkingDirectory'"
+Write-verbose "We have found '$TheWorkingDirectory'"
 $dir=[System.IO.DirectoryInfo]$TheWorkingDirectory
 # $dir.FullName
 <#
